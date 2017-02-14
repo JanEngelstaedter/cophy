@@ -10,7 +10,33 @@ randomcophy.2PonH(tmax, H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
   ini.Hbranch = NA, Gdist = NA, timestep = 0.001, DBINC = 100)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate, H.tree: a pre-built host phylogenetic tree, beta: parasite host jump rate, gamma.P: dependency on genetic distance for host jumps, gamma.Q: dependency on genetic distance for host jumps, sigma.self: probability of successful co-infection with related parasite following host jump, sigma.cross: probability of successful co-infection with unrelated parasite following host jump, mu.P: parasite extinction rate, mu.Q: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), P.startT: the timepoint at which a parasite invades the host-tree, ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA), Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations}
+\item{tmax:}{maximum time for which to simulate}
+
+\item{H.tree:}{a pre-built host phylogenetic tree}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma.P:}{dependency on genetic distance for host jumps}
+
+\item{gamma.Q:}{dependency on genetic distance for host jumps}
+
+\item{sigma.self:}{probability of successful co-infection with related parasite following host jump}
+
+\item{sigma.cross:}{probability of successful co-infection with unrelated parasite following host jump}
+
+\item{mu.P:}{parasite extinction rate}
+
+\item{mu.Q:}{parasite extinction rate}
+
+\item{prune.extinct:}{whether to remove all extinct branches defaulting to FALSE}
+
+\item{export.format:}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+
+\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+
+\item{ini.Hbranch:}{the host branch from which the parasite invasion is initiated (defaults to NA)}
+
+\item{Gdist:}{can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations}
 }
 \description{
 The following function simulates a two coevolving parasite phylogenetic trees on a pre-built host phylogeny.

@@ -9,7 +9,29 @@ randomcophy.HP(tmax, nHmax = Inf, lambda = 1, muH = 0.5, K = Inf,
   prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate, nHmax: maximum host species number until which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), timestep: timestep for simulations}
+\item{tmax:}{maximum time for which to simulate}
+
+\item{nHmax:}{maximum host species number until which to simulate}
+
+\item{lambda:}{host speciation rate}
+
+\item{K:}{carrying capacity for host species}
+
+\item{muH:}{host extinction rate}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma:}{dependency on genetic distance for host jumps}
+
+\item{sigma:}{probability of successful co-infection following host jump}
+
+\item{muP:}{parasite extinction rate#' @param}
+
+\item{prune.extinct:}{whether to remove all extinct branches defaulting to FALSE}
+
+\item{export.format:}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself) timestep: timestep for simulations}
+
+\item{timestep:}{timestep for simulations}
 }
 \description{
 The following function simulates a host phylogenetic tree on which a parasite clade co-diversifies.

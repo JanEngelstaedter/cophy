@@ -7,7 +7,9 @@
 subtree.freqInfected(cophy, tips)
 }
 \arguments{
-\item{cophy:}{cophylogeny in phylo format, tips: a vector of tip labels}
+\item{cophy:}{cophylogeny in phylo format}
+
+\item{tips:}{a vector of tip labels}
 }
 \description{
 The following function returns the fraction of infected host species within a subclade of a host tree that is specified by tips, a vector of tip labels.

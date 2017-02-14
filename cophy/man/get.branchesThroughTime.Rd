@@ -7,7 +7,11 @@
 get.branchesThroughTime(phy, tmax, dt)
 }
 \arguments{
-\item{phy:}{a phylogeny (in phylo format) containing one tree, tmax: maximum time for which to simulate, dt: step size for performing calculations}
+\item{phy:}{a phylogeny (in phylo format) containing one tree}
+
+\item{tmax:}{maximum time for which to simulate}
+
+\item{dt:}{step size for performing calculations}
 }
 \description{
 The following functioin returns a vector of branch (species) numbers through time, using timesteps dt and a maximum duration tmax that may be greater than the actual length of the tree.

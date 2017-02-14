@@ -67,7 +67,19 @@ code.version<-0.928
 #' A random cophylogeny building function
 #'
 #' The following function simulates a host phylogenetic tree on which a parasite clade co-diversifies.
-#' @param tmax: maximum time for which to simulate, nHmax: maximum host species number until which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), timestep: timestep for simulations
+#' @param tmax: maximum time for which to simulate 
+#' @param nHmax: maximum host species number until which to simulate 
+#' @param lambda: host speciation rate 
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate 
+#' @param beta: parasite host jump rate 
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+
+#' @param muP: parasite extinction rate#' @param
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE 
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself) timestep: timestep for simulations
+#' @param timestep: timestep for simulations
 #' @keywords Host-Parasite phylogeny
 #' @export
 #' @examples
@@ -356,7 +368,14 @@ randomcophy.HP<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,beta=0.1,gamma=0.
 #' A random host tree building function
 #'
 #' The following function simulates a host phylogenetic tree.
-#' @param tmax: maximum time for which to simulate, nHmax: maximum host species number until which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself), timestep: timestep for simulations
+#' @param tmax: maximum time for which to simulate
+#' @param nHmax: maximum host species number until which to simulate
+#' @param lambda: host speciation rate 
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate 
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself)
+#' @param timestep: timestep for simulations
 #' @keywords Host phylogeny
 #' @export
 #' @examples
@@ -466,7 +485,18 @@ randomphy.H<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,prune.extinct=FALSE,
 #' A random parasite tree building function
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
-#' @param tmax: maximum time for which to simulate, H.tree: a pre-built host phylogenetic tree, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), P.startT: the timepoint at which a parasite invades the host-tree, ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA), Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations
+#' @param tmax: maximum time for which to simulate
+#' @param H.tree: a pre-built host phylogenetic tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
+#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
+#' @param timestep: timestep for simulations
 #' @keywords Host-Parasite phylogeny
 #' @export
 #' @examples
@@ -720,7 +750,20 @@ randomcophy.PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,muP=0.5,prune.
 #' A random dual parasite tree building function
 #'
 #' The following function simulates a two coevolving parasite phylogenetic trees on a pre-built host phylogeny.
-#' @param tmax: maximum time for which to simulate, H.tree: a pre-built host phylogenetic tree, beta: parasite host jump rate, gamma.P: dependency on genetic distance for host jumps, gamma.Q: dependency on genetic distance for host jumps, sigma.self: probability of successful co-infection with related parasite following host jump, sigma.cross: probability of successful co-infection with unrelated parasite following host jump, mu.P: parasite extinction rate, mu.Q: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), P.startT: the timepoint at which a parasite invades the host-tree, ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA), Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations
+#' @param tmax: maximum time for which to simulate
+#' @param H.tree: a pre-built host phylogenetic tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param mu.Q: parasite extinction rate
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
+#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations
 #' @keywords Multi-Parasite phylogeny
 #' @export
 #' @examples
@@ -1118,7 +1161,17 @@ randomcophy.2PonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.s
 #' A function to simulate many random cophylogenies and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param tmax: maximum time for which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, timestep: timestep for simulations, reps: number of times to simulate this set of parameters, filename: name underwhich set of simulations and statistics will be saved
+#' @param tmax: maximum time for which to simulate
+#' @param lambda: host speciation rate
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps: number of times to simulate this set of parameters
+#' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
@@ -1153,7 +1206,13 @@ simulate.singleparam<-function(tmax=0,lambda,muH,beta,gamma,sigma,muP,K,timestep
 #' A function to simulate many random host phylogenies 
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param tmax: maximum time for which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, timestep: timestep for simulations, reps: number of times to simulate this set of parameters, filename: name underwhich set of simulations and statistics will be saved
+#' @param tmax: maximum time for which to simulate
+#' @param lambda: host speciation rate
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps: number of times to simulate this set of parameters
+#' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords multiple Host phylogenies
 #' @export
 #' @examples
@@ -1184,7 +1243,19 @@ simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
 #' A function to simulate many random parasite phylogenies on pre-built host-trees and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords multiple Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
@@ -1242,7 +1313,22 @@ simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.star
 #' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma.P: dependency on genetic distance for host jumps, gamma.Q: dependency on genetic distance for host jumps, sigma.self: probability of successful co-infection with related parasite following host jump, sigma.cross: probability of successful co-infection with unrelated parasite following host jump, mu.P: parasite extinction rate, mu.Q: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param mu.Q: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords multiple Host coevolving Parasite phylogeny, statistics
 #' @export
 #' @examples
@@ -1299,7 +1385,20 @@ simulate.2PonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.start
 #' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
 #'
 #' The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved, ncores: the number of cores that will be used to run simulations in parallel.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @param ncores: the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @export
 #' @examples
@@ -1384,7 +1483,24 @@ parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.s
 #' A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
 #'
 #' The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma.P: dependency on genetic distance for host jumps, gamma.Q: dependency on genetic distance for host jumps, sigma.self: probability of successful co-infection with related parasite following host jump, sigma.cross: probability of successful co-infection with unrelated parasite following host jump, mu.P: parasite extinction rate, timestep: timestep for simulations, mu.Q: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved, ncores: the number of cores that will be used to run simulations in parallel.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param mu.Q: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @param ncores: the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @export
 #' @examples
@@ -1473,7 +1589,9 @@ parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 #' Converting raw trees to phylo format
 #'
 #' The following function converts raw host-parasite tree matricies into phylo format
-#' @param HBranches: Host-tree in raw matrix format, PBranches: Parasite-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @param HBranches: Host-tree in raw matrix format
+#' @param PBranches: Parasite-tree in raw matrix format
+#' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo 
 #' @export
 #' @examples
@@ -1717,7 +1835,8 @@ convert.branchesToPhylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 #' Converting raw tree to phylo format
 #'
 #' The following function converts a raw host tree matrix into phylo format
-#' @param HBranches: Host-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @param HBranches: Host-tree in raw matrix format
+#' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo 
 #' @export
 #' @examples
@@ -1861,7 +1980,8 @@ convert.HbranchesToPhylo<-function(HBranches,prune.extinct=FALSE)
 #' Converting raw Parasite tree to phylo format
 #'
 #' The following function converts a raw parasite tree matrix into phylo format
-#' @param PBranches: Parasite-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @param PBranches: Parasite-tree in raw matrix format
+#' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo 
 #' @export
 #' @examples
@@ -1998,7 +2118,9 @@ convert.PbranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 #' Converting raw trees to phylo format
 #'
 #' The following function converts raw dual parasite tree matricies into phylo format
-#' @param P.PBranches: Parasite-tree in raw matrix format, Q.PBranches: Parasite-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @param P.PBranches: Parasite-tree in raw matrix format
+#' @param Q.PBranches: Parasite-tree in raw matrix format
+#' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo 
 #' @export
 #' @examples
@@ -2958,7 +3080,9 @@ get.2Pinfectionstats<-function(cophy)
 }
 
 #' The following functioin returns a vector of branch (species) numbers through time, using timesteps dt and a maximum duration tmax that may be greater than the actual length of the tree.
-#' @param phy: a phylogeny (in phylo format) containing one tree, tmax: maximum time for which to simulate, dt: step size for performing calculations
+#' @param phy: a phylogeny (in phylo format) containing one tree
+#' @param tmax: maximum time for which to simulate
+#' @param dt: step size for performing calculations
 #' @keywords cophylogeny, branches
 #' @export
 #' @examples
@@ -2996,6 +3120,9 @@ get.branchesThroughTime<-function(phy,tmax,dt)
 #'
 #' The following function records parasites events through time including: Start of time interval, End of time interval, Number of living branches (at the end of time interval), cospeciation events, host shifts, extinction (with hosts surviving), co-extinction (extinction caused by host extinction), speciation events for lineages with surviving descendents 
 #' @param cophy: a cophylogeny (in phylo format) containing one host and one parasite trees
+#' @param tmin: the timepoint in the simulation from which parasite events should be recorded, default = 0 (start point for the cophylogeny)
+#' @param tmax:the timepoint in the simulation until which parasite events should be recorded, default = 'max' (end point for the cophylogeny)
+#' @param dt: step size for the time points at which calculations are made
 #' @keywords cophylogeny, events
 #' @export
 #' @examples
@@ -3147,7 +3274,8 @@ get.2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 # and much slower than the corresponding function (cophenetic.phylo) in the APE package.
 
 #' Calculating the distance matrix between host branches alive at a particular timepoint
-#' @param branches: raw branches matrix of a host tree, t: timepoint in simulation at which you want distance information
+#' @param branches: raw branches matrix of a host tree
+#' @param t: timepoint in simulation at which you want distance information
 #' @keywords genetic distance
 #' @export
 #' @examples
@@ -3255,7 +3383,9 @@ get.PHdistCorrelation<-function(cophy)
 
 #' (recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree
 #' 
-#' @param n: some branch in a tree, phy: the tree in phylo format, ancBranches: the ancestral branches for the tree
+#' @param n: some branch in a tree
+#' @param phy: the tree in phylo format 
+#' @param ancBranches: the ancestral branches for the tree
 #' @keywords branch, birth time
 #' @export
 #' @examples
@@ -3309,7 +3439,8 @@ get.PextinctionTime<-function(phy)
 
 #' Function to obtain the time of a node relative to the root
 #' 
-#' @param phy: tree in phylo format, node: a particular node in the tree
+#' @param phy: tree in phylo format
+#' @param node: a particular node in the tree
 #' @keywords node, root
 #' @export
 #' @examples
@@ -3331,7 +3462,8 @@ nodeTime<-function(phy,node)
 
 #' The following function returns the fraction of infected host species within a subclade of a host tree that is specified by tips, a vector of tip labels.
 #' 
-#' @param cophy: cophylogeny in phylo format, tips: a vector of tip labels
+#' @param cophy: cophylogeny in phylo format
+#' @param tips: a vector of tip labels
 #' @keywords subtree, infection frequency
 #' @export
 #' @examples

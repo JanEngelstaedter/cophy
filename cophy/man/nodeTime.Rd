@@ -7,7 +7,9 @@
 nodeTime(phy, node)
 }
 \arguments{
-\item{phy:}{tree in phylo format, node: a particular node in the tree}
+\item{phy:}{tree in phylo format}
+
+\item{node:}{a particular node in the tree}
 }
 \description{
 Function to obtain the time of a node relative to the root

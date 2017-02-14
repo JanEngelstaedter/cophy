@@ -7,7 +7,9 @@
 convert.HbranchesToPhylo(HBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{HBranches:}{Host-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)}
+\item{HBranches:}{Host-tree in raw matrix format}
+
+\item{prune.extinct:}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
 The following function converts a raw host tree matrix into phylo format

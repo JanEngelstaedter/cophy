@@ -7,7 +7,11 @@
 get.tBirth(n, phy, ancBranches)
 }
 \arguments{
-\item{n:}{some branch in a tree, phy: the tree in phylo format, ancBranches: the ancestral branches for the tree}
+\item{n:}{some branch in a tree}
+
+\item{phy:}{the tree in phylo format}
+
+\item{ancBranches:}{the ancestral branches for the tree}
 }
 \description{
 (recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree

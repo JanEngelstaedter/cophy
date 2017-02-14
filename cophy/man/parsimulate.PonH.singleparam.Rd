@@ -9,7 +9,33 @@ parsimulate.PonH.singleparam(Htrees, fromHtree = NA, toHtree = NA, tmax,
   ncores)
 }
 \arguments{
-\item{Htrees:}{pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved, ncores: the number of cores that will be used to run simulations in parallel.}
+\item{Htrees:}{pre-built host trees on which to simulate parasite trees}
+
+\item{fromHtree:}{starting host-tree}
+
+\item{toHtree:}{finishing host-tree}
+
+\item{tmax:}{maximum time for which to simulate}
+
+\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma:}{dependency on genetic distance for host jumps}
+
+\item{sigma:}{probability of successful co-infection following host jump}
+
+\item{muP:}{parasite extinction rate}
+
+\item{timestep:}{timestep for simulations}
+
+\item{reps1:}{the number of starting points for the parasite trees}
+
+\item{reps2:}{the number of replicates per starting point}
+
+\item{filename:}{name underwhich set of simulations and statistics will be saved}
+
+\item{ncores:}{the number of cores that will be used to run simulations in parallel}
 }
 \description{
 The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.

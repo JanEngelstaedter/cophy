@@ -1,9 +1,18 @@
 Package: cophy
-Title: What the Package Does (one line, title case)
+Title: Constructing random cophylogenetic trees and analysing their statistics
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-Depends: R (>= 3.3.1)
-License: What license is it under?
+Authors@R: c(
+    person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "cre"),
+    person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = "aut"))
+Description: Functions to simulate, plot and analyse codiversification of hosts
+    and their parasites.
+Depends:
+    R (>= 3.3.1)
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
+Imports:
+    parallel,
+    foreach,
+    doParallel
+RoxygenNote: 5.0.1

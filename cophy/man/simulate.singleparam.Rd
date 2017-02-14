@@ -8,7 +8,27 @@
   K, timestep, reps, filename = NA)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate, lambda: host speciation rate, K: carrying capacity for host species, muH: host extinction rate, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, timestep: timestep for simulations, reps: number of times to simulate this set of parameters, filename: name underwhich set of simulations and statistics will be saved}
+\item{tmax:}{maximum time for which to simulate}
+
+\item{lambda:}{host speciation rate}
+
+\item{K:}{carrying capacity for host species}
+
+\item{muH:}{host extinction rate}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma:}{dependency on genetic distance for host jumps}
+
+\item{sigma:}{probability of successful co-infection following host jump}
+
+\item{muP:}{parasite extinction rate}
+
+\item{timestep:}{timestep for simulations}
+
+\item{reps:}{number of times to simulate this set of parameters}
+
+\item{filename:}{name underwhich set of simulations and statistics will be saved}
 }
 \description{
 A function to run a certain number of replicate simulations, save all the trees and output all stats.

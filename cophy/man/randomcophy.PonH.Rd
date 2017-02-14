@@ -9,7 +9,29 @@ randomcophy.PonH(tmax, H.tree, beta = 0.1, gamma = 0.2, sigma = 0,
   P.startT = 0, ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate, H.tree: a pre-built host phylogenetic tree, beta: parasite host jump rate, gamma: dependency on genetic distance for host jumps, sigma: probability of successful co-infection following host jump, muP: parasite extinction rate, prune.extinct: whether to remove all extinct branches defaulting to FALSE, export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself), P.startT: the timepoint at which a parasite invades the host-tree, ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA), Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations}
+\item{tmax:}{maximum time for which to simulate}
+
+\item{H.tree:}{a pre-built host phylogenetic tree}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma:}{dependency on genetic distance for host jumps}
+
+\item{sigma:}{probability of successful co-infection following host jump}
+
+\item{muP:}{parasite extinction rate}
+
+\item{prune.extinct:}{whether to remove all extinct branches defaulting to FALSE}
+
+\item{export.format:}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+
+\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+
+\item{ini.Hbranch:}{the host branch from which the parasite invasion is initiated (defaults to NA)}
+
+\item{Gdist:}{can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)}
+
+\item{timestep:}{timestep for simulations}
 }
 \description{
 The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.

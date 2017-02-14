@@ -7,7 +7,11 @@
 convert.2PbranchesToPhylo(P.PBranches, Q.PBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{P.PBranches:}{Parasite-tree in raw matrix format, Q.PBranches: Parasite-tree in raw matrix format, prune.extinct: whether to remove all extinct branches (defaulting to FALSE)}
+\item{P.PBranches:}{Parasite-tree in raw matrix format}
+
+\item{Q.PBranches:}{Parasite-tree in raw matrix format}
+
+\item{prune.extinct:}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
 The following function converts raw dual parasite tree matricies into phylo format

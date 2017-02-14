@@ -9,7 +9,41 @@ parsimulate.2PonH.singleparam(Htrees, fromHtree = NA, toHtree = NA, tmax,
   timestep, reps1, reps2, filename = NA, ncores)
 }
 \arguments{
-\item{Htrees:}{pre-built host trees on which to simulate parasite trees, fromHtree: starting host-tree, toHtree: finishing host-tree, tmax: maximum time for which to simulate, P.startT: the timepoint at which a parasite invades the host-tree, beta: parasite host jump rate, gamma.P: dependency on genetic distance for host jumps, gamma.Q: dependency on genetic distance for host jumps, sigma.self: probability of successful co-infection with related parasite following host jump, sigma.cross: probability of successful co-infection with unrelated parasite following host jump, mu.P: parasite extinction rate, timestep: timestep for simulations, mu.Q: parasite extinction rate, timestep: timestep for simulations, reps1: the number of starting points for the parasite trees, reps2: the number of replicates per starting point, filename: name underwhich set of simulations and statistics will be saved, ncores: the number of cores that will be used to run simulations in parallel.}
+\item{Htrees:}{pre-built host trees on which to simulate parasite trees}
+
+\item{fromHtree:}{starting host-tree}
+
+\item{toHtree:}{finishing host-tree}
+
+\item{tmax:}{maximum time for which to simulate}
+
+\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+
+\item{beta:}{parasite host jump rate}
+
+\item{gamma.P:}{dependency on genetic distance for host jumps}
+
+\item{gamma.Q:}{dependency on genetic distance for host jumps}
+
+\item{sigma.self:}{probability of successful co-infection with related parasite following host jump}
+
+\item{sigma.cross:}{probability of successful co-infection with unrelated parasite following host jump}
+
+\item{mu.P:}{parasite extinction rate}
+
+\item{timestep:}{timestep for simulations}
+
+\item{mu.Q:}{parasite extinction rate}
+
+\item{timestep:}{timestep for simulations}
+
+\item{reps1:}{the number of starting points for the parasite trees}
+
+\item{reps2:}{the number of replicates per starting point}
+
+\item{filename:}{name underwhich set of simulations and statistics will be saved}
+
+\item{ncores:}{the number of cores that will be used to run simulations in parallel}
 }
 \description{
 The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
