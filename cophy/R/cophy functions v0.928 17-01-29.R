@@ -1558,7 +1558,7 @@ parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('randomcophy.2PonH','convert.2PbranchesToPhylo',"convert.HbranchesToPhylo",'DBINC'),.packages="ape") %dopar% {
 			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-			randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+			randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
 		}
 		
 		# second loop to calculate the summary statistics:	
