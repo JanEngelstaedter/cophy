@@ -770,11 +770,11 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 
 	TraitTracking<-vector("list",length(H.tree[,1]))
 	for (i in 1:length(H.tree[,1])) {
-		TraitTracking[[i]]<-matrix(NA, ncol=3, nrow=1)
-		colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value", "event")
+		TraitTracking[[i]]<-matrix(NA, ncol=2, nrow=1)
+		colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value")
 	}
 	
-	TraitTracking[[1]][1,]<-c(0,0, "birth") # Setting initial trait value and simulation start time
+	TraitTracking[[1]][1,]<-c(0,0) # Setting initial trait value and simulation start time
 	
 	while (t<=P.startT) {
 		t<-t+timestep
@@ -787,7 +787,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 				{					
 					H.Speciations		<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
 					
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations], "death")) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
 					
 					daughterBranches	<-which(H.tree$nodeBirth == i)
 					
@@ -796,8 +796,8 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 					
 					timepoint           <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
 					
-					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations], "birth")
-					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations], "birth")
+					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
 											
 					# delete all extinct hosts from living tree
 					HBranches	<-HBranches[-H.Speciations,] 
@@ -808,7 +808,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 					
 					if (length(H.Extinctions)>0) {
 						for (j in H.Extinctions) {
-							TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j],"death"))
+							TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
 						}
 						# removing all host mother branches that have died
 						HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
@@ -831,7 +831,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 			
 			for (i in HBranches$branchNo[which(HBranches$Resistance==0)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1, "mutation 0->1"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
 			}
 		}
 		
@@ -840,7 +840,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 			HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[which(HBranches$Resistance==1)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0, "mutation 1->0"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
 			}
 		}
 	}
@@ -930,14 +930,14 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 				if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
 				{
 					H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations], "death")) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
 
 					daughterBranches			<-which(H.tree$nodeBirth == i)
 					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
 					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
 					
-					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations], "birth")
-					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations], "birth")
+					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
 					
 					
 					timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
@@ -1015,7 +1015,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 						PBranches<-PBranches[-P.Extinctions,] # delete all branches associated with extinct host from living tree
 					}
 					for (j in H.Extinctions) {
-						TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j],"death"))
+						TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
 					}
 						
 					# removing all host mother branches that have died					
@@ -1157,7 +1157,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 			
 			for (i in HBranches$branchNo[which(HBranches$Resistance==0)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1, "mutation 0->1"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
 			}
 		}
 		
@@ -1166,7 +1166,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 			HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[which(HBranches$Resistance==1)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0, "mutation 1->0"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
 			}
 		}
 		
@@ -1186,7 +1186,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
 	
 	for (i in which(H.tree$alive==1)) {
-		TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2], "death"))
+		TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
 	}
 	
 	if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
