@@ -1238,6 +1238,81 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	}
 }
 
+#' A parallel parasite tree building function with host response to infection
+#'
+#' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+#' @param tmax: maximum time for which to simulate
+#' @param H.tree: a pre-built host phylogenetic tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param epsilon.0to1: the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
+#' @param epsilon.1to0: the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
+#' @param omega: factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
+#' @param rho: factor by which parasite extinction rate increases in response to host resistance
+#' @param psi: factor by which parasite host-jump success decreases due to resistance of the new host
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
+#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
+#' @param timestep: timestep for simulations
+#' @keywords Host-Parasite phylogeny
+#' @export
+#' @examples
+#' cophy.PonH.infectionResponse()
+
+parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree, toHtree, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
+{
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	
+	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,epsilon.1to0, epsilon.0to1, omega, rho, psi, timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","epsilon.1to0", "epsilon.0to1", "omega", "rho", "psi","timestep")
+	
+	nHtrees<-length(Htrees)
+	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+
+	Ptrees<-list() # an empty list that will later contain all the parasite trees 
+	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
+	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
+	i<-0
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-nHtrees
+	}
+	for(i0 in fromHtree:toHtree)
+	{
+		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+			stop("Can't have multiple start points when parasites initiate on the first host branch!")
+		}
+		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
+		TraitTracking<-get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+		for(i1 in 1:reps1)
+		{
+			for(i2 in 1:reps2)
+			{
+				i<-i+1
+				cophy<-cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking, P.startT=P.startT, ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
+				Ptrees[[i]]<-cophy[[2]]
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(cophy[[1]], cophy[[2]])))
+			}
+		}	
+			
+		times[[2]]<-Sys.time()
+		times[[3]]<-times[[2]]-times[[1]]
+		
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		save(output,file=paste(filename,".RData",sep=""))
+		print(paste("Simulations for host tree",i0,"finished!"))	
+	}
+	stats
+}
+
 #' A random dual parasite tree building function
 #'
 #' The following function simulates a two coevolving parasite phylogenetic trees on a pre-built host phylogeny.
