@@ -1263,20 +1263,28 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 #' @examples
 #' cophy.PonH.infectionResponse()
 
-parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree, toHtree, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
+parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
 {
+	print(paste("Simulations for ",filename," started.",sep=""))
+	
+	# initialising cluster for parallel computation:
+	cluster<-makeCluster(ncores,outfile="")
+	registerDoParallel(cluster)
+
 	times<-list(start=NA,end=NA,duration=NA)
 	times[[1]]<-Sys.time()
 	
-	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,epsilon.1to0, epsilon.0to1, omega, rho, psi, timestep)
-	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","epsilon.1to0", "epsilon.0to1", "omega", "rho", "psi","timestep")
+	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,epsilon.1to0,epsilon.0to1,omega,rho,psi,reps1,reps2,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","epsilon.1to0","epsilon.0to1","omega","rho","psi","reps1","reps2","timestep")
 	
 	nHtrees<-length(Htrees)
+	
+	print("    Converting host trees to phylo format...")
 	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
 
 	Ptrees<-list() # an empty list that will later contain all the parasite trees 
 	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
-	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
+	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","noPspecies","fractionInfected","meanInfectionLevel")
 	i<-0
 	if (is.na(fromHtree)) {
 		fromHtree<-1
@@ -1284,33 +1292,56 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree, toHtree, tmax,be
 	if (is.na(toHtree)) {
 		toHtree<-nHtrees
 	}
+	
+	# calculating all genetic distances in parallel:
+	
+	print("    Calculating host genetic distance matrices...")
+	# parallel loop for Gdist calculations:
+		
+	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
+		get.Gdist(Htrees[[i0]],t=P.startT)
+	}
+	
+	TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
+		get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+	}
+			
+	print("    Running parasite simulations...")
 	for(i0 in fromHtree:toHtree)
 	{
 		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
 			stop("Can't have multiple start points when parasites initiate on the first host branch!")
 		}
 		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
-		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
-		TraitTracking<-get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+		
+		# parallel loop for running the simulations:
+		
+		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('cophy.PonH.infectionResponse','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
+			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
+			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
+			cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
+		}
+		
+		# second loop to calculate the summary statistics:	
+		# (this is not parallelised because it should be very fast)	
+				
 		for(i1 in 1:reps1)
-		{
 			for(i2 in 1:reps2)
 			{
 				i<-i+1
-				cophy<-cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking, P.startT=P.startT, ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
-				Ptrees[[i]]<-cophy[[2]]
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(cophy[[1]], cophy[[2]])))
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]])))
 			}
-		}	
 			
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
 		
 		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
 		save(output,file=paste(filename,".RData",sep=""))
-		print(paste("Simulations for host tree",i0,"finished!"))	
+		print(paste("        Simulations for host tree",i0,"finished!"))	
 	}
+	stopCluster(cluster)
 	stats
+
 }
 
 #' A random dual parasite tree building function
