@@ -885,15 +885,6 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	} else { # If have already calculated preinvasion traits
 		HBranches		<-TraitTracking[[1]]
 		TraitTracking	<-TraitTracking[[2]]
-		# Will cause problems if incorrect P.startT is used
-		
-		# code to calculate HBranches resistance traits at P.startT from TraitTracking object: PROBABLY DON'T NEED!
-		#HBranches<-H.tree[which(H.tree$tDeath>=P.startT && H.tree$tBirth==P.startT),] # initaite appropriate living H
-		#HBranches$Resistance<-0 # set the initial trait value to zero
-		#for (i in 1:length(HBranches[,1])) { # fill in correct trait values
-		#	HBranches$Resistance[i]	<-TraitTracking[[HBranches$branchNo[i]]][,2]												#								[max(which(TraitTracking[[HBranches$branchNo[i]]][,1]<P.startT))]
-		#
-		#}
 	}
 	
 	# Set beginning for P simulation
@@ -1111,7 +1102,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 			hostJumpProb<-1
 		}
 			
-		noParasitesToJump	<-rbinom(1,nPAlive,beta*nHAlive) 
+		noParasitesToJump	<-rbinom(1,nPAlive,hostJumpProb) 
 			
 		if (noParasitesToJump>0) {			
 			parasitesToJump		<-sample.int(nPAlive,noParasitesToJump) # which parasites
@@ -1242,7 +1233,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
 #' @param tmax: maximum time for which to simulate
-#' @param H.tree: a pre-built host phylogenetic tree
+#' @param Htrees: a pre-built host phylogenetic tree
 #' @param beta: parasite host jump rate
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
@@ -1254,6 +1245,8 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 #' @param psi: factor by which parasite host-jump success decreases due to resistance of the new host
 #' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
 #' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
 #' @param P.startT: the timepoint at which a parasite invades the host-tree
 #' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
 #' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
