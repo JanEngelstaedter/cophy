@@ -878,7 +878,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	muP     <- muP*timestep
 	beta    <- beta*timestep
 
-	if (is.na(TraitTracking)) { # need to calculate preinvasion trait information
+	if (length(TraitTracking)==1) { # need to calculate preinvasion trait information
 		Get.preinvasionTraits	<-get.preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, 															epsilon.0to1=epsilon.0to1, timestep= timestep)
 		HBranches<-Get.preinvasionTraits[[1]]
 		TraitTracking<-Get.preinvasionTraits[[2]]
@@ -1259,10 +1259,6 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
 {
 	print(paste("Simulations for ",filename," started.",sep=""))
-	
-	# initialising cluster for parallel computation:
-	cluster<-makeCluster(ncores,outfile="")
-	registerDoParallel(cluster)
 
 	times<-list(start=NA,end=NA,duration=NA)
 	times[[1]]<-Sys.time()
@@ -1270,21 +1266,27 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, t
 	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,epsilon.1to0,epsilon.0to1,omega,rho,psi,reps1,reps2,timestep)
 	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","epsilon.1to0","epsilon.0to1","omega","rho","psi","reps1","reps2","timestep")
 	
-	nHtrees<-length(Htrees)
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-length(Htrees)
+	}
+	
+	nHtrees<-length(fromHtree:toHtree)
 	
 	print("    Converting host trees to phylo format...")
 	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+	print("finished conversion")
 
 	Ptrees<-list() # an empty list that will later contain all the parasite trees 
 	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
 	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","noPspecies","fractionInfected","meanInfectionLevel")
 	i<-0
-	if (is.na(fromHtree)) {
-		fromHtree<-1
-	}
-	if (is.na(toHtree)) {
-		toHtree<-nHtrees
-	}
+	
+	# initialising cluster for parallel computation:
+	cluster<-makeCluster(ncores,outfile="")
+	registerDoParallel(cluster)
 	
 	# calculating all genetic distances in parallel:
 	
@@ -1317,17 +1319,18 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, t
 		
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
-				
+		print("compiling summary statistics")		
 		for(i1 in 1:reps1)
 			for(i2 in 1:reps2)
 			{
+				
 				i<-i+1
 				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]])))
 			}
 			
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
-		
+		print("organising output")
 		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
 		save(output,file=paste(filename,".RData",sep=""))
 		print(paste("        Simulations for host tree",i0,"finished!"))	
