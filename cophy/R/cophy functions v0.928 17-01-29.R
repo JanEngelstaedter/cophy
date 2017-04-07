@@ -1256,7 +1256,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 #' @examples
 #' cophy.PonH.infectionResponse()
 
-parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
+parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
 {
 	print(paste("Simulations for ",filename," started.",sep=""))
 
@@ -1275,9 +1275,22 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, t
 	
 	nHtrees<-length(fromHtree:toHtree)
 	
-	print("    Converting host trees to phylo format...")
-	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
-	print("finished conversion")
+	# preparing host tree phylo files to save
+	if (class(HtreesPhylo)=="logical") {
+		print("    Converting host trees to phylo format...")
+		TreesToConvert<-list()
+		if (length(fromHtree:toHtree)!=length(Htrees)) {
+			for (i in 1:length(fromHtree:toHtree)) {
+			TreesToConvert[[i]]<- Htrees[[i]]
+			}
+			phylo<-lapply(TreesToConvert,convert.HbranchesToPhylo)  # converting to APE Phylo format
+			for (i in fromHtree:toHtree) {
+				HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
+			}
+		} else {
+			HtreesPhylo <-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+		}
+	}
 
 	Ptrees<-list() # an empty list that will later contain all the parasite trees 
 	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
@@ -1290,15 +1303,18 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, t
 	
 	# calculating all genetic distances in parallel:
 	
-	print("    Calculating host genetic distance matrices...")
-	# parallel loop for Gdist calculations:
-		
-	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
-		get.Gdist(Htrees[[i0]],t=P.startT)
-	}
+	if (class(Gdist)=="logical") {
+		print("    Calculating host genetic distance matrices...")
+		# parallel loop for Gdist calculations:
+		Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
+			get.Gdist(Htrees[[i0]],t=P.startT)
+		}
+	}	
 	
-	TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
-		get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+	if (class(TraitTracking)=="logical") {
+		TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
+			get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+		}
 	}
 			
 	print("    Running parasite simulations...")
@@ -1319,18 +1335,18 @@ parsimulate.PonH.infectionResponse<-function(Htrees, fromHtree=NA, toHtree=NA, t
 		
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
-		print("compiling summary statistics")		
+	
 		for(i1 in 1:reps1)
 			for(i2 in 1:reps2)
 			{
 				
 				i<-i+1
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]])))
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Ptrees[[i]][[1]])))
 			}
 			
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
-		print("organising output")
+
 		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
 		save(output,file=paste(filename,".RData",sep=""))
 		print(paste("        Simulations for host tree",i0,"finished!"))	
