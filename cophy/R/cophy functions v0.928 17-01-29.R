@@ -770,11 +770,11 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 
 	TraitTracking<-vector("list",length(H.tree[,1]))
 	for (i in 1:length(H.tree[,1])) {
-		TraitTracking[[i]]<-matrix(NA, ncol=3, nrow=1)
-		colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value", "event")
+		TraitTracking[[i]]<-matrix(NA, ncol=2, nrow=1)
+		colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value")
 	}
 	
-	TraitTracking[[1]][1,]<-c(0,0, "birth") # Setting initial trait value and simulation start time
+	TraitTracking[[1]][1,]<-c(0,0) # Setting initial trait value and simulation start time
 	
 	while (t<=P.startT) {
 		t<-t+timestep
@@ -787,7 +787,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 				{					
 					H.Speciations		<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
 					
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations], "death")) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
 					
 					daughterBranches	<-which(H.tree$nodeBirth == i)
 					
@@ -796,8 +796,8 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 					
 					timepoint           <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
 					
-					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations], "birth")
-					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations], "birth")
+					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 															HBranches$Resistance[H.Speciations])
 											
 					# delete all extinct hosts from living tree
 					HBranches	<-HBranches[-H.Speciations,] 
@@ -808,7 +808,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 					
 					if (length(H.Extinctions)>0) {
 						for (j in H.Extinctions) {
-							TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j], "death"))
+							TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
 						}
 						# removing all host mother branches that have died
 						HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
@@ -831,7 +831,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 			
 			for (i in HBranches$branchNo[which(HBranches$Resistance==0)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1,"0->1"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
 			}
 		}
 		
@@ -840,7 +840,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 			HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[which(HBranches$Resistance==1)[HToMutate]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0, "1->0"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
 			}
 		}
 	}
@@ -4042,6 +4042,122 @@ plot.2Pcophy<-function(cophy)
 	}
 }
 
+# the following function plots a host phylogeny showing the resistance trait over time
+
+#' The following function plots a host phylogeny including the evolution of the resistance trait
+#'
+#' The following function plots a host-parasite phylogeny
+#' @param Hphy: a phylogeny (in phylo format) containing one host tree
+#' @keywords phylogeny, plot, resistance
+#' @export
+#' @examples
+#' plot.resistance()
+
+plot.resistance<-function(Hphy, TraitTracking)
+{
+	# determining lines to be drawn for the host phylogeny:
+	TraitTracking<-TraitTracking[[2]] # keeping only the relevant information
+	
+	HBranchLines<-matrix(NA,ncol=3,nrow=0)
+	colnames(HBranchLines)<-c("x1","x2","y")
+
+	HBranchLines<-rbind(HBranchLines, c(0,Hphy$edge.length[1],0))
+	HBranchLines<-rbind(HBranchLines, c(0,Hphy$edge.length[2],1))
+
+	HConnectorLines<-matrix(NA,ncol=3,nrow=0)
+	colnames(HConnectorLines)<-c("x","y1","y2")
+
+	noHNodes<-length(Hphy$edge[,1])+1          # total number of nodes in the host phylogeny
+	firstHNode<-(length(Hphy$edge[,1])/2)+2    # the first internal node in the host phylogeny
+	
+	if(length(Hphy$edge[,1])>2)
+	{
+		for(i in (firstHNode+1):noHNodes)  # loop covering all internal nodes
+		{
+			daughterBranches<-which(Hphy$edge[,1]==i)   # indices of the two new branches to be added
+			motherBranch<-match(i,Hphy$edge[,2])   # index of the mother branch
+			tnew<-HBranchLines[motherBranch,2]    # time point when the new branches begin
+			HBranchLines<-rbind(HBranchLines,c(tnew,tnew+Hphy$edge.length[daughterBranches[1]],HBranchLines[motherBranch,3]))
+			HBranchLines<-rbind(HBranchLines,c(tnew,tnew+Hphy$edge.length[daughterBranches[2]],HBranchLines[motherBranch,3]+1))
+		
+			# move old branches situated above the new ones up by one unit:
+			branchesAbove<-which(HBranchLines[1:(length(HBranchLines[,1])-2),3]>=HBranchLines[motherBranch,3]+1)
+			HBranchLines[branchesAbove,3]<-HBranchLines[branchesAbove,3]+1
+		
+			# go backwards in time and adjust ancestral branches so that they are in the middle of daughter branches:
+			j<-motherBranch
+			while(!is.na(j))
+			{
+				daughterBranches<-which(Hphy$edge[j,2]==Hphy$edge[,1])
+				HBranchLines[j,3]<-mean(HBranchLines[daughterBranches,3])    # y-position of branch should be average of two daugher branch y-values
+				j<-match(Hphy$edge[j,1],Hphy$edge[,2])   # going further back in time to the ancestral branch
+			}
+		}
+	}
+	
+	for(i in firstHNode:noHNodes)  # loop covering all internal nodes
+	{
+		daughterBranches<-which(Hphy$edge[,1]==i)   # indices of the two daughter branches extending from node
+		tnew<-HBranchLines[daughterBranches[1],1]   # time point of the node
+		HConnectorLines<-rbind(HConnectorLines,c(tnew,HBranchLines[daughterBranches[1],3],HBranchLines[daughterBranches[2],3]))
+	}
+		
+	if (!is.null(Hphy$root.edge))  # adding root branch if there is one
+	{
+		HBranchLines<-t(t(HBranchLines)+c(Hphy$root.edge,Hphy$root.edge,0))
+		HBranchLines<-rbind(c(0,Hphy$root.edge,(HBranchLines[1,3]+HBranchLines[2,3])/2),HBranchLines)
+		HConnectorLines<-t(t(HConnectorLines)+c(Hphy$root.edge,0,0))
+	}
+	
+	tmax<- max(HBranchLines[,2])
+	
+	greenLines <-matrix(NA,ncol=3,nrow=0)
+	colnames(greenLines)<-c("x1","x2","y")
+	
+	greenConnections <-matrix(NA,ncol=3,nrow=0)
+	colnames(greenConnections)<-c("x","y1","y2")
+	
+	for (i in 1:length(TraitTracking)) {
+		if (nrow(TraitTracking[[i]])==1) {
+			greenLines<-rbind(greenLines, c(TraitTracking[[i]][[1,1]], tmax, HBranchLines[i,3]))
+		} else {
+			for (j in 1:(nrow(TraitTracking[[i]])-1)) {
+				if (TraitTracking[[i]][[j,2]]==1) {
+					greenLines<-rbind(greenLines, c(TraitTracking[[i]][[j,1]], TraitTracking[[i]][[j+1,1]], HBranchLines[i,3]))
+				}
+			}
+		}
+	}
+	
+	for(i in unique(c(greenLines[,1], greenLines[,2])))  # loop covering all internal nodes
+	{
+		daughterBranches<-which(greenLines[,1]==i)   # indices of the two daughter branches extending from node
+		if (length(daughterBranches)==2) {
+			tnew<-greenLines[daughterBranches[1],1]   # time point of the node
+			greenConnections <-rbind(greenConnections,c(tnew, greenLines[daughterBranches[1],3], greenLines[daughterBranches[2],3]))
+		}
+	}
+		
+#	if (!is.null(Hphy$root.edge))  # adding root branch if there is one
+#	{
+#		greenLines<-t(t(greenLines)+c(Hphy$root.edge,Hphy$root.edge,0))
+#		greenLines<-rbind(c(0,Hphy$root.edge,(greenLines[1,3]+ greenLines[2,3])/2), greenLines)
+#		greenConnections<-t(t(greenConnections)+c(Hphy$root.edge,0,0))
+#	}
+
+	# plotting all lines:
+
+	plot.new()
+	plot.window(xlim=c(0,max(HBranchLines[,2])), ylim=c(0,max(HBranchLines[,3])))
+	for(i in 1:length(HBranchLines[,1]))
+		lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
+	for(i in 1:nrow(greenLines))
+		lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='orange')
+	for(i in 1:length(HConnectorLines[,1]))
+		lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
+	for(i in 1:length(greenConnections[,1]))
+		lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='orange')
+}
 
 ######################################################################################################
 ###############      Functions to extract various statistics from cophylogenies      #################
