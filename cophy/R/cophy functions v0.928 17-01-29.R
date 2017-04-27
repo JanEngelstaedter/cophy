@@ -1217,7 +1217,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
 	
 	for (i in which(H.tree$alive==1)) {
-		TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2], "death"))
+		TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
 	}
 	
 	if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
@@ -1859,14 +1859,14 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 				if (i %in% H.tree$nodeBirth) {  # Check if host death is due to speciation
 					H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
 					
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations], "death")) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
 					
 					daughterBranches		<-which(H.tree$nodeBirth == i)
 					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
 					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
 					
-					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations], "birth")
-					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations], "birth")
+					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
 					
 					timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
 					# update Gdist matrix:						
@@ -2257,7 +2257,7 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[hostTrait.0[Htrait.0.P[HToMutate]]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1, "0->1 with parasites"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
 			}
 		}
 		if (Mutate.1to0.P>0) {
@@ -2265,7 +2265,7 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[hostTrait.1[Htrait.1.P[HToMutate]]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0, "1->0 with parasites"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
 			}
 		}
 		if (Mutate.0to1.noP>0) {
@@ -2273,7 +2273,7 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[hostTrait.0[Htrait.0.noP[HToMutate]]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1, "0->1 no parasites"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
 			}
 		}
 		if (Mutate.1to0.noP>0) {
@@ -2281,7 +2281,7 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in HBranches$branchNo[hostTrait.1[Htrait.1.noP[HToMutate]]]) {	
  				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0, "1->0 no parasites"))
+ 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
 			}
 		}
 		
@@ -4056,7 +4056,9 @@ plot.2Pcophy<-function(cophy)
 plot.resistance<-function(Hphy, TraitTracking)
 {
 	# determining lines to be drawn for the host phylogeny:
-	TraitTracking<-TraitTracking[[2]] # keeping only the relevant information
+	if (length(TraitTracking)==2) {
+		TraitTracking<-TraitTracking[[2]] # keeping only the relevant information
+	}
 	
 	HBranchLines<-matrix(NA,ncol=3,nrow=0)
 	colnames(HBranchLines)<-c("x1","x2","y")
