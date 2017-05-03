@@ -4569,11 +4569,11 @@ get.2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 
 get.Gdist<-function(branches,t=NA)
 {
+	if (is.na(t)) t<-max(branches$tDeath)
 	if (t==0) { # initialise the Gdist matrix in the case that there is no invasion
 		Gdist	<-matrix(0,nrow=1,ncol=1)
 		return(Gdist)
 	} 
-	if (is.na(t)) t<-max(branches$tDeath)
 	liveBranches<-branches[branches$tBirth<=t & branches$tDeath>=t,]
 	n<-length(liveBranches[,1])
 	
@@ -4658,6 +4658,31 @@ get.PHdistCorrelation<-function(cophy)
 	{
 		PHdist<-get.PHdist(cophy)
 		return(cor(x=PHdist[[1]][upper.tri(PHdist[[1]])], y=PHdist[[2]][upper.tri(PHdist[[2]])]))
+	}
+	else
+		return(NA)
+}
+
+#' Calculating the correlation between the distance matrixes of parasites and their associated hosts
+#' @param cophy: a cophylogeny (in raw format) containing one host and one parasite tree
+#' @keywords genetic distance, correlation
+#' @export
+#' @examples
+#' get.PHdistCorrelation.raw()
+
+get.PHdistCorrelation.raw<-function(cophy)
+{
+	if (nrow(cophy[[2]])>2) # need to be at least three surviving parasites
+	{
+		Hdist<-get.Gdist(cophy[[1]]) # collect the Gdist matrix for the hosts
+		Pdist<-get.Gdist(cophy[[2]]) # collect the Gdist matrix for the parasites
+		Halive<-which(cophy[[1]]$tDeath==max(cophy[[2]]$tDeath)) # which hosts are alive?
+		Palive<-which(cophy[[2]]$tDeath==max(cophy[[2]]$tDeath)) # which parasites are alive?
+		Pcarrier<-cophy[[2]]$Hassoc[Palive] # Host branch carrying an extant parasite
+		Hdist<-Hdist[Halive %in% Pcarrier,Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
+		
+		Porder<-match(Pcarrier,Halive[Halive %in% Pcarrier])		# Order on which Hassoc branches appear in the parasite 																	tree
+		return(cor(x=Hdist[Porder, Porder][upper.tri(Hdist[Porder, Porder])], y=Pdist[upper.tri(Pdist)]))
 	}
 	else
 		return(NA)
