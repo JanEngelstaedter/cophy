@@ -4652,26 +4652,27 @@ get.PHdist<-function(cophy)
 #' @examples
 #' get.PHdistCorrelation()
 
-get.PHdistCorrelation<-function(cophy)
-{
-	if (cophy[[2]]$nAlive>2) # need to be at least three surviving parasites
-	{
-		PHdist<-get.PHdist(cophy)
-		return(cor(x=PHdist[[1]][upper.tri(PHdist[[1]])], y=PHdist[[2]][upper.tri(PHdist[[2]])]))
-	}
-	else
-		return(NA)
-}
+#get.PHdistCorrelation<-function(cophy)
+#{
+#	if (cophy[[2]]$nAlive>2) # need to be at least three surviving parasites
+#	{
+#		PHdist<-get.PHdist(cophy)
+#		return(cor(x=PHdist[[1]][upper.tri(PHdist[[1]])], y=PHdist[[2]][upper.tri(PHdist[[2]])]))
+#	}
+#	else
+#		return(NA)
+#}
 
 #' Calculating the correlation between the distance matrixes of parasites and their associated hosts
-#' @param cophy: a cophylogeny (in raw format) containing one host and one parasite tree
+#' @param cophy: a cophylogeny (in phylo format) containing one host and one parasite tree
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' get.PHdistCorrelation.raw()
+#' get.PHdistCorrelation()
 
-get.PHdistCorrelation.raw<-function(cophy)
+get.PHdistCorrelation<-function(cophy)
 {
+	cophy<-convert.phyloToBranches(cophy)
 	if (nrow(cophy[[2]])>2) # need to be at least three surviving parasites
 	{
 		Hdist<-get.Gdist(cophy[[1]]) # collect the Gdist matrix for the hosts
