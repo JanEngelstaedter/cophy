@@ -3553,7 +3553,7 @@ convert.phyloToBranches<-function(cophy)
 	HBranches<-data.frame(alive=rep(NA,nrow(cophy[[1]]$edge)),nodeBirth=cophy[[1]]$edge[,1],tBirth=NA,nodeDeath=cophy[[1]]$edge[,2],tDeath=NA,branchNo=2:(nrow(cophy[[1]]$edge)+1))
 	ancBranches<-match(HBranches$nodeBirth,HBranches$nodeDeath)
 	
-	HBranches$tBirth<-sapply(1:length(HBranches$nodeBirth),get.tBirth,phy=cophy[[1]],ancBranches=ancBranches)
+	HBranches$tBirth<-sapply(1:length(HBranches$nodeBirth),get.tBirth,cophy[[1]]$root.edge, cophy[[1]]$edge.length,ancBranches=ancBranches)
 	HBranches$tDeath<-HBranches$tBirth+cophy[[1]]$edge.length
 	rootNode<-cophy[[1]]$edge[match(NA,ancBranches),1]
 	HBranches<-rbind(data.frame(alive=NA,nodeBirth=0,tBirth=0,nodeDeath=rootNode,tDeath=cophy[[1]]$root.edge,branchNo=1),HBranches) # adding the root
@@ -3569,7 +3569,12 @@ convert.phyloToBranches<-function(cophy)
 	
 	ancBranches<-match(PBranches$nodeBirth,PBranches$nodeDeath)
 	
-	PBranches$tBirth<-sapply(1:length(PBranches$nodeBirth),get.tBirth,phy=cophy[[2]],ancBranches=ancBranches) + cophy[[2]]$root.time
+	PBranches$tBirth<-sapply(1:length(PBranches$nodeBirth),get.tBirth,cophy[[2]]$root.edge, cophy[[2]]$edge.length,ancBranches=ancBranches) + cophy[[2]]$root.time
+#	for (i in 1:length(PBranches$nodeBirth)) {
+#		print(i)
+#		PBranches$tBirth[i]<-get.tBirth(n=i, cophy[[2]]$root.edge, cophy[[2]]$edge.length,ancBranches=ancBranches) + cophy[[2]]$root.time
+#	}
+
 	PBranches$tDeath<-PBranches$tBirth+cophy[[2]]$edge.length
 	PBranches$Hassoc<-cophy[[2]]$Hassoc+1
 	rootNode<-cophy[[2]]$edge[match(NA,ancBranches),1]
@@ -4672,12 +4677,15 @@ get.PHdist<-function(cophy)
 
 get.PHdistCorrelation<-function(cophy)
 {
+	if (length(cophy[[2]]$tip.label)==1) {
+		return(NA)
+	}
 	cophy<-convert.phyloToBranches(cophy)
-	if (nrow(cophy[[2]])>2) # need to be at least three surviving parasites
+	if (sum(cophy[[2]][,1]==TRUE)>2) # need to be at least three surviving parasites
 	{
 		Hdist<-get.Gdist(cophy[[1]]) # collect the Gdist matrix for the hosts
 		Pdist<-get.Gdist(cophy[[2]]) # collect the Gdist matrix for the parasites
-		Halive<-which(cophy[[1]]$tDeath==max(cophy[[2]]$tDeath)) # which hosts are alive?
+		Halive<-which(cophy[[1]]$tDeath==max(cophy[[1]]$tDeath)) # which hosts are alive?
 		Palive<-which(cophy[[2]]$tDeath==max(cophy[[2]]$tDeath)) # which parasites are alive?
 		Pcarrier<-cophy[[2]]$Hassoc[Palive] # Host branch carrying an extant parasite
 		Hdist<-Hdist[Halive %in% Pcarrier,Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
@@ -4703,10 +4711,10 @@ get.PHdistCorrelation<-function(cophy)
 #' @examples
 #' get.tBirth()
 
-get.tBirth<-function(n,phy,ancBranches)
+get.tBirth<-function(n,root.edge,edge.length,ancBranches)
 {
-	if (is.na(ancBranches[n])) return(phy$root.edge)
-	else return(get.tBirth(ancBranches[n],phy,ancBranches)+phy$edge.length[ancBranches[n]])
+	if (is.na(ancBranches[n])) return(root.edge)
+	else return(get.tBirth(ancBranches[n],root.edge,edge.length,ancBranches)+edge.length[ancBranches[n]])
 }
 
 #' Function to add new column to Branches dataframe indicating for each branch whether or not it leaves any extant descendents
