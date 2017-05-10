@@ -1789,7 +1789,7 @@ randomcophy.2PonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.s
 #' @examples
 #' cophy.2PonH.infectionResponse()
 
-cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gamma.Q=0.2, sigma.self=0, sigma.cross=0, 											mu.P=0.5,mu.Q=0.5, epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, 										P.startT=0, ini.Hbranch=NA, Gdist=NA, prune.extinct=FALSE, export.format="Phylo", 										timestep=0.001, DBINC=100)
+cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gamma.Q=0.2, sigma.self=0, sigma.cross=0, mu.P=0.5,mu.Q=0.5, epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, P.startT=0, ini.Hbranch=NA, Gdist=NA, prune.extinct=FALSE, export.format="Phylo", timestep=0.001, DBINC=100)
 {	
 	# adjusting the evolutionary rates to timesteps:
 	mu.P		<- mu.P*timestep
@@ -2286,7 +2286,7 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 		}
 		
 		
-		if (((round(t/timestep)*timestep)>=tmax)||((P.nPAlive==0)&&(Q.nPAlive==0))) {
+		if (((round(t/timestep)*timestep)>=tmax)) {
 			continue<-FALSE
 		}
 	} # loop back up to next t
