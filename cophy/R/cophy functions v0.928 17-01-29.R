@@ -1037,15 +1037,15 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 		hostTrait.0			<-which(HBranches$Resistance==0) # host branches w/ particular trait at time t
 		hostTrait.1			<-which(HBranches$Resistance==1) # host branches w/ particular trait at time t
 		
-		P.HTrait.0			<-which(PBranches$Hassoc %in% hostTrait.0) # parasite branches associated H w/ particular trait
-		P.HTrait.1			<-which(PBranches$Hassoc %in% hostTrait.1) # parasite branches associated H w/ particular trait
+		P.HTrait.0			<-which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
+		P.HTrait.1			<-which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.1]) # parasite branches associated H w/ particular trait
 		
 		nPAlive.HTrait.0	<-length(P.HTrait.0)
 		nPAlive.HTrait.1	<-length(P.HTrait.1)
 		
 		nPToDie.HTrait.0		<-rbinom(1,nPAlive.HTrait.0,muP) # how many parasite species go extinct?
 		nPToDie.HTrait.1		<-rbinom(1,nPAlive.HTrait.1,muP*(1/(1-rho))) # how many parasite species go extinct?
-			
+
 		if (nPToDie.HTrait.0>0) {
 			PToDie.HTrait.0	<-sample.int(nPAlive.HTrait.0,nPToDie.HTrait.0) # which parasites?
 			PToDie.HTrait.0	<-PToDie.HTrait.0[PBranches$tBirth[PToDie.HTrait.0]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
@@ -1070,7 +1070,6 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 		}
 		
 		if (nPToDie.HTrait.1>0) {
-			
 			PToDie.HTrait.1	<-sample.int(nPAlive.HTrait.1,nPToDie.HTrait.1) # which parasites?
 			PToDie.HTrait.1	<-PToDie.HTrait.1[PBranches$tBirth[PToDie.HTrait.1]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			
@@ -1284,6 +1283,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 			TreesToConvert[[i]]<- Htrees[[i]]
 			}
 			phylo<-lapply(TreesToConvert,convert.HbranchesToPhylo)  # converting to APE Phylo format
+			HtreesPhylo<-list()
 			for (i in fromHtree:toHtree) {
 				HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
 			}
@@ -1333,24 +1333,35 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 			cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
 		}
 		
+		Trees<-list()
+		Traits<-list()
+		for (j in 1:length(Ptrees)) {
+			Trees[[j]]<-Ptrees[[j]][[1]]
+			Traits[[j]]<-Ptrees[[j]][[2]]
+		}
+		print("Finished separation loop")
+		
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
 	
-		for(i1 in 1:reps1)
+		for(i1 in 1:reps1) {
 			for(i2 in 1:reps2)
 			{
 				
 				i<-i+1
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Ptrees[[i]][[1]])))
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Trees[[i]])))
 			}
+		}
+		print("Finished Stats calculations")
 			
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
 
-		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Trees,"HResistanceTraits"=Traits, "statistics"=stats,"times"=times)
 		save(output,file=paste(filename,".RData",sep=""))
 		print(paste("        Simulations for host tree",i0,"finished!"))	
 	}
+	print("Finished loop, exiting cluster")
 	stopCluster(cluster)
 	stats
 
