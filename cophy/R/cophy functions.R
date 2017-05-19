@@ -1339,7 +1339,6 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 			Trees[[j]]<-Ptrees[[j]][[1]]
 			Traits[[j]]<-Ptrees[[j]][[2]]
 		}
-		print("Finished separation loop")
 		
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
@@ -1352,7 +1351,6 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Trees[[i]])))
 			}
 		}
-		print("Finished Stats calculations")
 			
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
@@ -1361,7 +1359,6 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 		save(output,file=paste(filename,".RData",sep=""))
 		print(paste("        Simulations for host tree",i0,"finished!"))	
 	}
-	print("Finished loop, exiting cluster")
 	stopCluster(cluster)
 	stats
 
@@ -2020,14 +2017,14 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 		hostTrait.0			<-which(HBranches$Resistance==0) # host branches with particular trait at time t
 		hostTrait.1			<-which(HBranches$Resistance==1) # host branches with particular trait at time t
 		
-		P.HTrait.0			<-which(P.PBranches$Hassoc %in% hostTrait.0) # parasite branches associated H w/ particular trait
-		P.HTrait.1			<-which(P.PBranches$Hassoc %in% hostTrait.1) # parasite branches associated H w/ particular trait
+		P.HTrait.0			<-which(P.PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
+		P.HTrait.1			<-which(P.PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
 		
 		P.nPAlive.HTrait.0	<-length(P.HTrait.0)
 		P.nPAlive.HTrait.1	<-length(P.HTrait.1)
 		
-		P.nPToDie.HTrait.0	<-rbinom(1, P.nPAlive.HTrait.0, mu.P) # how many parasites go extinct?
-		P.nPToDie.HTrait.1	<-rbinom(1, P.nPAlive.HTrait.1, mu.P*(1/(1-rho))) # how many parasites go extinct?
+		P.nPToDie.HTrait.0	<-rbinom(1, length(P.HTrait.0), mu.P) # how many parasites go extinct?
+		P.nPToDie.HTrait.1	<-rbinom(1, length(P.HTrait.1), mu.P*(1/(1-rho))) # how many parasites go extinct?
 			
 		if (P.nPToDie.HTrait.0>0) {
 			P.PToDie<-sample.int(P.nPAlive.HTrait.0, P.nPToDie.HTrait.0) # which parasites?
@@ -2079,6 +2076,9 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 		# Q parasite extinction:
 		Q.HTrait.0			<-which(P.PBranches$Hassoc %in% hostTrait.0) # parasite branches associated H w/ particular trait
 		Q.HTrait.1			<-which(P.PBranches$Hassoc %in% hostTrait.1) # parasite branches associated H w/ particular trait
+		
+		Q.HTrait.0			<-which(Q.PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
+		Q.HTrait.1			<-which(Q.PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
 		
 		Q.nPAlive.HTrait.0	<-length(Q.HTrait.0)
 		Q.nPAlive.HTrait.1	<-length(Q.HTrait.1)
