@@ -878,7 +878,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 	muP     <- muP*timestep
 	beta    <- beta*timestep
 
-	if (length(TraitTracking)==1) { # need to calculate preinvasion trait information
+	if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
 		Get.preinvasionTraits	<-get.preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, 															epsilon.0to1=epsilon.0to1, timestep= timestep)
 		HBranches<-Get.preinvasionTraits[[1]]
 		TraitTracking<-Get.preinvasionTraits[[2]]
@@ -1008,7 +1008,7 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 							nPDeadBranches		   <-nPDeadBranches+1
 							PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree	
 							if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-								PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+								PDeadBranches<-rbind(PDeadBranches, data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
 
 
 							nextPNode              <-nextPNode+1
@@ -1303,7 +1303,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 	
 	# calculating all genetic distances in parallel:
 	
-	if (class(Gdist)=="logical") {
+	if (any(is.na(Gdist))) {
 		print("    Calculating host genetic distance matrices...")
 		# parallel loop for Gdist calculations:
 		Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
@@ -1311,7 +1311,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 		}
 	}	
 	
-	if (class(TraitTracking)=="logical") {
+	if (is.na(TraitTracking)) {
 		TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
 			get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
 		}
@@ -1326,20 +1326,20 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
 		
 		# parallel loop for running the simulations:
-		
+		print("Before Parallel Loop")
 		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('cophy.PonH.infectionResponse','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
 			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
 			cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
 		}
-		
+		print("End Parallel")
 		Trees<-list()
 		Traits<-list()
 		for (j in 1:length(Ptrees)) {
 			Trees[[j]]<-Ptrees[[j]][[1]]
 			Traits[[j]]<-Ptrees[[j]][[2]]
 		}
-		
+		print("Separated Ptrees from Htraits")
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
 	
@@ -1351,7 +1351,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Trees[[i]])))
 			}
 		}
-			
+		print("Calculated Stats")
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
 
@@ -1797,14 +1797,14 @@ randomcophy.2PonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.s
 #' @examples
 #' cophy.2PonH.infectionResponse()
 
-cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gamma.Q=0.2, sigma.self=0, sigma.cross=0, mu.P=0.5,mu.Q=0.5, epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, P.startT=0, ini.Hbranch=NA, Gdist=NA, prune.extinct=FALSE, export.format="Phylo", timestep=0.001, DBINC=100)
+cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.02, gamma.Q=0.02, sigma.self=0, sigma.cross=0, mu.P=0.5,mu.Q=0.5, epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, P.startT=0, ini.Hbranch=NA, Gdist=NA, prune.extinct=FALSE, export.format="Phylo", timestep=0.001, DBINC=100)
 {	
 	# adjusting the evolutionary rates to timesteps:
 	mu.P		<- mu.P*timestep
 	mu.Q		<- mu.Q*timestep
 	beta		<- beta*timestep
 	
-	if (length(TraitTracking)==1) { # need to calculate preinvasion trait information
+	if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
 		Get.preinvasionTraits	<-get.preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, 															epsilon.0to1=epsilon.0to1, timestep= timestep)
 		HBranches<-Get.preinvasionTraits[[1]]
 		TraitTracking<-Get.preinvasionTraits[[2]]
@@ -2002,6 +2002,10 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 					}
 					
 					# removing all host mother branches that have died
+					for (j in H.Extinctions) {
+						TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
+					}
+					
 					HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
 						
 					Gdist	<-Gdist[-H.Extinctions, , drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
@@ -2265,34 +2269,42 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 		
 		if (Mutate.0to1.P>0) { # if any infected susceptible hosts mutate
 			HToMutate<-sample.int(length(Htrait.0.P),Mutate.0to1.P) # which parasites?
-			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			for (i in HBranches$branchNo[hostTrait.0[Htrait.0.P[HToMutate]]]) {	
- 				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+			HToMutate<-HToMutate[which(HBranches$tBirth[hostTrait.0[Htrait.0.P[HToMutate]]]<(t-timestep))] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			if (length(HToMutate)>0) {
+				for (i in HBranches$branchNo[hostTrait.0[Htrait.0.P[HToMutate]]]) {	
+ 					HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
+ 					TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+				}
 			}
 		}
 		if (Mutate.1to0.P>0) {
 			HToMutate<-sample.int(length(Htrait.1.P),Mutate.1to0.P) # which parasites?
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			for (i in HBranches$branchNo[hostTrait.1[Htrait.1.P[HToMutate]]]) {	
- 				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+			if (length(HToMutate)>0) {
+				for (i in HBranches$branchNo[hostTrait.1[Htrait.1.P[HToMutate]]]) {	
+ 					HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
+ 					TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+				}
 			}
 		}
 		if (Mutate.0to1.noP>0) {
 			HToMutate<-sample.int(length(Htrait.0.noP),Mutate.0to1.noP) # which parasites?
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			for (i in HBranches$branchNo[hostTrait.0[Htrait.0.noP[HToMutate]]]) {	
- 				HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+			if (length(HToMutate)>0) {
+				for (i in HBranches$branchNo[hostTrait.0[Htrait.0.noP[HToMutate]]]) {	
+ 					HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
+ 					TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+				}
 			}
 		}
 		if (Mutate.1to0.noP>0) {
 			HToMutate<-sample.int(length(Htrait.1.noP),Mutate.1to0.noP) # which parasites?
 			HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			for (i in HBranches$branchNo[hostTrait.1[Htrait.1.noP[HToMutate]]]) {	
- 				HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
- 				TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+			if (length(HToMutate)>0) {
+				for (i in HBranches$branchNo[hostTrait.1[Htrait.1.noP[HToMutate]]]) {	
+ 					HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
+ 					TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+				}
 			}
 		}
 		
@@ -2323,6 +2335,10 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.2, gam
 	
 	Q.PBranches		<-rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches,])
 	Q.PBranches		<-Q.PBranches[order(Q.PBranches[,"branchNo"]), ]
+
+	for (i in which(H.tree$alive==1)) {
+		TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
+	}
 	
 	if (export.format=="Phylo") { # return cophylogeny as an APE Phylo class
 		H.phylo<-convert.HbranchesToPhylo(HBranches)
