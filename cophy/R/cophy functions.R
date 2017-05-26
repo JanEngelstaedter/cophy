@@ -847,6 +847,843 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 	return(list(HBranches, TraitTracking))
 }
 
+#' A random dual parasite tree building function
+#'
+#' The following function simulates a two coevolving parasite phylogenetic trees on a pre-built host phylogeny.
+#' @param tmax: maximum time for which to simulate
+#' @param H.tree: a pre-built host phylogenetic tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param mu.Q: parasite extinction rate
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
+#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations
+#' @keywords Multi-Parasite phylogeny
+#' @export
+#' @examples
+#' randomcophy.2PonH()
+
+randomcophy.2PonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,mu.P=0.5,mu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001,DBINC=100)
+{	
+	# adjusting the evolutionary rates to timesteps:
+	mu.P		<- mu.P*timestep
+	mu.Q		<- mu.Q*timestep
+	beta		<- beta*timestep
+	
+	# Set beginning for P simulation
+
+	HBranches<-H.tree[which(H.tree$tDeath>=P.startT & H.tree$tBirth<=P.startT),]  # which host branches are alive at invasion time T?
+
+	if (is.na(ini.Hbranch))  { # no initial host branch specified --> choose random branch
+		P.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that P invasion will start from
+		Q.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that Q invasion will start from
+	} else { 
+		P.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
+		Q.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
+	}
+	P.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=P.PstartHassoc, branchNo=1) 
+		
+	P.nPBranches    	<- 1	 # total number of branches that have been constructed
+	P.nPAlive       	<- 1	 # number of branches that extend until the current timestep
+	P.nextPNode     	<- 1 # number of the next node to be produced
+		
+	P.PDeadBranches	<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
+	P.nPDeadBranches	<- 0 # number of dead parasite branches
+	
+	Q.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=Q.PstartHassoc, branchNo=1) 
+		
+	Q.nPBranches    	<- 1	 # total number of branches that have been constructed
+	Q.nPAlive       	<- 1	 # number of branches that extend until the current timestep
+	Q.nextPNode     	<- 1 # number of the next node to be produced
+		
+	Q.PDeadBranches		<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
+	Q.nPDeadBranches	<- 0 # number of dead parasite branches
+		
+	if (any(is.na(Gdist))) {
+		Gdist<-get.Gdist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
+	}
+	
+	HBranchDeathTimes<-sort(H.tree$tDeath[H.tree$tDeath>=P.startT & H.tree$alive==FALSE])
+	HDeathIndex<-1
+
+	continue<-TRUE
+	t<-P.startT
+	while (continue==TRUE) { # continue simulation until continue is set to FALSE
+		# main simulation loop through time
+		t<-t+timestep
+		# update Gdist
+		Gdist <-Gdist + 2 * timestep # add increased distance btw branches
+		diag (Gdist) <-0  # cleaning up so that distance between branch to itself is always 0
+					
+		# Host events:
+		if ((HDeathIndex<=length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex]>=(t-timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) { # if any host dies w/in interval
+			H.Death	<-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive==FALSE) # Any host branch that dies w/in timestep interval leading up to time t
+			HDeathIndex	<-HDeathIndex+length(H.Death)
+			
+			for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) { # for each node where a host died
+				# Cospeciation events:
+				if (i %in% H.tree$nodeBirth) {  # Check if host death is due to speciation
+					H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
+					daughterBranches		<-which(H.tree$nodeBirth == i)
+					HBranches              	<-rbind(HBranches, H.tree[daughterBranches[1], ])
+					HBranches              	<-rbind(HBranches, H.tree[daughterBranches[2], ])
+					
+					timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
+					# update Gdist matrix:						
+					# filling in values
+								
+					Gdist	<-rbind(Gdist,NA)
+					Gdist	<-rbind(Gdist,NA)
+					Gdist	<-cbind(Gdist,NA)
+					Gdist	<-cbind(Gdist,NA)
+						
+					len 	<-length(Gdist[1, ])
+					
+					Gdist[len-1,len]	<-2*(t-timepoint)
+					Gdist[len,len-1]	<-2*(t-timepoint)
+								
+					Gdist[1:(len-2), len-1]	<-Gdist[1:(len-2),H.Speciations]
+					Gdist[1:(len-2), len]	<-Gdist[1:(len-2),H.Speciations]
+					Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
+					Gdist[len, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
+
+					# P cospeciations
+					P.P.Speciations <-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time 
+					
+					if (length(P.P.Speciations) > 0) { # make sure argument greater then length 0
+						for(j in P.P.Speciations) {			
+							P.PBranches$alive[j]		<-FALSE 
+							P.PBranches$nodeDeath[j]	<-P.nextPNode
+							P.PBranches$tDeath[j]		<-timepoint
+							
+							P.nPDeadBranches			<-P.nPDeadBranches+1
+							P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[j,] # copy branches updated with death info to dead tree	
+							if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
+								P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+							}
+
+							P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], P.nPBranches+1))
+							P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], P.nPBranches+2)) 
+							P.nextPNode    <-P.nextPNode+1
+							P.nPAlive      <-P.nPAlive+1
+							P.nPBranches   <-P.nPBranches+2
+						}
+						P.PBranches	<-P.PBranches[-P.P.Speciations,]  # removing all mother parasite branches that have co-speciated
+					}
+					
+					# Q cospeciations
+					Q.P.Speciations <-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time 
+					
+					if (length(Q.P.Speciations) > 0) { # make sure argument greater then length 0
+						for(j in Q.P.Speciations)	{			
+							Q.PBranches$alive[j]				<-FALSE 
+							Q.PBranches$nodeDeath[j]			<-Q.nextPNode
+							Q.PBranches$tDeath[j]				<-timepoint
+							
+							Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
+							Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree	
+							if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
+								Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+							}
+
+							Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], Q.nPBranches+1))
+							Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], Q.nPBranches+2)) 
+							Q.nextPNode    <-Q.nextPNode+1
+							Q.nPAlive      <-Q.nPAlive+1
+							Q.nPBranches   <-Q.nPBranches+2
+						}
+						Q.PBranches	<-Q.PBranches[-Q.P.Speciations,]  # removing all mother parasite branches that have co-speciated
+					}
+											
+					# delete all extinct hosts from living tree
+					HBranches	<-HBranches[-H.Speciations,] 
+						
+					Gdist	<-Gdist[-H.Speciations,]  # removing all host mother branches that have speciated
+					Gdist	<-Gdist[,-H.Speciations]
+				} else { # is an extinction event
+					H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node	
+					
+					# P coextinctions
+					P.P.Extinctions	<-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+					if (length(P.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
+						
+						for (j in P.P.Extinctions) {
+							timepoint			   				<-HBranches$tDeath[H.Extinctions]
+									
+							P.PBranches$alive[j]	   			<-FALSE
+							P.PBranches$nodeDeath[j] 			<-P.nextPNode
+							P.PBranches$tDeath[j]    			<-timepoint
+							
+							P.nPDeadBranches		   			<-P.nPDeadBranches+1
+							P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[j,] # copy branches updated with death info to dead tree	
+							if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
+								P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+							}
+
+							P.nextPNode				<-P.nextPNode+1
+							P.nPAlive				<-P.nPAlive-1
+						}
+						P.PBranches<-P.PBranches[-P.P.Extinctions,] # delete all branches associated with extinct host from living tree
+					}
+					
+					# Q coextinctions
+					Q.P.Extinctions	<-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+					if (length(Q.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
+						
+						for (j in Q.P.Extinctions) {
+							timepoint							<-HBranches$tDeath[H.Extinctions]
+									
+							Q.PBranches$alive[j]	   			<-FALSE
+							Q.PBranches$nodeDeath[j] 			<-Q.nextPNode
+							Q.PBranches$tDeath[j]    			<-timepoint
+							
+							Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
+							Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree	
+							if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
+								Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+							}
+
+							Q.nextPNode				<-Q.nextPNode+1
+							Q.nPAlive				<-Q.nPAlive-1
+						}
+						Q.PBranches<-Q.PBranches[-Q.P.Extinctions,] # delete all branches associated with extinct host from living tree
+					}
+					
+					# removing all host mother branches that have died
+					HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
+						
+					Gdist	<-Gdist[-H.Extinctions, , drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+					Gdist	<-Gdist[ , -H.Extinctions, drop=FALSE]
+					
+				} # completed speciation/extinction loops	
+					
+			} # completed loop through H.Death.Nodes	
+			
+		} # finished checking if any H deaths occured
+		
+		# P parasite extinction:
+		P.nPToDie	<-rbinom(1,P.nPAlive,mu.P) # how many parasite species go extinct?
+			
+		if (P.nPToDie>0) {
+			P.PToDie<-sample.int(P.nPAlive,P.nPToDie) # which parasites?
+			P.PToDie<-P.PToDie[P.PBranches$tBirth[P.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			
+			for (i in P.PToDie) {	
+				timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
+				P.PBranches$alive[i]		<-FALSE
+				P.PBranches$nodeDeath[i]	<-P.nextPNode					
+				P.PBranches$tDeath[i]		<-timepoint
+					
+				P.nPDeadBranches			<-P.nPDeadBranches+1
+				P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[i, ] # copy branches updated with death info to dead tree	
+				if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
+					P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+				}
+				P.nextPNode					<-P.nextPNode+1
+				P.nPAlive					<-P.nPAlive-1
+			}
+			if (length(P.PToDie)>0) {
+				P.PBranches<-P.PBranches[-P.PToDie, ] # removing all dead parasite branches
+			}
+		}
+		
+		# Q parasite extinction:
+		Q.nPToDie	<-rbinom(1, Q.nPAlive, mu.Q) # how many parasite species go extinct?
+			
+		if (Q.nPToDie>0) {
+			Q.PToDie<-sample.int(Q.nPAlive, Q.nPToDie) # which parasites?
+			Q.PToDie<-Q.PToDie[Q.PBranches$tBirth[Q.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			
+			for (i in Q.PToDie) {	
+				timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
+				Q.PBranches$alive[i]		<-FALSE
+				Q.PBranches$nodeDeath[i]	<-Q.nextPNode					
+				Q.PBranches$tDeath[i]		<-timepoint
+					
+				Q.nPDeadBranches			<-Q.nPDeadBranches+1
+				Q.PDeadBranches[Q.nPDeadBranches,]<-Q.PBranches[i, ] # copy branches updated with death info to dead tree	
+				if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
+					Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE,DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+				}
+				
+				Q.nextPNode					<-Q.nextPNode+1
+				Q.nPAlive					<-Q.nPAlive-1
+			}
+			if (length(Q.PToDie)>0) {
+				Q.PBranches<-Q.PBranches[-Q.PToDie,] # removing all dead parasite branches
+			}
+		}
+						
+		# parasite host jumps:		
+		nHAlive			<-length(HBranches[,1])			
+		hostJumpProb	<-beta*nHAlive
+			
+		if (hostJumpProb>1) {
+			print("Warning: host jump probability > 1!")
+			hostJumpProb<-1
+		}
+			
+		# P parasite host-jumps
+		P.noParasitesToJump	<-rbinom(1,P.nPAlive,beta*nHAlive) 
+			
+		if (P.noParasitesToJump>0) {			
+			P.parasitesToJump		<-sample.int(P.nPAlive,P.noParasitesToJump) # which parasites
+			P.parasitesToJump		<-P.parasitesToJump[P.PBranches$tBirth[P.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			P.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+					
+			for (i in P.parasitesToJump) {
+				P.oldHost<-which(HBranches$branchNo==P.PBranches$Hassoc[i])   # row number of old host				
+				P.otherHosts<-(1:nHAlive)[-P.oldHost]  # row numbers of all living hosts except the original one
+					
+				if(length(P.otherHosts)>0) {
+					newHost<-P.otherHosts[sample.int(length(P.otherHosts),1)]  # randomly choose branch number of new host
+					P.probEstablish<-(exp(-gamma.P*Gdist[P.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+					P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+					Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+					P.probEstablish<-P.probEstablish*(sigma.self^P.estabInfections)*(sigma.cross^Q.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
+						
+					if(runif(1)<P.probEstablish) {# if host jump was successful 	
+						timepoint						<-t-runif(1,max=timestep) # random timepoint for jump
+						P.PBranches$nodeDeath[i]			<-P.nextPNode
+						P.PBranches$tDeath[i]			<-timepoint
+						P.PBranches$alive[i]			<-FALSE 
+							
+						P.nPDeadBranches				<-P.nPDeadBranches+1
+						P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[i,] # copy branches updated with death info to dead tree	
+						if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
+							P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+						}
+													
+						P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[P.oldHost], P.nPBranches+1))
+						P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], P.nPBranches+2)) 
+						P.parasitesToDelete	   <-c(P.parasitesToDelete,i)
+						P.nextPNode              <-P.nextPNode+1
+						P.nPAlive                <-P.nPAlive+1
+						P.nPBranches             <-P.nPBranches+2
+					}	
+				}
+			}				
+			if (length(P.parasitesToDelete) > 0) {
+				P.PBranches <-P.PBranches[-P.parasitesToDelete,] # removing all mother parasite branches that have host jumped
+			}		
+		}
+		
+		# Q parasite host-jumps
+		Q.noParasitesToJump	<-rbinom(1, Q.nPAlive, beta*nHAlive) 
+			
+		if (Q.noParasitesToJump>0) {			
+			Q.parasitesToJump		<-sample.int(Q.nPAlive,Q.noParasitesToJump) # which parasites
+			Q.parasitesToJump		<-Q.parasitesToJump[Q.PBranches$tBirth[Q.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			Q.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+					
+			for (i in Q.parasitesToJump) {
+				Q.oldHost<-which(HBranches$branchNo==Q.PBranches$Hassoc[i])   # row number of old host				
+				Q.otherHosts<-(1:nHAlive)[-Q.oldHost]  # row numbers of all living hosts except the original one
+					
+				if(length(Q.otherHosts)>0) {
+					newHost<-Q.otherHosts[sample.int(length(Q.otherHosts),1)]  # randomly choose branch number of new host
+					Q.probEstablish<-(exp(-gamma.Q*Gdist[Q.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+					P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+					Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+					Q.probEstablish<-Q.probEstablish*(sigma.self^Q.estabInfections)*(sigma.cross^P.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
+						
+					if(runif(1)<Q.probEstablish) {# if host jump was successful 	
+						timepoint							<-t-runif(1,max=timestep) # random timepoint for jump
+						Q.PBranches$nodeDeath[i]				<-Q.nextPNode
+						Q.PBranches$tDeath[i]				<-timepoint
+						Q.PBranches$alive[i]				<-FALSE 
+							
+						Q.nPDeadBranches					<-Q.nPDeadBranches+1
+						Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[i,] # copy branches updated with death info to dead tree	
+						if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
+							Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+						}
+													
+						Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[Q.oldHost], Q.nPBranches+1))
+						Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], Q.nPBranches+2)) 
+						Q.parasitesToDelete	   <-c(Q.parasitesToDelete,i)
+						Q.nextPNode              <-Q.nextPNode+1
+						Q.nPAlive                <-Q.nPAlive+1
+						Q.nPBranches             <-Q.nPBranches+2
+					}	
+				}
+			}				
+			if (length(Q.parasitesToDelete) > 0) {
+				Q.PBranches <-Q.PBranches[-Q.parasitesToDelete,] # removing all mother parasite branches that have host jumped
+			}		
+		}
+		
+		if (((round(t/timestep)*timestep)>=tmax)||((P.nPAlive==0)&&(Q.nPAlive==0))) {
+			continue<-FALSE
+		}
+	} # loop back up to next t
+			
+	# setting final times and nodes:	
+	if (P.nPAlive > 0) {
+		P.PBranches$tDeath		<-t
+		P.PBranches$nodeDeath	<-P.nextPNode:(P.nextPNode+P.nPAlive-1)
+	}
+	if (Q.nPAlive > 0) {
+		Q.PBranches$tDeath		<-t
+		Q.PBranches$nodeDeath	<-Q.nextPNode:(Q.nextPNode+Q.nPAlive-1)
+	}
+	
+	# recovering the original host tree:
+
+	HBranches	<-H.tree
+		
+	# merging two P matricies together:
+
+	P.PBranches		<-rbind(P.PBranches, P.PDeadBranches[1:P.nPDeadBranches,])
+	P.PBranches		<-P.PBranches[order(P.PBranches[,"branchNo"]), ]
+	
+	Q.PBranches		<-rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches,])
+	Q.PBranches		<-Q.PBranches[order(Q.PBranches[,"branchNo"]), ]
+	
+	if (export.format=="Phylo") { # return cophylogeny as an APE Phylo class
+		H.phylo<-convert.HbranchesToPhylo(HBranches)
+		PandQ.phylo<-convert.2PbranchesToPhylo(P.PBranches,Q.PBranches)
+		return(list(H.phylo,PandQ.phylo[[1]],PandQ.phylo[[2]]))
+	} else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
+		return(list(HBranches,P.PBranches,Q.PBranches))
+	} else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
+		PandQ.phylo<-convert.2PbranchesToPhylo(P.PBranches,Q.PBranches)
+		return(list(PandQ.phylo[[1]],PandQ.phylo[[2]]))
+	}
+}
+
+
+#' A function to simulate many random cophylogenies and calculate statistics
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param tmax: maximum time for which to simulate
+#' @param lambda: host speciation rate
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps: number of times to simulate this set of parameters
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords Host-Parasite phylogeny, statistics
+#' @export
+#' @examples
+#' simulate.singleparam()
+
+simulate.singleparam<-function(tmax=0,lambda,muH,beta,gamma,sigma,muP,K,timestep,reps,filename=NA)
+{
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	parameters<-c(tmax,lambda,muH,beta,gamma,sigma,muP,K,timestep)
+	names(parameters)<-c("tmax","lambda","muH","beta","gamma","sigma","muP","K","timestep")
+	all.trees<-list() # an empty list that will later contain all the trees 
+	stats<-matrix(NA,nrow=reps,ncol=4)
+	colnames(stats)<-c("NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
+	for(i in 1:reps)
+	{
+		cophy<-randomcophy.HP(tmax=tmax,lambda=lambda,muH=muH,beta=beta,gamma=gamma,sigma=sigma,muP=muP,timestep=timestep,K=K)
+		all.trees[[i]]<-cophy		
+		stats[i,]<-get.infectionstats(cophy)
+		if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
+			print(paste("Replicate",i,"finished!"))
+	}
+	
+	times[[2]]<-Sys.time()
+	times[[3]]<-times[[2]]-times[[1]]
+	
+	output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"statistics"=stats,"times"=times)
+	save(output,file=paste(filename,".RData",sep=""))
+	stats
+}
+
+#' A function to simulate many random host phylogenies 
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param tmax: maximum time for which to simulate
+#' @param lambda: host speciation rate
+#' @param K: carrying capacity for host species
+#' @param muH: host extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps: number of times to simulate this set of parameters
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords multiple Host phylogenies
+#' @export
+#' @examples
+#' simulate.H.singleparam()
+
+simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
+{
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	parameters<-c(tmax,lambda,muH,K,timestep)
+	names(parameters)<-c("tmax","lambda","muH","K","timestep")
+	all.trees<-list() # an empty list that will later contain all the trees 
+	for(i in 1:reps)
+	{
+		Hphy<-randomphy.H(tmax=tmax,lambda=lambda,muH=muH,timestep=timestep,K=K,export.format="Raw")
+		all.trees[[i]]<-Hphy		
+		if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
+			print(paste("Replicate",i,"finished!"))
+	}
+	
+	times[[2]]<-Sys.time()
+	times[[3]]<-times[[2]]-times[[1]]
+	
+	output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
+	save(output,file=paste(filename,".RData",sep=""))
+}
+
+#' A function to simulate many random parasite phylogenies on pre-built host-trees and calculate statistics
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords multiple Host-Parasite phylogeny, statistics
+#' @export
+#' @examples
+#' simulate.PonH.singleparam()
+
+simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1=1,reps2,filename=NA)
+{
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	
+	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
+	
+	nHtrees<-length(Htrees)
+	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+
+	Ptrees<-list() # an empty list that will later contain all the parasite trees 
+	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
+	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
+	i<-0
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-nHtrees
+	}
+	for(i0 in fromHtree:toHtree)
+	{
+		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+			stop("Can't have multiple start points when parasites initiate on the first host branch!")
+		}
+		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
+		for(i1 in 1:reps1)
+		{
+			for(i2 in 1:reps2)
+			{
+				i<-i+1
+				cophy<-randomcophy.PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
+				Ptrees[[i]]<-cophy[[2]]
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(cophy))
+			}
+		}	
+			
+		times[[2]]<-Sys.time()
+		times[[3]]<-times[[2]]-times[[1]]
+		
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		save(output,file=paste(filename,".RData",sep=""))
+		print(paste("Simulations for host tree",i0,"finished!"))	
+	}
+	stats
+}
+
+#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param mu.Q: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords multiple Host coevolving Parasite phylogeny, statistics
+#' @export
+#' @examples
+#' simulate.2PonH.singleparam()
+
+simulate.2PonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA)
+{
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	
+	parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","timestep")
+	
+	nHtrees<-length(Htrees)
+	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+
+	P.Ptrees<-list() # an empty list that will later contain all the P parasite trees 
+	Q.Ptrees<-list() # an empty list that will later contain all the Q parasite trees 
+	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=13)
+	colnames(stats)<-c("HTreeNo","PQTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
+	i<-0
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-nHtrees
+	}
+	for(i0 in fromHtree:toHtree) {
+		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+			stop("Can't have multiple start points when parasites initiate on the first host branch!")
+		}
+		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
+		for(i1 in 1:reps1) {
+			for(i2 in 1:reps2) {
+				i<-i+1
+				cophy<-randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P,gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist)
+				P.Ptrees[[i]]<-cophy[[2]]
+				Q.Ptrees[[i]]<-cophy[[3]]
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(cophy))
+			}
+		}		
+			
+		times[[2]]<-Sys.time()
+		times[[3]]<-times[[2]]-times[[1]]
+		
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"P.Ptrees"=P.Ptrees,"Q.Ptrees"=Q.Ptrees,"statistics"=stats,"times"=times)
+		save(output,file=paste(filename,".RData",sep=""))
+		print(paste("Simulations for host tree",i0,"finished!"))	
+	}
+	stats
+}
+
+#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
+#'
+#' The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma: dependency on genetic distance for host jumps
+#' @param sigma: probability of successful co-infection following host jump
+#' @param muP: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @param ncores: the number of cores that will be used to run simulations in parallel
+#' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @export
+#' @examples
+#' parsimulate.PonH.singleparam()
+
+parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1,reps2,filename=NA,ncores)
+{
+	print(paste("Simulations for ",filename," started.",sep=""))
+	
+	# initialising cluster for parallel computation:
+	cluster<-makeCluster(ncores,outfile="")
+	registerDoParallel(cluster)
+
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	
+	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
+	
+	nHtrees<-length(Htrees)
+	
+	print("    Converting host trees to phylo format...")
+	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+
+	Ptrees<-list() # an empty list that will later contain all the parasite trees 
+	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
+	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
+	i<-0
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-nHtrees
+	}
+	
+	# calculating all genetic distances in parallel:
+	
+	print("    Calculating host genetic distance matrices...")
+	# parallel loop for Gdist calculations:
+		
+	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
+		get.Gdist(Htrees[[i0]],t=P.startT)
+	}
+			
+	print("    Running parasite simulations...")
+	for(i0 in fromHtree:toHtree)
+	{
+		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+			stop("Can't have multiple start points when parasites initiate on the first host branch!")
+		}
+		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+		
+		# parallel loop for running the simulations:
+		
+		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('randomcophy.PonH','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
+			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
+			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
+			randomcophy.PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+		}
+		
+		# second loop to calculate the summary statistics:	
+		# (this is not parallelised because it should be very fast)	
+				
+		for(i1 in 1:reps1)
+			for(i2 in 1:reps2)
+			{
+				i<-i+1
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]])))
+			}
+			
+		times[[2]]<-Sys.time()
+		times[[3]]<-times[[2]]-times[[1]]
+		
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		save(output,file=paste(filename,".RData",sep=""))
+		print(paste("        Simulations for host tree",i0,"finished!"))	
+	}
+	stopCluster(cluster)
+	stats
+}
+
+#' A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
+#'
+#' The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param mu.Q: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @param ncores: the number of cores that will be used to run simulations in parallel
+#' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @export
+#' @examples
+#' parsimulate.2PonH.singleparam()
+parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA,ncores)
+{
+	print(paste("Simulations for ",filename," started.",sep=""))
+	
+	# initialising cluster for parallel computation:
+	cluster<-makeCluster(ncores,outfile="")
+	registerDoParallel(cluster)
+
+	times<-list(start=NA,end=NA,duration=NA)
+	times[[1]]<-Sys.time()
+	
+	parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","timestep")
+	
+	nHtrees<-length(Htrees)
+	
+	print("    Converting host trees to phylo format...")
+	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+
+	Ptrees<-list() # an empty list that will later contain all the parasite trees 
+	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=13)
+	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
+	
+	i<-0
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+		toHtree<-nHtrees
+	}
+	
+	# calculating all genetic distances in parallel:
+	
+	print("    Calculating host genetic distance matrices...")
+	# parallel loop for Gdist calculations:
+		
+	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
+		get.Gdist(Htrees[[i0]],t=P.startT)
+	}
+
+	print("    Running parasite simulations...")
+	for(i0 in fromHtree:toHtree)
+	{
+		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+			stop("Can't have multiple start points when parasites initiate on the first host branch!")
+		}
+		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+		
+		# parallel loop for running the simulations:
+		
+		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('randomcophy.2PonH','convert.2PbranchesToPhylo',"convert.HbranchesToPhylo",'DBINC'),.packages="ape") %dopar% {
+			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
+			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
+			randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+		}
+		
+		# second loop to calculate the summary statistics:	
+		# (this is not parallelised because it should be very fast)	
+		
+		for(i1 in 1:reps1)
+			for(i2 in 1:reps2)
+			{
+				i<-i+1
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]],Ptrees[[i]][[2]])))
+			}
+			
+		times[[2]]<-Sys.time()
+		times[[3]]<-times[[2]]-times[[1]]
+
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		save(output,file=paste(filename,".RData",sep=""))
+		print(paste("        Simulations for host tree",i0,"finished!"))	
+	}
+	stopCluster(cluster)
+	stats
+}
+
+
 #' A parasite tree building function with host response to infection
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
@@ -1326,20 +2163,17 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
 		
 		# parallel loop for running the simulations:
-		print("Before Parallel Loop")
 		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('cophy.PonH.infectionResponse','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
 			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
 			cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
 		}
-		print("End Parallel")
 		Trees<-list()
 		Traits<-list()
 		for (j in 1:length(Ptrees)) {
 			Trees[[j]]<-Ptrees[[j]][[1]]
 			Traits[[j]]<-Ptrees[[j]][[2]]
 		}
-		print("Separated Ptrees from Htraits")
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
 	
@@ -1351,7 +2185,6 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Trees[[i]])))
 			}
 		}
-		print("Calculated Stats")
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
 
@@ -1362,417 +2195,6 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 	stopCluster(cluster)
 	stats
 
-}
-
-#' A random dual parasite tree building function
-#'
-#' The following function simulates a two coevolving parasite phylogenetic trees on a pre-built host phylogeny.
-#' @param tmax: maximum time for which to simulate
-#' @param H.tree: a pre-built host phylogenetic tree
-#' @param beta: parasite host jump rate
-#' @param gamma.P: dependency on genetic distance for host jumps
-#' @param gamma.Q: dependency on genetic distance for host jumps
-#' @param sigma.self: probability of successful co-infection with related parasite following host jump
-#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
-#' @param mu.P: parasite extinction rate
-#' @param mu.Q: parasite extinction rate
-#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
-#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
-#' @param P.startT: the timepoint at which a parasite invades the host-tree
-#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
-#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA), timestep: timestep for simulations
-#' @keywords Multi-Parasite phylogeny
-#' @export
-#' @examples
-#' randomcophy.2PonH()
-
-randomcophy.2PonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,mu.P=0.5,mu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001,DBINC=100)
-{	
-	# adjusting the evolutionary rates to timesteps:
-	mu.P		<- mu.P*timestep
-	mu.Q		<- mu.Q*timestep
-	beta		<- beta*timestep
-	
-	# Set beginning for P simulation
-
-	HBranches<-H.tree[which(H.tree$tDeath>=P.startT & H.tree$tBirth<=P.startT),]  # which host branches are alive at invasion time T?
-
-	if (is.na(ini.Hbranch))  { # no initial host branch specified --> choose random branch
-		P.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that P invasion will start from
-		Q.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that Q invasion will start from
-	} else { 
-		P.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
-		Q.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
-	}
-	P.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=P.PstartHassoc, branchNo=1) 
-		
-	P.nPBranches    	<- 1	 # total number of branches that have been constructed
-	P.nPAlive       	<- 1	 # number of branches that extend until the current timestep
-	P.nextPNode     	<- 1 # number of the next node to be produced
-		
-	P.PDeadBranches	<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-	P.nPDeadBranches	<- 0 # number of dead parasite branches
-	
-	Q.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=Q.PstartHassoc, branchNo=1) 
-		
-	Q.nPBranches    	<- 1	 # total number of branches that have been constructed
-	Q.nPAlive       	<- 1	 # number of branches that extend until the current timestep
-	Q.nextPNode     	<- 1 # number of the next node to be produced
-		
-	Q.PDeadBranches		<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-	Q.nPDeadBranches	<- 0 # number of dead parasite branches
-		
-	if (any(is.na(Gdist))) {
-		Gdist<-get.Gdist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
-	}
-	
-	HBranchDeathTimes<-sort(H.tree$tDeath[H.tree$tDeath>=P.startT & H.tree$alive==FALSE])
-	HDeathIndex<-1
-
-	continue<-TRUE
-	t<-P.startT
-	while (continue==TRUE) { # continue simulation until continue is set to FALSE
-		# main simulation loop through time
-		t<-t+timestep
-		# update Gdist
-		Gdist <-Gdist + 2 * timestep # add increased distance btw branches
-		diag (Gdist) <-0  # cleaning up so that distance between branch to itself is always 0
-					
-		# Host events:
-		if ((HDeathIndex<=length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex]>=(t-timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) { # if any host dies w/in interval
-			H.Death	<-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive==FALSE) # Any host branch that dies w/in timestep interval leading up to time t
-			HDeathIndex	<-HDeathIndex+length(H.Death)
-			
-			for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) { # for each node where a host died
-				# Cospeciation events:
-				if (i %in% H.tree$nodeBirth) {  # Check if host death is due to speciation
-					H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-					daughterBranches		<-which(H.tree$nodeBirth == i)
-					HBranches              	<-rbind(HBranches, H.tree[daughterBranches[1], ])
-					HBranches              	<-rbind(HBranches, H.tree[daughterBranches[2], ])
-					
-					timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
-					# update Gdist matrix:						
-					# filling in values
-								
-					Gdist	<-rbind(Gdist,NA)
-					Gdist	<-rbind(Gdist,NA)
-					Gdist	<-cbind(Gdist,NA)
-					Gdist	<-cbind(Gdist,NA)
-						
-					len 	<-length(Gdist[1, ])
-					
-					Gdist[len-1,len]	<-2*(t-timepoint)
-					Gdist[len,len-1]	<-2*(t-timepoint)
-								
-					Gdist[1:(len-2), len-1]	<-Gdist[1:(len-2),H.Speciations]
-					Gdist[1:(len-2), len]	<-Gdist[1:(len-2),H.Speciations]
-					Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
-					Gdist[len, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
-
-					# P cospeciations
-					P.P.Speciations <-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time 
-					
-					if (length(P.P.Speciations) > 0) { # make sure argument greater then length 0
-						for(j in P.P.Speciations) {			
-							P.PBranches$alive[j]		<-FALSE 
-							P.PBranches$nodeDeath[j]	<-P.nextPNode
-							P.PBranches$tDeath[j]		<-timepoint
-							
-							P.nPDeadBranches			<-P.nPDeadBranches+1
-							P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[j,] # copy branches updated with death info to dead tree	
-							if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-								P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-							}
-
-							P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], P.nPBranches+1))
-							P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], P.nPBranches+2)) 
-							P.nextPNode    <-P.nextPNode+1
-							P.nPAlive      <-P.nPAlive+1
-							P.nPBranches   <-P.nPBranches+2
-						}
-						P.PBranches	<-P.PBranches[-P.P.Speciations,]  # removing all mother parasite branches that have co-speciated
-					}
-					
-					# Q cospeciations
-					Q.P.Speciations <-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time 
-					
-					if (length(Q.P.Speciations) > 0) { # make sure argument greater then length 0
-						for(j in Q.P.Speciations)	{			
-							Q.PBranches$alive[j]				<-FALSE 
-							Q.PBranches$nodeDeath[j]			<-Q.nextPNode
-							Q.PBranches$tDeath[j]				<-timepoint
-							
-							Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
-							Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree	
-							if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-								Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-							}
-
-							Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], Q.nPBranches+1))
-							Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], Q.nPBranches+2)) 
-							Q.nextPNode    <-Q.nextPNode+1
-							Q.nPAlive      <-Q.nPAlive+1
-							Q.nPBranches   <-Q.nPBranches+2
-						}
-						Q.PBranches	<-Q.PBranches[-Q.P.Speciations,]  # removing all mother parasite branches that have co-speciated
-					}
-											
-					# delete all extinct hosts from living tree
-					HBranches	<-HBranches[-H.Speciations,] 
-						
-					Gdist	<-Gdist[-H.Speciations,]  # removing all host mother branches that have speciated
-					Gdist	<-Gdist[,-H.Speciations]
-				} else { # is an extinction event
-					H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node	
-					
-					# P coextinctions
-					P.P.Extinctions	<-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
-					if (length(P.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
-						
-						for (j in P.P.Extinctions) {
-							timepoint			   				<-HBranches$tDeath[H.Extinctions]
-									
-							P.PBranches$alive[j]	   			<-FALSE
-							P.PBranches$nodeDeath[j] 			<-P.nextPNode
-							P.PBranches$tDeath[j]    			<-timepoint
-							
-							P.nPDeadBranches		   			<-P.nPDeadBranches+1
-							P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[j,] # copy branches updated with death info to dead tree	
-							if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-								P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-							}
-
-							P.nextPNode				<-P.nextPNode+1
-							P.nPAlive				<-P.nPAlive-1
-						}
-						P.PBranches<-P.PBranches[-P.P.Extinctions,] # delete all branches associated with extinct host from living tree
-					}
-					
-					# Q coextinctions
-					Q.P.Extinctions	<-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
-					if (length(Q.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
-						
-						for (j in Q.P.Extinctions) {
-							timepoint							<-HBranches$tDeath[H.Extinctions]
-									
-							Q.PBranches$alive[j]	   			<-FALSE
-							Q.PBranches$nodeDeath[j] 			<-Q.nextPNode
-							Q.PBranches$tDeath[j]    			<-timepoint
-							
-							Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
-							Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree	
-							if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-								Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-							}
-
-							Q.nextPNode				<-Q.nextPNode+1
-							Q.nPAlive				<-Q.nPAlive-1
-						}
-						Q.PBranches<-Q.PBranches[-Q.P.Extinctions,] # delete all branches associated with extinct host from living tree
-					}
-					
-					# removing all host mother branches that have died
-					HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
-						
-					Gdist	<-Gdist[-H.Extinctions, , drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
-					Gdist	<-Gdist[ , -H.Extinctions, drop=FALSE]
-					
-				} # completed speciation/extinction loops	
-					
-			} # completed loop through H.Death.Nodes	
-			
-		} # finished checking if any H deaths occured
-		
-		# P parasite extinction:
-		P.nPToDie	<-rbinom(1,P.nPAlive,mu.P) # how many parasite species go extinct?
-			
-		if (P.nPToDie>0) {
-			P.PToDie<-sample.int(P.nPAlive,P.nPToDie) # which parasites?
-			P.PToDie<-P.PToDie[P.PBranches$tBirth[P.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			
-			for (i in P.PToDie) {	
-				timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
-				P.PBranches$alive[i]		<-FALSE
-				P.PBranches$nodeDeath[i]	<-P.nextPNode					
-				P.PBranches$tDeath[i]		<-timepoint
-					
-				P.nPDeadBranches			<-P.nPDeadBranches+1
-				P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[i, ] # copy branches updated with death info to dead tree	
-				if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-					P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-				}
-				P.nextPNode					<-P.nextPNode+1
-				P.nPAlive					<-P.nPAlive-1
-			}
-			if (length(P.PToDie)>0) {
-				P.PBranches<-P.PBranches[-P.PToDie, ] # removing all dead parasite branches
-			}
-		}
-		
-		# Q parasite extinction:
-		Q.nPToDie	<-rbinom(1, Q.nPAlive, mu.Q) # how many parasite species go extinct?
-			
-		if (Q.nPToDie>0) {
-			Q.PToDie<-sample.int(Q.nPAlive, Q.nPToDie) # which parasites?
-			Q.PToDie<-Q.PToDie[Q.PBranches$tBirth[Q.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			
-			for (i in Q.PToDie) {	
-				timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
-				Q.PBranches$alive[i]		<-FALSE
-				Q.PBranches$nodeDeath[i]	<-Q.nextPNode					
-				Q.PBranches$tDeath[i]		<-timepoint
-					
-				Q.nPDeadBranches			<-Q.nPDeadBranches+1
-				Q.PDeadBranches[Q.nPDeadBranches,]<-Q.PBranches[i, ] # copy branches updated with death info to dead tree	
-				if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-					Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE,DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-				}
-				
-				Q.nextPNode					<-Q.nextPNode+1
-				Q.nPAlive					<-Q.nPAlive-1
-			}
-			if (length(Q.PToDie)>0) {
-				Q.PBranches<-Q.PBranches[-Q.PToDie,] # removing all dead parasite branches
-			}
-		}
-						
-		# parasite host jumps:		
-		nHAlive			<-length(HBranches[,1])			
-		hostJumpProb	<-beta*nHAlive
-			
-		if (hostJumpProb>1) {
-			print("Warning: host jump probability > 1!")
-			hostJumpProb<-1
-		}
-			
-		# P parasite host-jumps
-		P.noParasitesToJump	<-rbinom(1,P.nPAlive,beta*nHAlive) 
-			
-		if (P.noParasitesToJump>0) {			
-			P.parasitesToJump		<-sample.int(P.nPAlive,P.noParasitesToJump) # which parasites
-			P.parasitesToJump		<-P.parasitesToJump[P.PBranches$tBirth[P.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			P.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
-					
-			for (i in P.parasitesToJump) {
-				P.oldHost<-which(HBranches$branchNo==P.PBranches$Hassoc[i])   # row number of old host				
-				P.otherHosts<-(1:nHAlive)[-P.oldHost]  # row numbers of all living hosts except the original one
-					
-				if(length(P.otherHosts)>0) {
-					newHost<-P.otherHosts[sample.int(length(P.otherHosts),1)]  # randomly choose branch number of new host
-					P.probEstablish<-(exp(-gamma.P*Gdist[P.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-					P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-					Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-					P.probEstablish<-P.probEstablish*(sigma.self^P.estabInfections)*(sigma.cross^Q.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
-						
-					if(runif(1)<P.probEstablish) {# if host jump was successful 	
-						timepoint						<-t-runif(1,max=timestep) # random timepoint for jump
-						P.PBranches$nodeDeath[i]			<-P.nextPNode
-						P.PBranches$tDeath[i]			<-timepoint
-						P.PBranches$alive[i]			<-FALSE 
-							
-						P.nPDeadBranches				<-P.nPDeadBranches+1
-						P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[i,] # copy branches updated with death info to dead tree	
-						if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-							P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-						}
-													
-						P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[P.oldHost], P.nPBranches+1))
-						P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], P.nPBranches+2)) 
-						P.parasitesToDelete	   <-c(P.parasitesToDelete,i)
-						P.nextPNode              <-P.nextPNode+1
-						P.nPAlive                <-P.nPAlive+1
-						P.nPBranches             <-P.nPBranches+2
-					}	
-				}
-			}				
-			if (length(P.parasitesToDelete) > 0) {
-				P.PBranches <-P.PBranches[-P.parasitesToDelete,] # removing all mother parasite branches that have host jumped
-			}		
-		}
-		
-		# Q parasite host-jumps
-		Q.noParasitesToJump	<-rbinom(1, Q.nPAlive, beta*nHAlive) 
-			
-		if (Q.noParasitesToJump>0) {			
-			Q.parasitesToJump		<-sample.int(Q.nPAlive,Q.noParasitesToJump) # which parasites
-			Q.parasitesToJump		<-Q.parasitesToJump[Q.PBranches$tBirth[Q.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-			Q.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
-					
-			for (i in Q.parasitesToJump) {
-				Q.oldHost<-which(HBranches$branchNo==Q.PBranches$Hassoc[i])   # row number of old host				
-				Q.otherHosts<-(1:nHAlive)[-Q.oldHost]  # row numbers of all living hosts except the original one
-					
-				if(length(Q.otherHosts)>0) {
-					newHost<-Q.otherHosts[sample.int(length(Q.otherHosts),1)]  # randomly choose branch number of new host
-					Q.probEstablish<-(exp(-gamma.Q*Gdist[Q.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-					P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-					Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-					Q.probEstablish<-Q.probEstablish*(sigma.self^Q.estabInfections)*(sigma.cross^P.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
-						
-					if(runif(1)<Q.probEstablish) {# if host jump was successful 	
-						timepoint							<-t-runif(1,max=timestep) # random timepoint for jump
-						Q.PBranches$nodeDeath[i]				<-Q.nextPNode
-						Q.PBranches$tDeath[i]				<-timepoint
-						Q.PBranches$alive[i]				<-FALSE 
-							
-						Q.nPDeadBranches					<-Q.nPDeadBranches+1
-						Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[i,] # copy branches updated with death info to dead tree	
-						if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-							Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
-						}
-													
-						Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[Q.oldHost], Q.nPBranches+1))
-						Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], Q.nPBranches+2)) 
-						Q.parasitesToDelete	   <-c(Q.parasitesToDelete,i)
-						Q.nextPNode              <-Q.nextPNode+1
-						Q.nPAlive                <-Q.nPAlive+1
-						Q.nPBranches             <-Q.nPBranches+2
-					}	
-				}
-			}				
-			if (length(Q.parasitesToDelete) > 0) {
-				Q.PBranches <-Q.PBranches[-Q.parasitesToDelete,] # removing all mother parasite branches that have host jumped
-			}		
-		}
-		
-		if (((round(t/timestep)*timestep)>=tmax)||((P.nPAlive==0)&&(Q.nPAlive==0))) {
-			continue<-FALSE
-		}
-	} # loop back up to next t
-			
-	# setting final times and nodes:	
-	if (P.nPAlive > 0) {
-		P.PBranches$tDeath		<-t
-		P.PBranches$nodeDeath	<-P.nextPNode:(P.nextPNode+P.nPAlive-1)
-	}
-	if (Q.nPAlive > 0) {
-		Q.PBranches$tDeath		<-t
-		Q.PBranches$nodeDeath	<-Q.nextPNode:(Q.nextPNode+Q.nPAlive-1)
-	}
-	
-	# recovering the original host tree:
-
-	HBranches	<-H.tree
-		
-	# merging two P matricies together:
-
-	P.PBranches		<-rbind(P.PBranches, P.PDeadBranches[1:P.nPDeadBranches,])
-	P.PBranches		<-P.PBranches[order(P.PBranches[,"branchNo"]), ]
-	
-	Q.PBranches		<-rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches,])
-	Q.PBranches		<-Q.PBranches[order(Q.PBranches[,"branchNo"]), ]
-	
-	if (export.format=="Phylo") { # return cophylogeny as an APE Phylo class
-		H.phylo<-convert.HbranchesToPhylo(HBranches)
-		PandQ.phylo<-convert.2PbranchesToPhylo(P.PBranches,Q.PBranches)
-		return(list(H.phylo,PandQ.phylo[[1]],PandQ.phylo[[2]]))
-	} else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
-		return(list(HBranches,P.PBranches,Q.PBranches))
-	} else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
-		PandQ.phylo<-convert.2PbranchesToPhylo(P.PBranches,Q.PBranches)
-		return(list(PandQ.phylo[[1]],PandQ.phylo[[2]]))
-	}
 }
 
 #' A random dual parasite tree building function with discrete responsive parasite resistance evolution
@@ -2353,166 +2775,11 @@ cophy.2PonH.infectionResponse<-function(tmax, H.tree, beta=0.1, gamma.P=0.02, ga
 }
 
 
-#' A function to simulate many random cophylogenies and calculate statistics
+#' A parallel parasite tree building function with host response to infection
 #'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
 #' @param tmax: maximum time for which to simulate
-#' @param lambda: host speciation rate
-#' @param K: carrying capacity for host species
-#' @param muH: host extinction rate
-#' @param beta: parasite host jump rate
-#' @param gamma: dependency on genetic distance for host jumps
-#' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps: number of times to simulate this set of parameters
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @keywords Host-Parasite phylogeny, statistics
-#' @export
-#' @examples
-#' simulate.singleparam()
-
-simulate.singleparam<-function(tmax=0,lambda,muH,beta,gamma,sigma,muP,K,timestep,reps,filename=NA)
-{
-	times<-list(start=NA,end=NA,duration=NA)
-	times[[1]]<-Sys.time()
-	parameters<-c(tmax,lambda,muH,beta,gamma,sigma,muP,K,timestep)
-	names(parameters)<-c("tmax","lambda","muH","beta","gamma","sigma","muP","K","timestep")
-	all.trees<-list() # an empty list that will later contain all the trees 
-	stats<-matrix(NA,nrow=reps,ncol=4)
-	colnames(stats)<-c("NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
-	for(i in 1:reps)
-	{
-		cophy<-randomcophy.HP(tmax=tmax,lambda=lambda,muH=muH,beta=beta,gamma=gamma,sigma=sigma,muP=muP,timestep=timestep,K=K)
-		all.trees[[i]]<-cophy		
-		stats[i,]<-get.infectionstats(cophy)
-		if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
-			print(paste("Replicate",i,"finished!"))
-	}
-	
-	times[[2]]<-Sys.time()
-	times[[3]]<-times[[2]]-times[[1]]
-	
-	output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"statistics"=stats,"times"=times)
-	save(output,file=paste(filename,".RData",sep=""))
-	stats
-}
-
-#' A function to simulate many random host phylogenies 
-#'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param tmax: maximum time for which to simulate
-#' @param lambda: host speciation rate
-#' @param K: carrying capacity for host species
-#' @param muH: host extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps: number of times to simulate this set of parameters
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @keywords multiple Host phylogenies
-#' @export
-#' @examples
-#' simulate.H.singleparam()
-
-simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
-{
-	times<-list(start=NA,end=NA,duration=NA)
-	times[[1]]<-Sys.time()
-	parameters<-c(tmax,lambda,muH,K,timestep)
-	names(parameters)<-c("tmax","lambda","muH","K","timestep")
-	all.trees<-list() # an empty list that will later contain all the trees 
-	for(i in 1:reps)
-	{
-		Hphy<-randomphy.H(tmax=tmax,lambda=lambda,muH=muH,timestep=timestep,K=K,export.format="Raw")
-		all.trees[[i]]<-Hphy		
-		if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
-			print(paste("Replicate",i,"finished!"))
-	}
-	
-	times[[2]]<-Sys.time()
-	times[[3]]<-times[[2]]-times[[1]]
-	
-	output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
-	save(output,file=paste(filename,".RData",sep=""))
-}
-
-#' A function to simulate many random parasite phylogenies on pre-built host-trees and calculate statistics
-#'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees
-#' @param fromHtree: starting host-tree
-#' @param toHtree: finishing host-tree
-#' @param tmax: maximum time for which to simulate
-#' @param P.startT: the timepoint at which a parasite invades the host-tree
-#' @param beta: parasite host jump rate
-#' @param gamma: dependency on genetic distance for host jumps
-#' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps1: the number of starting points for the parasite trees
-#' @param reps2: the number of replicates per starting point
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @keywords multiple Host-Parasite phylogeny, statistics
-#' @export
-#' @examples
-#' simulate.PonH.singleparam()
-
-simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1=1,reps2,filename=NA)
-{
-	times<-list(start=NA,end=NA,duration=NA)
-	times[[1]]<-Sys.time()
-	
-	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
-	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
-	
-	nHtrees<-length(Htrees)
-	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
-
-	Ptrees<-list() # an empty list that will later contain all the parasite trees 
-	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
-	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
-	i<-0
-	if (is.na(fromHtree)) {
-		fromHtree<-1
-	}
-	if (is.na(toHtree)) {
-		toHtree<-nHtrees
-	}
-	for(i0 in fromHtree:toHtree)
-	{
-		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
-			stop("Can't have multiple start points when parasites initiate on the first host branch!")
-		}
-		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
-		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
-		for(i1 in 1:reps1)
-		{
-			for(i2 in 1:reps2)
-			{
-				i<-i+1
-				cophy<-randomcophy.PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
-				Ptrees[[i]]<-cophy[[2]]
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(cophy))
-			}
-		}	
-			
-		times[[2]]<-Sys.time()
-		times[[3]]<-times[[2]]-times[[1]]
-		
-		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
-		save(output,file=paste(filename,".RData",sep=""))
-		print(paste("Simulations for host tree",i0,"finished!"))	
-	}
-	stats
-}
-
-#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics
-#'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees
-#' @param fromHtree: starting host-tree
-#' @param toHtree: finishing host-tree
-#' @param tmax: maximum time for which to simulate
-#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param Htrees: a pre-built host phylogenetic tree
 #' @param beta: parasite host jump rate
 #' @param gamma.P: dependency on genetic distance for host jumps
 #' @param gamma.Q: dependency on genetic distance for host jumps
@@ -2520,226 +2787,86 @@ simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.star
 #' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
 #' @param mu.P: parasite extinction rate
 #' @param mu.Q: parasite extinction rate
-#' @param timestep: timestep for simulations
+#' @param epsilon.0to1: the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
+#' @param epsilon.1to0: the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
+#' @param omega: factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
+#' @param rho: factor by which parasite extinction rate increases in response to host resistance
+#' @param psi: factor by which parasite host-jump success decreases due to resistance of the new host
+#' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE
+#' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
 #' @param reps1: the number of starting points for the parasite trees
 #' @param reps2: the number of replicates per starting point
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @keywords multiple Host coevolving Parasite phylogeny, statistics
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param ini.Hbranch: the host branch from which the parasite invasion is initiated (defaults to NA)
+#' @param Gdist: can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
+#' @param timestep: timestep for simulations
+#' @keywords Host-Parasite phylogeny
 #' @export
 #' @examples
-#' simulate.2PonH.singleparam()
+#' cophy.2PonH.infectionResponse()
 
-simulate.2PonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA)
+parsimulate.2PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.self=0,sigma.cross=0,mu.P=0.5,mu.Q=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
 {
+	print(paste("Simulations for ",filename," started.",sep=""))
+
 	times<-list(start=NA,end=NA,duration=NA)
 	times[[1]]<-Sys.time()
 	
-	parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep)
-	names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","timestep")
+	parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,epsilon.1to0,epsilon.0to1,omega,rho,psi,reps1,reps2,timestep)
+	names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","epsilon.1to0","epsilon.0to1","omega","rho","psi","reps1","reps2","timestep")
 	
-	nHtrees<-length(Htrees)
-	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
-
-	P.Ptrees<-list() # an empty list that will later contain all the P parasite trees 
-	Q.Ptrees<-list() # an empty list that will later contain all the Q parasite trees 
-	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=13)
-	colnames(stats)<-c("HTreeNo","PQTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
-	i<-0
 	if (is.na(fromHtree)) {
 		fromHtree<-1
 	}
 	if (is.na(toHtree)) {
-		toHtree<-nHtrees
+		toHtree<-length(Htrees)
 	}
-	for(i0 in fromHtree:toHtree) {
-		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
-			stop("Can't have multiple start points when parasites initiate on the first host branch!")
-		}
-		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
-		Gdist<-get.Gdist(Htrees[[i0]],t=P.startT)
-		for(i1 in 1:reps1) {
-			for(i2 in 1:reps2) {
-				i<-i+1
-				cophy<-randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P,gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist)
-				P.Ptrees[[i]]<-cophy[[2]]
-				Q.Ptrees[[i]]<-cophy[[3]]
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(cophy))
+	
+	nHtrees<-length(fromHtree:toHtree)
+	
+	# preparing host tree phylo files to save
+	if (class(HtreesPhylo)=="logical") {
+		print("    Converting host trees to phylo format...")
+		TreesToConvert<-list()
+		if (length(fromHtree:toHtree)!=length(Htrees)) {
+			for (i in 1:length(fromHtree:toHtree)) {
+			TreesToConvert[[i]]<- Htrees[[i]]
 			}
-		}		
-			
-		times[[2]]<-Sys.time()
-		times[[3]]<-times[[2]]-times[[1]]
-		
-		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"P.Ptrees"=P.Ptrees,"Q.Ptrees"=Q.Ptrees,"statistics"=stats,"times"=times)
-		save(output,file=paste(filename,".RData",sep=""))
-		print(paste("Simulations for host tree",i0,"finished!"))	
-	}
-	stats
-}
-
-#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
-#'
-#' The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees
-#' @param fromHtree: starting host-tree
-#' @param toHtree: finishing host-tree
-#' @param tmax: maximum time for which to simulate
-#' @param P.startT: the timepoint at which a parasite invades the host-tree
-#' @param beta: parasite host jump rate
-#' @param gamma: dependency on genetic distance for host jumps
-#' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps1: the number of starting points for the parasite trees
-#' @param reps2: the number of replicates per starting point
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @param ncores: the number of cores that will be used to run simulations in parallel
-#' @keywords multiple Host-Parasite phylogeny, statistics, parallel
-#' @export
-#' @examples
-#' parsimulate.PonH.singleparam()
-
-parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1,reps2,filename=NA,ncores)
-{
-	print(paste("Simulations for ",filename," started.",sep=""))
-	
-	# initialising cluster for parallel computation:
-	cluster<-makeCluster(ncores,outfile="")
-	registerDoParallel(cluster)
-
-	times<-list(start=NA,end=NA,duration=NA)
-	times[[1]]<-Sys.time()
-	
-	parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
-	names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
-	
-	nHtrees<-length(Htrees)
-	
-	print("    Converting host trees to phylo format...")
-	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
-
-	Ptrees<-list() # an empty list that will later contain all the parasite trees 
-	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=8)
-	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
-	i<-0
-	if (is.na(fromHtree)) {
-		fromHtree<-1
-	}
-	if (is.na(toHtree)) {
-		toHtree<-nHtrees
-	}
-	
-	# calculating all genetic distances in parallel:
-	
-	print("    Calculating host genetic distance matrices...")
-	# parallel loop for Gdist calculations:
-		
-	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
-		get.Gdist(Htrees[[i0]],t=P.startT)
-	}
-			
-	print("    Running parasite simulations...")
-	for(i0 in fromHtree:toHtree)
-	{
-		if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
-			stop("Can't have multiple start points when parasites initiate on the first host branch!")
-		}
-		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
-		
-		# parallel loop for running the simulations:
-		
-		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('randomcophy.PonH','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
-			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
-			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-			randomcophy.PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
-		}
-		
-		# second loop to calculate the summary statistics:	
-		# (this is not parallelised because it should be very fast)	
-				
-		for(i1 in 1:reps1)
-			for(i2 in 1:reps2)
-			{
-				i<-i+1
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.infectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]])))
+			phylo<-lapply(TreesToConvert,convert.HbranchesToPhylo)  # converting to APE Phylo format
+			HtreesPhylo<-list()
+			for (i in fromHtree:toHtree) {
+				HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
 			}
-			
-		times[[2]]<-Sys.time()
-		times[[3]]<-times[[2]]-times[[1]]
-		
-		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
-		save(output,file=paste(filename,".RData",sep=""))
-		print(paste("        Simulations for host tree",i0,"finished!"))	
+		} else {
+			HtreesPhylo <-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
+		}
 	}
-	stopCluster(cluster)
-	stats
-}
-
-#' A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
-#'
-#' The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
-#' @param Htrees: pre-built host trees on which to simulate parasite trees
-#' @param fromHtree: starting host-tree
-#' @param toHtree: finishing host-tree
-#' @param tmax: maximum time for which to simulate
-#' @param P.startT: the timepoint at which a parasite invades the host-tree
-#' @param beta: parasite host jump rate
-#' @param gamma.P: dependency on genetic distance for host jumps
-#' @param gamma.Q: dependency on genetic distance for host jumps
-#' @param sigma.self: probability of successful co-infection with related parasite following host jump
-#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
-#' @param mu.P: parasite extinction rate
-#' @param timestep: timestep for simulations
-#' @param mu.Q: parasite extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps1: the number of starting points for the parasite trees
-#' @param reps2: the number of replicates per starting point
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @param ncores: the number of cores that will be used to run simulations in parallel
-#' @keywords multiple Host-Parasite phylogeny, statistics, parallel
-#' @export
-#' @examples
-#' parsimulate.2PonH.singleparam()
-parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA,ncores)
-{
-	print(paste("Simulations for ",filename," started.",sep=""))
-	
-	# initialising cluster for parallel computation:
-	cluster<-makeCluster(ncores,outfile="")
-	registerDoParallel(cluster)
-
-	times<-list(start=NA,end=NA,duration=NA)
-	times[[1]]<-Sys.time()
-	
-	parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep)
-	names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","timestep")
-	
-	nHtrees<-length(Htrees)
-	
-	print("    Converting host trees to phylo format...")
-	HtreesPhylo<-lapply(Htrees,convert.HbranchesToPhylo)  # converting to APE Phylo format
 
 	Ptrees<-list() # an empty list that will later contain all the parasite trees 
 	stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=13)
 	colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
-	
 	i<-0
-	if (is.na(fromHtree)) {
-		fromHtree<-1
-	}
-	if (is.na(toHtree)) {
-		toHtree<-nHtrees
-	}
+	
+	# initialising cluster for parallel computation:
+	cluster<-makeCluster(ncores,outfile="")
+	registerDoParallel(cluster)
 	
 	# calculating all genetic distances in parallel:
 	
-	print("    Calculating host genetic distance matrices...")
-	# parallel loop for Gdist calculations:
-		
-	Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
-		get.Gdist(Htrees[[i0]],t=P.startT)
+	if (any(is.na(Gdist))) {
+		print("    Calculating host genetic distance matrices...")
+		# parallel loop for Gdist calculations:
+		Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get.Gdist'),.packages="ape") %dopar% {
+			get.Gdist(Htrees[[i0]],t=P.startT)
+		}
+	}	
+	
+	if (is.na(TraitTracking)) {
+		TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
+			get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
+		}
 	}
-
+			
 	print("    Running parasite simulations...")
 	for(i0 in fromHtree:toHtree)
 	{
@@ -2749,33 +2876,40 @@ parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 		ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
 		
 		# parallel loop for running the simulations:
-		
-		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('randomcophy.2PonH','convert.2PbranchesToPhylo',"convert.HbranchesToPhylo",'DBINC'),.packages="ape") %dopar% {
+		Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('cophy.2PonH.infectionResponse','convert.PbranchesToPhylo','DBINC'),.packages="ape") %dopar% {
 			i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 			i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-			randomcophy.2PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+			cophy.2PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta, gamma.P=gamma.P,gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
 		}
-		
+		Trees<-list()
+		Traits<-list()
+		for (j in 1:length(Ptrees)) {
+			Trees[[j]]<-list(Ptrees[[j]][[1]],Ptrees[[j]][[2]])
+			Traits[[j]]<-Ptrees[[j]][[3]]
+		}
 		# second loop to calculate the summary statistics:	
 		# (this is not parallelised because it should be very fast)	
-		
-		for(i1 in 1:reps1)
+	
+		for(i1 in 1:reps1) {
 			for(i2 in 1:reps2)
 			{
 				i<-i+1
-				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]],Ptrees[[i]][[2]])))
+				stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(list(HtreesPhylo[[i0-(fromHtree-1)]],Trees[[i]][[1]],Trees[[i]][[2]])))
 			}
-			
+		}
 		times[[2]]<-Sys.time()
 		times[[3]]<-times[[2]]-times[[1]]
 
-		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+		output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Trees,"HResistanceTraits"=Traits, "statistics"=stats,"times"=times)
 		save(output,file=paste(filename,".RData",sep=""))
 		print(paste("        Simulations for host tree",i0,"finished!"))	
 	}
 	stopCluster(cluster)
 	stats
+
 }
+
+
 
 ######################################################################################################
 ###################      Functions for conversions between different formats      ####################
