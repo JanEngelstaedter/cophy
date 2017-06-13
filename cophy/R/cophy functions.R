@@ -75,8 +75,7 @@ code.version<-0.928
 #' @param beta: parasite host jump rate 
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
-
-#' @param muP: parasite extinction rate#' @param
+#' @param muP: parasite extinction rate#'
 #' @param prune.extinct: whether to remove all extinct branches defaulting to FALSE 
 #' @param export.format: either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself) timestep: timestep for simulations
 #' @param timestep: timestep for simulations
@@ -361,6 +360,296 @@ randomcophy.HP<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,beta=0.1,gamma=0.
 	
 	if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
 		return(convert.branchesToPhylo(HBranches,PBranches,prune.extinct))
+	else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
+		return(list(HBranches,PBranches))
+}
+
+
+randomcophy.HP.DT<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,beta=0.1,gamma=0.2,sigma=0,muP=0.5,prune.extinct=FALSE,export.format="Phylo",timestep=0.001, DBINC=100)
+{	
+	# adjusting the evolutionary rates to timesteps:
+	lambda <- lambda*timestep
+	muH     <- muH*timestep
+	muP     <- muP*timestep
+	beta   <- beta*timestep
+	
+	nHAlive <-0
+	while (nHAlive==0)  # simulate until surviving tree is built
+	{
+		t <-0
+		HBranches<-data.table(alive=TRUE,nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=1)
+
+		nHBranches <- 1		  	      # total number of branches that have been constructed
+		nHAlive    <- 1			  # number of branches that extent until the current timestep
+		nextHNode   <- 1    		  # number of the next node to be produced
+		
+		HDeadBranches<-data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0)
+
+		nHDeadBranches   <- 0		  	      # number of dead host branches
+				
+		PBranches<-data.table(alive=TRUE,nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=1,branchNo=1)
+		
+		nPBranches <- 1		  	      # total number of branches that have been constructed
+		nPAlive    <- 1			  	  # number of branches that extent until the current timestep
+		nextPNode   <- 1                  # number of the next node to be produced
+		
+		PDeadBranches<-data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
+		
+		nPDeadBranches   <- 0		  	      # number of dead parasite branches
+
+		Gdist<-matrix(0,nrow=1,ncol=1) # initiating the Gdist matrix (genetic distance between all living hosts)
+		
+		continue<-TRUE
+		while (continue==TRUE) # continue simulation until specified time
+		{
+			t<-t+timestep
+			lambda.adj<-lambda*(1-(nHAlive/K)) # lambda adjusted for carrying capacity
+			if (lambda.adj<0) # make sure lambda doesn't drop below 0
+			{
+				lambda.adj<-0
+			}
+			
+			# update Gdist matrix:
+			
+			Gdist<-Gdist+2*timestep
+			diag(Gdist)<-0  # cleaning up so that distance between branch to itself is always 0
+			
+			# host extinction events:
+			nHToDie<-rbinom(1,nHAlive,muH)  # how many host species go extinct?
+			if (nHToDie>0)	
+			{
+				HToDie<-sample.int(nHAlive,nHToDie) # selecting which hosts will become extinct
+				for (i in HToDie)
+				{
+					timepoint			  <-t-runif(1,max=timestep) # random timepoint for extinction event
+					HBranches$alive[i]	  <-FALSE
+					HBranches$nodeDeath[i] <-nextHNode
+					HBranches$tDeath[i]    <-timepoint
+					
+					nHDeadBranches		   <-nHDeadBranches+1
+					nextHNode              <-nextHNode+1					
+					nHAlive			       <-nHAlive-1
+					
+					HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info to dead tree	
+
+					if (nrow(HDeadBranches)==nHDeadBranches) {# if dataframe containing dead branches is full
+						HDeadBranches<-rbindlist(list(HDeadBranches,data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0)))
+					}
+					
+					assocP<- PBranches[Hassoc==HBranches$branchNo[i], which = TRUE]		
+					# assocP<-which(PBranches$Hassoc==HBranches$branchNo[i]) # retrieve associated parasites
+					if (length(assocP)>0)
+					{
+
+						for(j in assocP)
+						{
+							PBranches$alive[j]	   <-FALSE
+							PBranches$nodeDeath[j] <-nextPNode
+							PBranches$tDeath[j]    <-timepoint
+							nPDeadBranches		   <-nPDeadBranches+1
+							PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree	
+							
+							if (nrow(PDeadBranches)==nPDeadBranches) {# if dataframe containing dead branches is full
+								PDeadBranches<-rbindlist(list(PDeadBranches,data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0,branchNo=0)))
+							}
+							nextPNode               <-nextPNode+1
+							nPAlive			        <-nPAlive-1
+						}
+					
+						PBranches<-PBranches[-assocP,] # delete all branches associated with extinct host from living tree
+					}
+				}
+				
+				HBranches<-HBranches[-HToDie,] # delete all extinct hosts from living tree
+				if (nHAlive>0) # update Gdist
+				{
+					Gdist<-Gdist[-HToDie,,drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+				    Gdist<-Gdist[,-HToDie,drop=FALSE]
+				}
+			}
+		
+			# host speciation events:
+			nHToSpeciate<-rbinom(1,nHAlive,lambda.adj) # no. speciating hosts
+			if (nHToSpeciate>0)
+			{
+				HToSpeciate<-sample.int(nHAlive,nHToSpeciate) # which hosts to speciate
+				
+				for (i in HToSpeciate)
+				{
+					timepoint			   <-t-runif(1,max=timestep) # random timepoint for speciation event
+					HBranches$nodeDeath[i] <-nextHNode
+					HBranches$tDeath[i]    <-timepoint
+					
+					nHDeadBranches		   <-nHDeadBranches+1
+					HBranches$alive[i]	   <-FALSE 
+					HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info to dead tree	
+
+					if (nrow(HDeadBranches)==nHDeadBranches) {# if dataframe containing dead branches is full
+						HDeadBranches<-rbindlist(list(HDeadBranches,data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0)))					}
+														
+					HBranches              <-rbindlist(list(HBranches,data.table(TRUE,nextHNode,timepoint,0,0,nHBranches+1)))
+					HBranches              <-rbindlist(list(HBranches, data.table(TRUE,nextHNode,timepoint,0,0,nHBranches+2))) 
+					nextHNode              <-nextHNode+1
+					nHAlive               <-nHAlive+1
+					nHBranches            <-nHBranches+2
+						
+					# update Gdist matrix:
+					# adding new rows and columns
+						
+					Gdist<-rbind(Gdist,NA)
+					Gdist<-rbind(Gdist,NA)
+					Gdist<-cbind(Gdist,NA)
+					Gdist<-cbind(Gdist,NA)						
+					
+					# filling in values
+					
+					len<-length(Gdist[1,])
+					
+					Gdist[len-1,len-1]<-0
+					Gdist[len,len]<-0
+					Gdist[len-1,len]<-2*(t-timepoint)
+					Gdist[len,len-1]<-2*(t-timepoint)
+						
+					Gdist[1:(len-2),len-1]<-Gdist[1:(len-2),i]
+					Gdist[1:(len-2),len]<-Gdist[1:(len-2),i]
+					Gdist[len-1,1:(len-2)]<-Gdist[i,1:(len-2)]
+					Gdist[len,1:(len-2)]<-Gdist[i,1:(len-2)]
+						
+					# cospeciation of parasites:	
+					assocP<-PBranches[Hassoc==HBranches$branchNo[i], which = TRUE]							
+					# assocP<-which(PBranches$Hassoc==HBranches$branchNo[i]) # retrieve associated parasites
+					if (length(assocP)>0) # make sure argument greater then length 0
+					{
+						for(j in assocP) {		
+							PBranches$alive[j]		<-FALSE 
+							PBranches$nodeDeath[j]	<-nextPNode
+							PBranches$tDeath[j]		<-timepoint
+							
+							nPDeadBranches			<-nPDeadBranches+1
+							PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree	
+							if (nrow(PDeadBranches)==nPDeadBranches) {# if dataframe containing dead branches is full
+								PDeadBranches<-rbindlist(list(PDeadBranches,data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0,branchNo=0))		)			
+							}									
+							PBranches				<-rbindlist(list(PBranches, data.table(TRUE,nextPNode,timepoint,0,0,nHBranches-1, nPBranches+1)))
+							PBranches				<-rbindlist(list(PBranches, data.table(TRUE,nextPNode,timepoint,0,0,nHBranches, nPBranches+2))) 
+							nextPNode				<-nextPNode+1
+							nPAlive					<-nPAlive+1
+							nPBranches				<-nPBranches+2
+						}
+						PBranches<-PBranches[-assocP,]  # removing all mother parasite branches that have co-speciated
+					}
+				}
+				HBranches<-HBranches[-HToSpeciate,]   # removing all host mother branches that have speciated
+				Gdist<-Gdist[-HToSpeciate,]
+				Gdist<-Gdist[,-HToSpeciate]
+			}
+			
+			# parasite extinction:
+			
+			nPToDie<-rbinom(1,nPAlive,muP)  # how many parasite species go extinct?
+			if (nPToDie>0)	
+			{
+				PToDie<-sample.int(nPAlive,nPToDie) # which parasites?
+				for (i in PToDie)
+				{	
+					timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
+					PBranches$alive[i]	   <-FALSE
+					PBranches$nodeDeath[i] <-nextPNode
+					PBranches$tDeath[i]    <-timepoint
+					
+					nPDeadBranches		   <-nPDeadBranches+1
+					PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree	
+					if (nrow(PDeadBranches)==nPDeadBranches) {# if dataframe containing dead branches is full
+						PDeadBranches<-rbindlist(list(PDeadBranches,data.table(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)))					
+					}
+
+						
+					nextPNode              <-nextPNode+1
+					nPAlive			       <-nPAlive-1
+				}
+				PBranches<-PBranches[-PToDie,] # removing all mother parasite branches that have co-speciated
+			}		
+						
+			# parasite host jumps:
+				
+			hostJumpProb<-beta*nHAlive
+			if (hostJumpProb>1)
+			{
+				print("Warning: host jump probability > 1!")
+				hostJumpProb<-1
+			}
+			
+			noParasitesToJump<-rbinom(1,nPAlive,beta*nHAlive) 
+			if (noParasitesToJump>0)	
+			{			
+				parasitesToJump<-sample.int(nPAlive,noParasitesToJump) # which parasites
+				
+				parasitesToDelete<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+				
+				for (i in parasitesToJump)
+				{
+					oldHost<-HBranches[branchNo==PBranches$Hassoc[i], which = TRUE] # row number of old host	
+					#oldHost<-which(HBranches$branchNo==PBranches$Hassoc[i])   # row number of old host			
+					otherHosts<-(1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
+					if(length(otherHosts)>0)
+					{
+						newHost<-otherHosts[sample.int(length(otherHosts),1)]  # randomly choose branch number of new host
+						probEstablish<-(exp(-gamma*Gdist[oldHost,newHost])) # determine if Parasite switch to new host is successful, depending on genetic distance
+						estabInfections<-length(PBranches[Hassoc==HBranches$branchNo[newHost], which = TRUE])
+						#estabInfections<-length(which((PBranches$Hassoc==HBranches$branchNo[newHost])))  # no of parasites already infecting the potential new host
+						probEstablish<-probEstablish*sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
+						
+						if(runif(1)<probEstablish) # if host jump was successful
+						{	
+							timepoint			   <-t-runif(1,max=timestep) # random timepoint for jump
+							PBranches$nodeDeath[i] <-nextPNode
+							PBranches$tDeath[i]    <-timepoint
+							PBranches$alive[i]	   <-FALSE
+							
+							nPDeadBranches		   <-nPDeadBranches+1
+							PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree	
+							if (nrow(PDeadBranches)==nPDeadBranches) {# if dataframe containing dead branches is full
+								PDeadBranches<-rbindlist(list(PDeadBranches, data.table(alive=rep(FALSE,DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0)))
+							}														
+							PBranches              <-rbindlist(list(PBranches,data.table(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[oldHost], nPBranches+1)))
+							PBranches              <-rbindlist(list(PBranches,data.table(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[newHost], nPBranches+2))) 
+							parasitesToDelete	   <-c(parasitesToDelete,i)
+							nextPNode              <-nextPNode+1
+							nPAlive               <-nPAlive+1
+							nPBranches            <-nPBranches+2
+						}	
+					}
+				}
+								
+				if (length(parasitesToDelete)>0) {
+					PBranches<-PBranches[-parasitesToDelete,] # removing all mother parasite branches that have host jumped
+				}
+			}
+		
+			if (((round(t/timestep)*timestep)>=tmax)||(nHAlive>nHmax)) continue<-FALSE        # simulate either for a certain specified time or until there are more than nHmax
+			if (nHAlive==0) continue<-FALSE
+		}		
+	}
+	
+	# setting final times and nodes:
+	HBranches$tDeath<-t
+	HBranches$nodeDeath<-nextHNode:(nextHNode+nHAlive-1)
+	
+	if (nPAlive>0){
+		PBranches$tDeath<-t
+		PBranches$nodeDeath<-nextPNode:(nextPNode+nPAlive-1)
+	}
+	
+	# merging two H matricies together:
+	HBranches<-rbindlist(list(HBranches,HDeadBranches[1:nHDeadBranches,]))
+	HBranches<-HBranches[order(HBranches[,"branchNo"]),]
+	
+	# merging two P matricies together:	
+	PBranches<-rbindlist(list(PBranches,PDeadBranches[1:nPDeadBranches,]))
+	PBranches<-PBranches[order(PBranches[,"branchNo"]),]
+	
+	if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
+		return(convert.branchesToPhylo.DT(HBranches, PBranches))
 	else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
 		return(list(HBranches,PBranches))
 }
@@ -1709,11 +1998,13 @@ parsimulate.2PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 #' @examples
 #' cophy.PonH.infectionResponse()
 
-cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001)
+cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,muP=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=50, ini.Hbranch=NA, Gdist=NA, timestep=0.001)
 {	
 	# adjusting the evolutionary rates to timesteps:
-	muP     <- muP*timestep
-	beta    <- beta*timestep
+	muP     		<- muP*timestep
+	beta    		<- beta*timestep
+	epsilon.1to0	<- epsilon.1to0*timestep
+	epsilon.0to1	<- epsilon.0to1*timestep
 
 	if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
 		Get.preinvasionTraits	<-get.preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, 															epsilon.0to1=epsilon.0to1, timestep= timestep)
@@ -1809,13 +2100,13 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 							PBranches$tDeath[j]    	<-timepoint
 							
 							nPDeadBranches		   <-nPDeadBranches+1
-							PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree	
+							PDeadBranches[nPDeadBranches,]<-PBranches[j, ] # copy branches updated with death info to dead tree	
 							if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-								PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+								PDeadBranches<-rbind(PDeadBranches, data.frame(alive=rep(FALSE,DBINC) ,nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
 
 									
-							PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,H.tree$branchNo[daughterBranches[1]], nPBranches+1))
-							PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,H.tree$branchNo[daughterBranches[2]], nPBranches+2)) 
+							PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree$branchNo[daughterBranches[1]], nPBranches+1))
+							PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree$branchNo[daughterBranches[2]], nPBranches+2)) 
 							nextPNode               <-nextPNode+1
 							nPAlive                 <-nPAlive+1
 							nPBranches              <-nPBranches+2
@@ -1995,14 +2286,33 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,mu
 		Htrait.0.P			<-which(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc) # which susceptible hosts harbour a parasite?
 		Htrait.1.P			<-which(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc) # which resistant hosts harbour a parasite?
 		
-		Htrait.0.noP			<-which(!(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc)) # which susceptible hosts harbour a parasite?
-		Htrait.1.noP			<-which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
+		Htrait.0.noP		<-which(!(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc)) # which susceptible hosts harbour a parasite?
+		Htrait.1.noP		<-which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
 		
 		# which hosts mutate?
-		Mutate.0to1.P		<-rbinom(1,length(Htrait.0.P),epsilon.0to1*omega) # how many susceptible hosts evolve 										resistance in presence of P?
-		Mutate.1to0.P		<-rbinom(1,length(Htrait.1.P),epsilon.1to0*(1/omega)) # how many resistant hosts evolve 										susceptibility in presence of P?
-		Mutate.0to1.noP		<-rbinom(1,length(Htrait.0.noP),epsilon.0to1) # how many susceptible hosts evolve resistance 								in absence of P?
-		Mutate.1to0.noP		<-rbinom(1,length(Htrait.1.noP),epsilon.1to0) # how many resistant hosts evolve 												susceptibility in absence of P?
+		if (class(Htrait.0.P)!="numeric") {# & length(Htrait.0.P)>0) {
+			Mutate.0to1.P		<-rbinom(1,length(Htrait.0.P),epsilon.0to1*omega) # how many susceptible hosts 										evolve resistance in presence of P?
+		} else {
+			Mutate.0to1.P<-0
+		}
+		
+		if (class(Htrait.1.P)=="numeric") {# & length(Htrait.1.P)>0) {
+			Mutate.1to0.P		<-rbinom(1,length(Htrait.1.P),epsilon.1to0*(1/omega)) # how many resistant hosts 									evolve susceptibility in presence of P?
+		} else {
+			Mutate.1to0.P<-0
+		}
+
+		if (class(Htrait.0.noP)=="numeric") {# & length(Htrait.0.noP)) {
+			Mutate.0to1.noP		<-rbinom(1,length(Htrait.0.noP),epsilon.0to1) # how many susceptible hosts evolve 									resistance in absence of P?
+		} else {
+			Mutate.0to1.noP<-0
+		}
+
+		if (class(Htrait.1.noP)=="numeric") {# & length(Htrait.1.noP)>0) {
+			Mutate.1to0.noP		<-rbinom(1,length(Htrait.1.noP),epsilon.1to0) # how many resistant hosts evolve 									susceptibility in absence of P?
+		} else {
+			Mutate.1to0.noP<-0
+		}
 	
 		if (Mutate.0to1.P>0) { # if any infected susceptible hosts mutate
 			HToMutate<-sample.int(length(Htrait.0.P),Mutate.0to1.P) # which parasites?
@@ -2148,7 +2458,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
 		}
 	}	
 	
-	if (is.na(TraitTracking)) {
+	if (class(TraitTracking)=="logical") {
 		TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get.preInvasionTraits'),.packages="ape") %dopar% {
 			get.preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep=timestep)
 		}
@@ -3161,6 +3471,241 @@ convert.branchesToPhylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 	return(list(Hphy,Pphy))
 }
 
+convert.branchesToPhylo.DT<-function(HBranches,PBranches,prune.extinct=FALSE)
+{
+	# number of host and parasite branches:
+	nHBranches<-nrow(HBranches)
+	nPBranches<-nrow(PBranches)
+
+	# number of living host and parasite species:
+	nHAlive<-nrow(HBranches[alive==TRUE])
+	nPAlive<-nrow(PBranches[alive==TRUE])
+	
+	# check if we have a host tree (with more than the initial branch):
+	if (nHBranches==1)
+	{
+		Hphy <- list( edge = NA,edge.length = NA,tip.label = NA,root.edge=HBranches$tDeath[1], nAlive=0)
+		class(Hphy) 		   <- "phylo"
+		Pphy <- list( edge = NA,edge.length = NA,tip.label = NA,root.edge=PBranches$tDeath[1], nAlive=0, Hassoc = NA)
+		class(Pphy) 		   <- "phylo"
+		return(c(Hphy,Pphy))
+	}
+	
+	
+	# deleting the first branch (the root) of host and parasite trees:
+	# (This is necessary because Phylo trees in APE don't have an initial branch.)
+
+	Proot.edge  <-PBranches$tDeath[1]-PBranches$tBirth[1]
+	Proot.time  <-PBranches$tBirth[1]
+	Proot.Hassoc<-PBranches$Hassoc[1]
+	Hroot.edge  <-HBranches$tDeath[1]-HBranches$tBirth[1]
+	HBranches <-HBranches[-1,]  
+	nHBranches <-nHBranches-1
+	PBranches$Hassoc<-PBranches$Hassoc-1
+	PBranches   <-PBranches[-1,]  # deleting the first branch (the root)
+	nPBranches <-nPBranches-1
+	
+	# relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones, for host tree:
+
+	rHBranches <- HBranches
+	i.tip <- 1
+	i.ext <- nHAlive + 1
+	i.int <- (nHBranches/2 + 2)
+	
+	for ( i in 1:(nHBranches+1))
+	{
+		if ( any( HBranches$nodeBirth == i ) )     # is node i an internal node?
+		{										
+			rHBranches$nodeBirth[HBranches$nodeBirth == i] <- i.int
+			rHBranches$nodeDeath[HBranches$nodeDeath == i] <- i.int
+			i.int <- i.int + 1 
+		}
+		else 									# node i is an external node
+		{
+			if ((nHAlive>0)&&(HBranches$alive[HBranches$nodeDeath==i]==1))
+			{
+				rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.tip
+				i.tip <- i.tip + 1
+			}
+			else
+			{
+				rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.ext
+				i.ext <- i.ext + 1
+			}
+		}
+	}		
+	
+	# relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones, for parasite tree:
+
+	rPBranches <- PBranches
+	i.tip <- 1
+	i.ext <- nPAlive + 1
+	i.int <- (nPBranches/2 + 2)
+	
+	for ( i in 1:(nPBranches+1))
+	{
+		if ( any( PBranches$nodeBirth == i ) )     # is node i an internal node?
+		{										
+			rPBranches$nodeBirth[PBranches$nodeBirth == i] <- i.int
+			rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.int
+			i.int <- i.int + 1 
+		}
+		else 									# node i is an external node
+		{
+			if ((nPAlive>0)&&(PBranches$alive[PBranches$nodeDeath==i]==1))
+			{
+				rPBranches$nodeDeath[PBranches$nodeDeath==i]<-i.tip
+				i.tip <- i.tip + 1
+			}
+			else
+			{
+				rPBranches$nodeDeath[PBranches$nodeDeath==i]<-i.ext
+				i.ext <- i.ext + 1
+			} 
+		}
+	}	
+		
+	# exclude extinct taxa:
+	
+	if (prune.extinct==TRUE)
+	{
+		# find nodes that don't leave any descendents:
+		
+		nodeHDead<-rep(TRUE,nHBranches+1)
+		nodeHDead[rHBranches$nodeBirth[1]]<-FALSE # root is definitely alive!
+		for(i in 1:nHAlive)
+		{
+			n<-i
+			while (nodeHDead[n]==TRUE)
+			{
+				nodeHDead[n]<-FALSE
+				n<-rHBranches$nodeBirth[rHBranches$nodeDeath==n]
+			}
+		}
+		
+		nodePDead<-rep(TRUE,nPBranches+1)
+		nodePDead[rPBranches$nodeBirth[1]]<-FALSE # root is definitely alive!
+		for(i in 1:nPAlive)
+		{
+			n<-i
+			while (nodePDead[n]==TRUE)
+			{
+				nodePDead[n]<-FALSE
+				n<-rPBranches$nodeBirth[rPBranches$nodeDeath==n]
+			}
+		}
+		# keep only branches that terminate in live nodes:
+		
+		prunedHBranches<-rHBranches[!nodeHDead[rHBranches$nodeDeath],]
+		prunedPBranches<-rPBranches[!nodePDead[rPBranches$nodeDeath],]
+		
+		# find and collapse nodes that are no nodes anymore:
+		
+		nHBranches<-length(prunedHBranches[,1]) # collapse H ~nodes
+		for (i in 1:nHBranches)
+		{
+			if ((prunedHBranches$nodeDeath[i]>nHAlive)&&(length(prunedHBranches[prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i],1])==1))
+			# this branch does not terminate in a tip and also not in two new branches
+			{
+				fuse<-(prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i])   # vector marking the branch that fuses to branch i
+				prunedHBranches$nodeBirth[fuse]<-prunedHBranches$nodeBirth[i]
+				prunedHBranches$tBirth[fuse]<-prunedHBranches$tBirth[i]
+				prunedHBranches$nodeBirth[i]<-0  # mark this branch as dead for later deletion
+			}
+		}
+		
+		nPBranches<-length(prunedPBranches[,1]) # collapse P ~nodes
+		for (i in 1:nPBranches)
+		{
+			if ((prunedPBranches$nodeDeath[i]>nPAlive)&&(length(prunedPBranches[prunedPBranches$nodeBirth==prunedPBranches$nodeDeath[i],1])==1))
+			# this branch does not terminate in a tip and also not in two new branches
+			{
+				Pfuse<-(prunedPBranches$nodeBirth==prunedPBranches$nodeDeath[i])   # vector marking the branch that fuses to branch i
+				prunedPBranches$nodeBirth[Pfuse]<-prunedPBranches$nodeBirth[i]
+				prunedPBranches$tBirth[Pfuse]<-prunedPBranches$tBirth[i]
+				prunedPBranches$nodeBirth[i]<-0  # mark this branch as dead for later deletion
+			}
+		}
+
+		
+		# if a new root branch has been formed, mark this for deletion as well H:
+		
+		for (i in 1:nHBranches)
+		{
+			if ((prunedHBranches$nodeBirth[i]>0)&&(length(prunedHBranches[prunedHBranches$nodeBirth==prunedHBranches$nodeBirth[i],1])<2))
+				prunedHBranches$nodeBirth[i]<-0
+		}
+			
+		prunedHBranches<-prunedHBranches[prunedHBranches$nodeBirth>0,]
+		nHBranches<-length(prunedHBranches[,1])
+		
+		# if a new root branch has been formed, mark this for deletion as well P:
+		
+		for (i in 1:nPBranches)
+		{
+			if ((prunedPBranches$nodeBirth[i]>0)&&(length(prunedPBranches[prunedPBranches$nodeBirth==prunedPBranches$nodeBirth[i],1])<2))
+				prunedPBranches$nodeBirth[i]<-0
+		}
+			
+		prunedPBranches<-prunedPBranches[prunedPBranches$nodeBirth>0,]
+		nPBranches<-length(prunedPBranches[,1])
+		
+		# relabel nodes so that only nodes 1...2n-1 exist H:
+
+		prunedHBranches<-prunedHBranches[order(prunedHBranches$tBirth),]
+		newNodeBirth<-sort(rep((nHAlive+1):(2*nHAlive-1),2))
+		newNodeDeath<-rep(0,nHBranches)
+		for (i in 1:nHBranches)
+		{
+			if (prunedHBranches$nodeDeath[i]>nHAlive)
+				newNodeDeath[i]<-newNodeBirth[prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i]][1]
+			else 
+				newNodeDeath[i]<-prunedHBranches$nodeDeath[i]
+		}
+		prunedHBranches$nodeBirth<-newNodeBirth
+		prunedHBranches$nodeDeath<-newNodeDeath
+		
+		# relabel nodes so that only nodes 1...2n-1 exist P:
+		
+		prunedPBranches<-prunedPBranches[order(prunedPBranches$tBirth),]
+		newNodePBirth<-sort(rep((nPAlive+1):(2*nPAlive-1),2))
+		newNodePDeath<-rep(0,nPBranches)
+		for (i in 1:nPBranches)
+		{
+			if (prunedPBranches$nodeDeath[i]>nPAlive)
+				newNodePDeath[i]<-newNodePBirth[prunedPBranches$nodeBirth==prunedPBranches$nodeDeath[i]][1]
+			else 
+				newNodePDeath[i]<-prunedPBranches$nodeDeath[i]
+		}
+		prunedPBranches$nodeBirth<-newNodePBirth
+		prunedPBranches$nodeDeath<-newNodePDeath
+	}
+
+	# translate into phylo format:
+
+	if (prune.extinct==TRUE)
+	{
+		Hphy <- list(edge = cbind(prunedHBranches$nodeBirth,prunedHBranches$nodeDeath), edge.length = prunedHBranches$tDeath-prunedHBranches$tBirth,tip.label=paste("t", 1:nHAlive, sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
+		class(Hphy) 		   <- "phylo"
+		Hphy$Nnode<-nHAlive-1
+		
+		Pphy <- list(edge = cbind(prunedPBranches$nodeBirth,prunedPBranches$nodeDeath), edge.length = prunedPBranches$tDeath-prunedPBranches$tBirth,tip.label=paste("t", 1:nPAlive, sep=""),root.edge=Proot.edge, root.time=Proot.time, nAlive=nPAlive,Hassoc=prunedPBranches$Hassoc, root.Hassoc=Proot.Hassoc)
+		class(Pphy) 		   <- "phylo"
+		Pphy$Nnode<-nPAlive-1
+	} else   # extinct taxa included:
+	{
+		Hphy <- list( edge = cbind(rHBranches$nodeBirth, rHBranches$nodeDeath),edge.length=rHBranches$tDeath-rHBranches$tBirth,tip.label=paste("t", 1:(1+nHBranches/2), sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
+		class(Hphy) 		   <- "phylo"
+		Hphy$Nnode 			   <- nHBranches/2
+		
+		Pphy <- list( edge = cbind(rPBranches$nodeBirth, rPBranches$nodeDeath),edge.length=rPBranches$tDeath-rPBranches$tBirth,tip.label=paste("t", 1:(1+nPBranches/2), sep =""),root.edge=Proot.edge,  root.time=Proot.time, nAlive=nPAlive,Hassoc=rPBranches$Hassoc , root.Hassoc=Proot.Hassoc)
+		class(Pphy) 		   <- "phylo"
+		Pphy$Nnode 			   <- nPBranches/2
+	}
+	
+	return(list(Hphy,Pphy))
+}
+
 #' Converting raw tree to phylo format
 #'
 #' The following function converts a raw host tree matrix into phylo format
@@ -3174,7 +3719,7 @@ convert.branchesToPhylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 convert.HbranchesToPhylo<-function(HBranches,prune.extinct=FALSE)
 {
 	# number of host and parasite branches:
-	nHBranches<-length(HBranches[,1])
+	nHBranches<-nrow(HBranches)
 
 	# number of living host and parasite species:
 	nHAlive<-sum(HBranches$alive[HBranches$alive==TRUE])
@@ -3305,6 +3850,143 @@ convert.HbranchesToPhylo<-function(HBranches,prune.extinct=FALSE)
 	
 	return(Hphy)
 }
+
+
+convert.HbranchesToPhylo.DT<-function(HBranches,prune.extinct=FALSE)
+{
+	# number of host and parasite branches:
+	nHBranches<-nrow(HBranches)
+
+	# number of living host and parasite species:
+	nHAlive<-nrow(HBranches[alive==TRUE])
+	
+	# check if we have a host tree (with more than the initial branch):
+	if (nHBranches==1)
+	{
+		Hphy <- list( edge = NA,edge.length = NA,tip.label = NA,root.edge=HBranches$tDeath[1], nAlive=0)
+		class(Hphy) 		   <- "phylo"
+	}
+	
+	
+	# deleting the first branch (the root) of host and parasite trees:
+	# (This is necessary because Phylo trees in APE don't have an initial branch.)
+
+	Hroot.edge  <-HBranches$tDeath[1]-HBranches$tBirth[1]
+	HBranches <-HBranches[-1,]  
+	nHBranches <-nHBranches-1
+	
+	# relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones, for host tree:
+
+	rHBranches <- HBranches
+	i.tip <- 1
+	i.ext <- nHAlive + 1
+	i.int <- (nHBranches/2 + 2)
+	
+	for ( i in 1:(nHBranches+1))
+	{
+		if ( any( HBranches$nodeBirth == i ) )     # is node i an internal node?
+		{										
+			rHBranches$nodeBirth[HBranches$nodeBirth == i] <- i.int
+			rHBranches$nodeDeath[HBranches$nodeDeath == i] <- i.int
+			i.int <- i.int + 1 
+		}
+		else 									# node i is an external node
+		{
+			if ((nHAlive>0)&&(HBranches$alive[HBranches$nodeDeath==i]==1))
+			{
+				rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.tip
+				i.tip <- i.tip + 1
+			}
+			else
+			{
+				rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.ext
+				i.ext <- i.ext + 1
+			}
+		}
+	}			
+		
+	# exclude extinct taxa:
+	
+	if (prune.extinct==TRUE)
+	{
+		# find nodes that don't leave any descendents:
+		
+		nodeHDead<-rep(TRUE,nHBranches+1)
+		nodeHDead[rHBranches$nodeBirth[1]]<-FALSE # root is definitely alive!
+		for(i in 1:nHAlive)
+		{
+			n<-i
+			while (nodeHDead[n]==TRUE)
+			{
+				nodeHDead[n]<-FALSE
+				n<-rHBranches$nodeBirth[rHBranches$nodeDeath==n]
+			}
+		}
+		
+		# keep only branches that terminate in live nodes:
+		
+		prunedHBranches<-rHBranches[!nodeHDead[rHBranches$nodeDeath],]
+		
+		# find and collapse nodes that are no nodes anymore:
+		
+		nHBranches<-length(prunedHBranches[,1]) # collapse H ~nodes
+		for (i in 1:nHBranches)
+		{
+			if ((prunedHBranches$nodeDeath[i]>nHAlive)&&(length(prunedHBranches[prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i],1])==1))
+			# this branch does not terminate in a tip and also not in two new branches
+			{
+				fuse<-(prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i])   # vector marking the branch that fuses to branch i
+				prunedHBranches$nodeBirth[fuse]<-prunedHBranches$nodeBirth[i]
+				prunedHBranches$tBirth[fuse]<-prunedHBranches$tBirth[i]
+				prunedHBranches$nodeBirth[i]<-0  # mark this branch as dead for later deletion
+			}
+		}
+		
+		# if a new root branch has been formed, mark this for deletion as well H:
+		
+		for (i in 1:nHBranches)
+		{
+			if ((prunedHBranches$nodeBirth[i]>0)&&(length(prunedHBranches[prunedHBranches$nodeBirth==prunedHBranches$nodeBirth[i],1])<2))
+				prunedHBranches$nodeBirth[i]<-0
+		}
+			
+		prunedHBranches<-prunedHBranches[prunedHBranches$nodeBirth>0,]
+		nHBranches<-length(prunedHBranches[,1])
+		
+		# relabel nodes so that only nodes 1...2n-1 exist:
+
+		prunedHBranches<-prunedHBranches[order(prunedHBranches$tBirth),]
+		newNodeBirth<-sort(rep((nHAlive+1):(2*nHAlive-1),2))
+		newNodeDeath<-rep(0,nHBranches)
+		for (i in 1:nHBranches)
+		{
+			if (prunedHBranches$nodeDeath[i]>nHAlive)
+				newNodeDeath[i]<-newNodeBirth[prunedHBranches$nodeBirth==prunedHBranches$nodeDeath[i]][1]
+			else 
+				newNodeDeath[i]<-prunedHBranches$nodeDeath[i]
+		}
+		prunedHBranches$nodeBirth<-newNodeBirth
+		prunedHBranches$nodeDeath<-newNodeDeath
+		
+	}
+
+	# translate into phylo format:
+
+	if (prune.extinct==TRUE)
+	{
+		Hphy <- list(edge = cbind(prunedHBranches$nodeBirth,prunedHBranches$nodeDeath), edge.length = prunedHBranches$tDeath-prunedHBranches$tBirth,tip.label=paste("t", 1:nHAlive, sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
+		class(Hphy) 		   <- "phylo"
+		Hphy$Nnode<-nHAlive-1
+	} else   # extinct taxa included:
+	{
+		Hphy <- list( edge = cbind(rHBranches$nodeBirth, rHBranches$nodeDeath),edge.length=rHBranches$tDeath-rHBranches$tBirth,tip.label=paste("t", 1:(1+nHBranches/2), sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
+		class(Hphy) 		   <- "phylo"
+		Hphy$Nnode 			   <- nHBranches/2
+	}
+	
+	return(Hphy)
+}
+
 
 #' Converting raw Parasite tree to phylo format
 #'
@@ -4320,11 +5002,11 @@ plot.resistance<-function(Hphy, TraitTracking)
 	for(i in 1:length(HBranchLines[,1]))
 		lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
 	for(i in 1:nrow(greenLines))
-		lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='orange')
+		lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
 	for(i in 1:length(HConnectorLines[,1]))
 		lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
 	for(i in 1:length(greenConnections[,1]))
-		lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='orange')
+		lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='lawn green')
 }
 
 ######################################################################################################
