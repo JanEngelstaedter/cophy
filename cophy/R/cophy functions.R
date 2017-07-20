@@ -1076,7 +1076,7 @@ get.preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
 				{					
 					H.Speciations		<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
 					
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
 					
 					daughterBranches	<-which(H.tree$nodeBirth == i)
 					
@@ -2061,11 +2061,11 @@ cophy.PonH.infectionResponse<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,m
 				if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
 				{
 					H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																			rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], c(HBranches$tDeath[H.Speciations], 							HBranches$Resistance[H.Speciations])) # Recording death time and trait
+					TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
 
 					daughterBranches			<-which(H.tree$nodeBirth == i)
-					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
-					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], Resistance=HBranches$Resistance[H.Speciations]))
+					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
+					HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
 					
 					TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
 					TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
