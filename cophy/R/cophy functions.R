@@ -4974,8 +4974,9 @@ nodeTime<-function(phy,node)
 
 subtree.freqInfected<-function(cophy,tips)
 {
-	HnodeNumbers<-which(cophy[[1]]$tip.label %in% tips)
-	HbranchNumbers<-which(cophy[[1]]$edge[,2] %in% HnodeNumbers)
-	HbranchesInfected<-HbranchNumbers %in% cophy[[2]]$Hassoc
-	return(sum(HbranchesInfected)/length(HbranchNumbers)) 
+  HnodeNumbers<-which(cophy[[1]]$tip.label %in% tips)
+  HbranchNumbers<-which(cophy[[1]]$edge[,2] %in% HnodeNumbers)
+  PExtantBranchNumbers<-which(cophy[[2]]$edge[,2]<=cophy[[2]]$nAlive)
+  HbranchesInfected<-HbranchNumbers %in% cophy[[2]]$Hassoc[PExtantBranchNumbers]
+  return(sum(HbranchesInfected)/length(HbranchNumbers)) 
 }
