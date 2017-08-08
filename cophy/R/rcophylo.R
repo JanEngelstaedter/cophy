@@ -10,13 +10,13 @@
 #' @param nHmax a numeric value giving the number of host species at which the simulation is stopped.
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
-#' @param muH a numeric value giving the host extinction rate.
+#' @param mu a numeric value giving the host extinction rate.
 #' @param beta a numeric value giving the baseline parasite host shift rate.
 #' @param gamma a numeric value giving the dependency of host shift success on phylogenetic distance between the old and the new host.
 #' @param sigma a numeric value determining how successful host shift are when the new host is already infected by a parasite. 
 #'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n}, 
 #'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
-#' @param muP a numeric value giving the parasite extinction rate.
+#' @param nu a numeric value giving the parasite extinction rate.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" or "Raw" (see Value below) (exported as an object of ape phylo class, the default setting), 
 #'   or "Raw" (a matrix where rows are all the branches, this is the used format internally).
@@ -27,14 +27,14 @@
 #'   (These dataframes are what the function uses internally.)
 #' @export
 #' @examples
-#' randomcophy.HP()
+#' rcophylo_HP()
 
-rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, muH=0.5, K=Inf, beta=0.1, gamma=0.2, sigma=0, muP=0.5, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
+rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=0.2, sigma=0, nu=0.5, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda*timestep
-  muH    <- muH*timestep
-  muP    <- muP*timestep
+  mu    <- mu*timestep
+  nu    <- nu*timestep
   beta   <- beta*timestep
   
   nHAlive <-0
@@ -75,7 +75,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, muH=0.5, K=Inf, beta=0.1, gamma
       diag(Gdist)<-0  # cleaning up so that distance between branch to itself is always 0
       
       # host extinction events:
-      nHToDie<-rbinom(1,nHAlive,muH)  # how many host species go extinct?
+      nHToDie<-rbinom(1,nHAlive,mu)  # how many host species go extinct?
       if (nHToDie>0) {
         HToDie<-sample.int(nHAlive,nHToDie) # selecting which hosts will become extinct
         for (i in HToDie) {
@@ -191,7 +191,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, muH=0.5, K=Inf, beta=0.1, gamma
       
       # parasite extinction:
       
-      nPToDie<-rbinom(1,nPAlive,muP)  # how many parasite species go extinct?
+      nPToDie<-rbinom(1,nPAlive,nu)  # how many parasite species go extinct?
       if (nPToDie>0) {
         PToDie<-sample.int(nPAlive,nPToDie) # which parasites?
         for (i in PToDie) {	
@@ -300,7 +300,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, muH=0.5, K=Inf, beta=0.1, gamma
 #' @param nHmax a numeric value giving the number of host species at which the simulation is stopped.
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
-#' @param muH a numeric value giving the host extinction rate.
+#' @param mu a numeric value giving the host extinction rate.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself)
 #' @param timestep a numeric value giving the time step by which the simulation proceeds. 
@@ -311,12 +311,12 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, muH=0.5, K=Inf, beta=0.1, gamma
 #'   (This dataframe are what the function uses internally.)
 #' @export
 #' @examples
-#' randomphy.H()
+#' rphylo_H()
 
-rphylo_H<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,prune.extinct=FALSE,export.format="Phylo",timestep=0.001) {	
+rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,export.format="Phylo",timestep=0.001) {	
   # adjusting the evolutionary rates to timesteps:
   lambda <- lambda*timestep
-  muH     <- muH*timestep
+  mu     <- mu*timestep
   
   nHAlive <-0
   while (nHAlive==0) { # simulate until surviving tree is built
@@ -340,7 +340,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,prune.extinct=FALSE,exp
       }
       
       # host extinction events:
-      nHToDie<-rbinom(1,nHAlive,muH)  # how many host species go extinct?
+      nHToDie<-rbinom(1,nHAlive,mu)  # how many host species go extinct?
       if (nHToDie>0) {
         HToDie<-sample.int(nHAlive,nHToDie) # selecting which hosts will become extinct
         for (i in HToDie) {
@@ -417,7 +417,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,prune.extinct=FALSE,exp
 #' @param sigma a numeric value determining how successful host shift are when the new host is already infected by a parasite. 
 #'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n}, 
 #'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
-#' @param muP parasite extinction rate.
+#' @param nu parasite extinction rate.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (a matrix where rows are all the branches, this is the used format internally).
 #' @param P.startT the timepoint at which a parasite invades the host tree.
@@ -432,11 +432,11 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,muH=0.5,K=Inf,prune.extinct=FALSE,exp
 #' @keywords Host-Parasite phylogeny
 #' @export
 #' @examples
-#' randomcophy.PonH()
+#' rcophylo_PonH()
 
-rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,muP=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   # adjusting the evolutionary rates to probabilities per time step:
-  muP     <- muP*timestep
+  nu     <- nu*timestep
   beta    <- beta*timestep
   
   # Set beginning for P simulation
@@ -577,7 +577,7 @@ rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,muP=0.5,prune.ext
     } # finished checking if any H deaths occured
     
     # parasite extinction:
-    nPToDie	<-rbinom(1,nPAlive,muP) # how many parasite species go extinct?
+    nPToDie	<-rbinom(1,nPAlive,nu) # how many parasite species go extinct?
     
     if (nPToDie>0) {
       PToDie<-sample.int(nPAlive,nPToDie) # which parasites?
@@ -1108,7 +1108,7 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
 #' @param beta parasite host jump rate
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
 #' @param sigma probability of successful co-infection following host jump
-#' @param muP parasite extinction rate
+#' @param nu parasite extinction rate
 #' @param epsilon.0to1 the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
 #' @param epsilon.1to0 the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
 #' @param omega factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
@@ -1128,11 +1128,11 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
 #'   (These dataframes are what the function uses internally.)
 #' @export
 #' @examples
-#' cophy.PonH.infectionResponse()
+#' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,muP=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=50, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PonH_Htrait<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=50, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   # adjusting the evolutionary rates to timesteps:
-  muP     		<- muP*timestep
+  nu     		<- nu*timestep
   beta    		<- beta*timestep
   epsilon.1to0	<- epsilon.1to0*timestep
   epsilon.0to1	<- epsilon.0to1*timestep
@@ -1302,8 +1302,8 @@ rcophylo_PonH_Htrait<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,muP=0.5,e
     nPAlive.HTrait.0	<-length(P.HTrait.0)
     nPAlive.HTrait.1	<-length(P.HTrait.1)
     
-    nPToDie.HTrait.0		<-rbinom(1,nPAlive.HTrait.0,muP) # how many parasite species go extinct?
-    nPToDie.HTrait.1		<-rbinom(1,nPAlive.HTrait.1,muP*(1/(1-rho))) # how many parasite species go extinct?
+    nPToDie.HTrait.0		<-rbinom(1,nPAlive.HTrait.0,nu) # how many parasite species go extinct?
+    nPToDie.HTrait.1		<-rbinom(1,nPAlive.HTrait.1,nu*(1/(1-rho))) # how many parasite species go extinct?
     
     if (nPToDie.HTrait.0>0) {
       PToDie.HTrait.0	<-sample.int(nPAlive.HTrait.0,nPToDie.HTrait.0) # which parasites?

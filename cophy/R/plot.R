@@ -392,7 +392,7 @@ plot_cophy_PQH<-function(cophy)
 #' @examples
 #' plot.resistance()
 
-plot.resistance<-function(Hphy, TraitTracking)
+plot_resistance<-function(Hphy, TraitTracking)
 {
   # determining lines to be drawn for the host phylogeny:
   if (length(TraitTracking)==2) {

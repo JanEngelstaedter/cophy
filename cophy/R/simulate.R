@@ -12,31 +12,31 @@
 #' @param tmax: maximum time for which to simulate
 #' @param lambda: host speciation rate
 #' @param K: carrying capacity for host species
-#' @param muH: host extinction rate
+#' @param mu: host extinction rate
 #' @param beta: parasite host jump rate
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
+#' @param nu: parasite extinction rate
 #' @param timestep: timestep for simulations
 #' @param reps: number of times to simulate this set of parameters
 #' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
-#' simulate.singleparam()
+#' simulate_cophys_HP()
 
-simulate.singleparam<-function(tmax=0,lambda,muH,beta,gamma,sigma,muP,K,timestep,reps,filename=NA)
+simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,K,timestep,reps,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
-  parameters<-c(tmax,lambda,muH,beta,gamma,sigma,muP,K,timestep)
-  names(parameters)<-c("tmax","lambda","muH","beta","gamma","sigma","muP","K","timestep")
+  parameters<-c(tmax,lambda,mu,beta,gamma,sigma,nu,K,timestep)
+  names(parameters)<-c("tmax","lambda","mu","beta","gamma","sigma","nu","K","timestep")
   all.trees<-list() # an empty list that will later contain all the trees 
   stats<-matrix(NA,nrow=reps,ncol=4)
   colnames(stats)<-c("NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
   for(i in 1:reps)
   {
-    cophy<-rcophylo_HP(tmax=tmax,lambda=lambda,muH=muH,beta=beta,gamma=gamma,sigma=sigma,muP=muP,timestep=timestep,K=K)
+    cophy<-rcophylo_HP(tmax=tmax,lambda=lambda,mu=mu,beta=beta,gamma=gamma,sigma=sigma,nu=nu,timestep=timestep,K=K)
     all.trees[[i]]<-cophy		
     stats[i,]<-get_infectionStatistics(cophy)
     if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
@@ -57,25 +57,25 @@ simulate.singleparam<-function(tmax=0,lambda,muH,beta,gamma,sigma,muP,K,timestep
 #' @param tmax: maximum time for which to simulate
 #' @param lambda: host speciation rate
 #' @param K: carrying capacity for host species
-#' @param muH: host extinction rate
+#' @param mu: host extinction rate
 #' @param timestep: timestep for simulations
 #' @param reps: number of times to simulate this set of parameters
 #' @param filename: name underwhich set of simulations and statistics will be saved
 #' @keywords multiple Host phylogenies
 #' @export
 #' @examples
-#' simulate.H.singleparam()
+#' simulate_cophys_H()
 
-simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
+simulate_cophys_H<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
-  parameters<-c(tmax,lambda,muH,K,timestep)
-  names(parameters)<-c("tmax","lambda","muH","K","timestep")
+  parameters<-c(tmax,lambda,mu,K,timestep)
+  names(parameters)<-c("tmax","lambda","mu","K","timestep")
   all.trees<-list() # an empty list that will later contain all the trees 
   for(i in 1:reps)
   {
-    Hphy<-randomphy.H(tmax=tmax,lambda=lambda,muH=muH,timestep=timestep,K=K,export.format="Raw")
+    Hphy<-rcophylo_H(tmax=tmax,lambda=lambda,mu=mu,timestep=timestep,K=K,export.format="Raw")
     all.trees[[i]]<-Hphy		
     if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
       print(paste("Replicate",i,"finished!"))
@@ -99,7 +99,7 @@ simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
 #' @param beta: parasite host jump rate
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
+#' @param nu: parasite extinction rate
 #' @param timestep: timestep for simulations
 #' @param reps1: the number of starting points for the parasite trees
 #' @param reps2: the number of replicates per starting point
@@ -107,15 +107,15 @@ simulate.H.singleparam<-function(tmax=0,lambda,muH,K,timestep,reps,filename=NA)
 #' @keywords multiple Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
-#' simulate.PonH.singleparam()
+#' simulate_cophys_PonH()
 
-simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1=1,reps2,filename=NA)
+simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,nu,timestep,reps1=1,reps2,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","timestep")
   
   nHtrees<-length(Htrees)
   HtreesPhylo<-lapply(Htrees,convert_HBranchesToPhylo)  # converting to APE Phylo format
@@ -142,7 +142,7 @@ simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.star
       for(i2 in 1:reps2)
       {
         i<-i+1
-        cophy<-rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
+        cophy<-rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1], timestep=timestep,Gdist=Gdist)
         Ptrees[[i]]<-cophy[[2]]
         stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get_infectionStatistics(cophy))
       }
@@ -180,9 +180,9 @@ simulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.star
 #' @keywords multiple Host coevolving Parasite phylogeny, statistics
 #' @export
 #' @examples
-#' simulate.2PonH.singleparam()
+#' simulate_cophys_PQonH()
 
-simulate.PQonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA)
+simulate_cophys_PQonH<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -241,7 +241,7 @@ simulate.PQonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.start
 #' @param beta: parasite host jump rate
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
+#' @param nu: parasite extinction rate
 #' @param timestep: timestep for simulations
 #' @param reps1: the number of starting points for the parasite trees
 #' @param reps2: the number of replicates per starting point
@@ -252,7 +252,7 @@ simulate.PQonH.singleparam<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.start
 #' @examples
 #' parsimulate.PonH.singleparam()
 
-parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,muP,timestep,reps1,reps2,filename=NA,ncores)
+parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.startT,beta,gamma,sigma,nu,timestep,reps1,reps2,filename=NA,ncores)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
@@ -263,8 +263,8 @@ parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.s
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","timestep")
   
   nHtrees<-length(Htrees)
   
@@ -304,7 +304,7 @@ parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.s
     Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-      rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+      rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu, P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
     }
     
     # second loop to calculate the summary statistics:	
@@ -440,7 +440,7 @@ parsimulate.PQonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 #' @param beta: parasite host jump rate
 #' @param gamma: dependency on genetic distance for host jumps
 #' @param sigma: probability of successful co-infection following host jump
-#' @param muP: parasite extinction rate
+#' @param nu: parasite extinction rate
 #' @param epsilon.0to1: the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
 #' @param epsilon.1to0: the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
 #' @param omega: factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
@@ -459,15 +459,15 @@ parsimulate.PQonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.
 #' @examples
 #' cophy.PonH.infectionResponse()
 
-parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,muP=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
+parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, tmax,beta=0.1,gamma=0.2,sigma=0,nu=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1, reps2, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,muP,epsilon.1to0,epsilon.0to1,omega,rho,psi,reps1,reps2,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","muP","epsilon.1to0","epsilon.0to1","omega","rho","psi","reps1","reps2","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,epsilon.1to0,epsilon.0to1,omega,rho,psi,reps1,reps2,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","epsilon.1to0","epsilon.0to1","omega","rho","psi","reps1","reps2","timestep")
   
   if (is.na(fromHtree)) {
     fromHtree<-1
@@ -533,7 +533,7 @@ parsimulate.PonH.infectionResponse<-function(Htrees, HtreesPhylo=NA, fromHtree=N
     Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('cophy.PonH.infectionResponse','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-      cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,muP=muP,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
+      cophy.PonH.infectionResponse(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
     }
     Trees<-list()
     Traits<-list()
