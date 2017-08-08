@@ -3,6 +3,8 @@
 # This file contains several functions to randomly generate cophylogenies.
 # This file is part of the R-package 'cophylo'.
 
+DBINC<-100
+
 #' Cophylogeny simulation
 #'
 #' This function simulates a random host tree with a random parasite tree evolving on that host tree.
@@ -286,7 +288,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
   PBranches<-PBranches[order(PBranches[,"branchNo"]),]
   
   if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
-    return(convert_HPBranchesToPhylo(HBranches,PBranches,prune.extinct))
+    return(convert_HPBranchesToCophylo(HBranches,PBranches,prune.extinct))
   else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches,PBranches))
 }
@@ -410,7 +412,6 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #'
 #' This function simulates the codiversification of a clade of parasites on a given host phylogeny (simulated or estimated) that is provided.
 #' 
-#' @param tmax a numeric value giving the length of the simulation.
 #' @param H.tree a pre-built host phylogenetic tree.
 #' @param beta parasite host jump rate.
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
@@ -434,7 +435,9 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #' @examples
 #' rcophylo_PonH()
 
-rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PonH<-function(H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+  tmax<-max(H.tree$tDeath)
+  
   # adjusting the evolutionary rates to probabilities per time step:
   nu     <- nu*timestep
   beta    <- beta*timestep
@@ -670,7 +673,7 @@ rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.exti
   PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
   
   if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
-    return(convert_HPBranchesToPhylo(HBranches,PBranches))
+    return(convert_HPBranchesToCophylo(HBranches,PBranches))
   } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches,PBranches))
   } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
@@ -682,7 +685,6 @@ rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.exti
 #' Cophylogeny simulation of two parasites on an existing host tree.
 #'
 #' This function simulates the codiversification of two clades of parasites (P and Q) on a given host phylogeny (simulated or estimated) that is provided.
-#' @param tmax a numeric value giving the length of the simulation.
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
 #' @param gamma.P a numeric value giving the dependency of host shift success of parasite P on phylogenetic distance between the old and the new host (see Details).
@@ -693,8 +695,8 @@ rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.exti
 #' @param sigma.cross a numeric value determining how successful host shift are when the new host is already infected by the other parasite (see Details).
 #'   Specifically, the probability of host shift success \eqn{(1-\sigma)^m}, 
 #'   where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.
-#' @param mu.P a numeric value giving the extinction rate of parasites of type P
-#' @param mu.Q a numeric value giving the extinction rate of parasites of type Q
+#' @param nu.P a numeric value giving the extinction rate of parasites of type P
+#' @param nu.Q a numeric value giving the extinction rate of parasites of type Q
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
 #' @param P.startT a numeric value giving the the timepoint at which a parasite invades the host-tree
@@ -711,10 +713,12 @@ rcophylo_PonH<-function(tmax,H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.exti
 #' @examples
 #' randomcophy.2PonH()
 
-rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,mu.P=0.5,mu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001,DBINC=100) {	
+rcophylo_PQonH<-function(H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+  tmax<-max(H.tree$tDeath)
+  
   # adjusting the evolutionary rates to timesteps:
-  mu.P		<- mu.P*timestep
-  mu.Q		<- mu.Q*timestep
+  nu.P		<- nu.P*timestep
+  nu.Q		<- nu.Q*timestep
   beta		<- beta*timestep
   
   # Set beginning for P simulation
@@ -909,7 +913,7 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
     } # finished checking if any H deaths occured
     
     # P parasite extinction:
-    P.nPToDie	<-rbinom(1,P.nPAlive,mu.P) # how many parasite species go extinct?
+    P.nPToDie	<-rbinom(1,P.nPAlive,nu.P) # how many parasite species go extinct?
     
     if (P.nPToDie>0) {
       P.PToDie<-sample.int(P.nPAlive,P.nPToDie) # which parasites?
@@ -935,7 +939,7 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
     }
     
     # Q parasite extinction:
-    Q.nPToDie	<-rbinom(1, Q.nPAlive, mu.Q) # how many parasite species go extinct?
+    Q.nPToDie	<-rbinom(1, Q.nPAlive, nu.Q) # how many parasite species go extinct?
     
     if (Q.nPToDie>0) {
       Q.PToDie<-sample.int(Q.nPAlive, Q.nPToDie) # which parasites?
@@ -1103,7 +1107,6 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
 #' A parasite tree building function with host response to infection
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
-#' @param tmax a numeric value giving the length of the simulation.
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
@@ -1130,7 +1133,9 @@ rcophylo_PQonH<-function(tmax,H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self
 #' @examples
 #' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(tmax,H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=50, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PonH_Htrait<-function(H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+  tmax<-max(H.tree$tDeath)
+  
   # adjusting the evolutionary rates to timesteps:
   nu     		<- nu*timestep
   beta    		<- beta*timestep

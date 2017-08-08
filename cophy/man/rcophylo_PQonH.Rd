@@ -4,14 +4,12 @@
 \alias{rcophylo_PQonH}
 \title{Cophylogeny simulation of two parasites on an existing host tree.}
 \usage{
-rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
-  sigma.self = 0, sigma.cross = 0, mu.P = 0.5, mu.Q = 0.5,
+rcophylo_PQonH(H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
+  sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
   prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
-  ini.Hbranch = NA, Gdist = NA, timestep = 0.001, DBINC = 100)
+  ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
 \arguments{
-\item{tmax}{a numeric value giving the length of the simulation.}
-
 \item{H.tree}{a pre-built host phylogenetic tree}
 
 \item{beta}{parasite host jump rate}
@@ -28,9 +26,9 @@ where \eqn{n} is the number of pre-existing parasites of the same type (P or Q) 
 Specifically, the probability of host shift success \eqn{(1-\sigma)^m}, 
 where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.}
 
-\item{mu.P}{a numeric value giving the extinction rate of parasites of type P}
+\item{nu.P}{a numeric value giving the extinction rate of parasites of type P}
 
-\item{mu.Q}{a numeric value giving the extinction rate of parasites of type Q}
+\item{nu.Q}{a numeric value giving the extinction rate of parasites of type Q}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
 
