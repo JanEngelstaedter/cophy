@@ -207,7 +207,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
 		Q.PConnectorLines[1,1:3]<-Q.PConnectorLines[1,1:3]+c(Q.xshift,Q.yshift,Q.yshift)
   } 
   
-	if(!is.na(TraitTracking)) {
+	if(class(TraitTracking)=="list") {
 		if (length(TraitTracking)==2) {
 			TraitTracking<-TraitTracking[[2]] # keeping only the relevant information
 		}
@@ -229,7 +229,6 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
 				}
 			}
 		}
-  
 		for(i in unique(c(greenLines[,1], greenLines[,2])))  # loop covering all internal nodes
 		{
 			daughterBranches<-which(greenLines[,1]==i)   # indices of the two daughter branches extending from node
@@ -239,7 +238,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
 			}
 		}
 	}
-  
+
   # plotting all lines:
   
   plot.new()
@@ -249,7 +248,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
   for(i in 1:length(HConnectorLines[,1]))
     lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
   
-  if(!is.na(TraitTracking)) {
+  if(class(TraitTracking)=="list" & nrow(greenLines)>0) {
   	for(i in 1:nrow(greenLines))
     	lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
   	for(i in 1:length(greenConnections[,1]))
@@ -384,10 +383,12 @@ plot_resistance<-function(Hphy, TraitTracking)
   plot.window(xlim=c(0,max(HBranchLines[,2])), ylim=c(0,max(HBranchLines[,3])))
   for(i in 1:length(HBranchLines[,1]))
     lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
-  for(i in 1:nrow(greenLines))
-    lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
   for(i in 1:length(HConnectorLines[,1]))
     lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
-  for(i in 1:length(greenConnections[,1]))
-    lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='lawn green')
+  if (nrow(greenLines)>0) {
+  	for(i in 1:nrow(greenLines))
+    	lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
+  	for(i in 1:length(greenConnections[,1]))
+    	lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='lawn green')
+  }
 }
