@@ -190,7 +190,8 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
   # shifting parasite lines a bit to make them better visible:
   
   xshift<-max(HBranchLines[,2])/1000 + Pphy$root.time
-  yshift<-0.1
+  if (class(TraitTracking)=="list") yshift<-0.5
+  else yshift<-0.1
   PBranchLines<-sweep(PBranchLines,2,-c(xshift,xshift,yshift))
   if (length(PConnectorLines[,1])>1)
     PConnectorLines[,1:3]<-sweep(PConnectorLines[,1:3],2,-c(xshift,yshift,yshift))
@@ -248,7 +249,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), TraitTracking=NA, Re
   for(i in 1:length(HConnectorLines[,1]))
     lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
   
-  if(class(TraitTracking)=="list" & nrow(greenLines)>0) {
+  if(class(TraitTracking)=="list") {
   	for(i in 1:nrow(greenLines))
     	lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
   	for(i in 1:length(greenConnections[,1]))
@@ -385,7 +386,7 @@ plot_resistance<-function(Hphy, TraitTracking)
     lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
   for(i in 1:length(HConnectorLines[,1]))
     lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
-  if (nrow(greenLines)>0) {
+  if (class(TraitTracking)=="list" & nrow(greenLines)>0) {
   	for(i in 1:nrow(greenLines))
     	lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
   	for(i in 1:length(greenConnections[,1]))
