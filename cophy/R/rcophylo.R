@@ -685,6 +685,7 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.ext
 #' Cophylogeny simulation of two parasites on an existing host tree.
 #'
 #' This function simulates the codiversification of two clades of parasites (P and Q) on a given host phylogeny (simulated or estimated) that is provided.
+#' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
 #' @param gamma.P a numeric value giving the dependency of host shift success of parasite P on phylogenetic distance between the old and the new host (see Details).
@@ -713,8 +714,7 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.ext
 #' @examples
 #' randomcophy.2PonH()
 
-rcophylo_PQonH<-function(H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
-  tmax<-max(H.tree$tDeath)
+rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   
   # adjusting the evolutionary rates to timesteps:
   nu.P		<- nu.P*timestep
@@ -1107,6 +1107,7 @@ rcophylo_PQonH<-function(H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,si
 #' A parasite tree building function with host response to infection
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+#' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
@@ -1133,8 +1134,7 @@ rcophylo_PQonH<-function(H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,si
 #' @examples
 #' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
-  tmax<-max(H.tree$tDeath)
+rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   
   # adjusting the evolutionary rates to timesteps:
   nu     		<- nu*timestep
