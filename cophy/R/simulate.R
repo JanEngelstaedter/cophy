@@ -5,7 +5,7 @@
 
 # This file is part of the R-package 'cophylo'.
 
-
+code.version=2
 #' A function to simulate many random cophylogenies and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
@@ -266,7 +266,7 @@ parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.s
   parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,timestep)
   names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","timestep")
   
-  nHtrees<-length(Htrees)
+  nHtrees<-length(fromHtree:toHtree)
   
   print("    Converting host trees to phylo format...")
   HtreesPhylo<-lapply(Htrees,convert_HBranchesToPhylo)  # converting to APE Phylo format

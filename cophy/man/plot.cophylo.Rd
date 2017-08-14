@@ -5,16 +5,19 @@
 \title{Cophylogeny plot}
 \usage{
 \method{plot}{cophylo}(cophy, ParasiteCol = c("Red", "Blue"),
-  TraitTracking = NA, ResistanceCol = "lawn green")
+  ResistanceCol = "lawn green", plotHResistance = TRUE,
+  plotPEvolution = c(TRUE, TRUE))
 }
 \arguments{
 \item{cophy:}{a cophylogeny (object of class "cophylo") containing a host tree and a parasite tree. This may also contain either a second parasite tree or host and parasite trait values.}
 
 \item{ParasiteCol:}{a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.}
 
-\item{TraitTracking:}{an object that tracks the evolution of host resistance traits if available.}
-
 \item{ResistanceCol:}{in the case that a TraitTracking object is available, gives the option to choose the plotting colour.}
+
+\item{plotHResistance:}{boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.}
+
+\item{plotPEvolution:}{boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.}
 }
 \description{
 This function plots a host-parasite cophylogenetic tree,

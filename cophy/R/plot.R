@@ -10,17 +10,18 @@
 #' @param cophy: a cophylogeny (object of class "cophylo") containing a host tree and a parasite tree. This may also contain either a second parasite tree or host and parasite trait values.
 #' @param ParasiteCol: a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.
 #' @param ResistanceCol: in the case that a TraitTracking object is available, gives the option to choose the plotting colour.
-#' @param OnlyHResistance: boolean parameter that gives the option to only plot the host tree and the evolution of resistance.
+#' @param plotHResistance: boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.
+#' @param plotPEvolution: boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.
 #' @keywords cophylogeny, plot
 #' @export
 #' @examples
 #' plot.cophylo()
 
-plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", OnlyHResistance="FALSE")
+plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", plotHResistance=TRUE, plotPEvolution=c(TRUE, TRUE))
 {
 	if (class(cophy[[length(cophy)]])=="phylo") {
 		TraitTracking <-NA
-		if (OnlyHResistance=="TRUE") stop("Cophy object does not contain host resistance information")
+		if (plotHResistance=="TRUE") warning("Cophy object does not contain host resistance information")
 	} else {
 		TraitTracking <-cophy[[length(cophy)]]
 	}
@@ -71,7 +72,10 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
   
 	# determining lines to be drawn for the parasite phylogeny:
   
-	if (OnlyHResistance=="FALSE") {
+	if (plotPEvolution[[1]]==TRUE) {
+		if (class(cophy[[2]])!="phylo"){
+			stop("No parasite lineage has been provided")
+		}
 		Pphy<-cophy[[2]]
   
 		PBranchLines<-matrix(NA,ncol=3,nrow=2)
@@ -113,77 +117,69 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 			}
 			PConnectorLines<-rbind(PConnectorLines,	c(tnew,PBranchLines[daughterBranches[1],3],													PBranchLines[daughterBranches[2],3],	hostJump))
 		}
-  
-		if (class(cophy[[3]])=="phylo") {
-	 		Qphy<-cophy[[3]]
+ 	}
+		
+	if (plotPEvolution[[2]]==TRUE & class(cophy[[3]])=="phylo") {
+	 	Qphy<-cophy[[3]]
   	
-		  	# determining lines to be drawn for the Q parasite phylogeny:
+  		# determining lines to be drawn for the Q parasite phylogeny:
 	  
-			Q.PBranchLines<-matrix(NA,ncol=3,nrow=2)
-			colnames(Q.PBranchLines)<-c("x1","x2","y")
-			Q.PBranchLines[1,1]<-0
-			Q.PBranchLines[1,2]<-Qphy$edge.length[1]
-			Q.PBranchLines[1,3]<-HBranchLines[Qphy$Hassoc[1],3]
+		Q.PBranchLines<-matrix(NA,ncol=3,nrow=2)
+		colnames(Q.PBranchLines)<-c("x1","x2","y")
+		Q.PBranchLines[1,1]<-0
+		Q.PBranchLines[1,2]<-Qphy$edge.length[1]
+		Q.PBranchLines[1,3]<-HBranchLines[Qphy$Hassoc[1],3]
+ 
+		Q.PBranchLines[2,1]<-0
+		Q.PBranchLines[2,2]<-Qphy$edge.length[2]
+		Q.PBranchLines[2,3]<-HBranchLines[Qphy$Hassoc[2],3]
   
-			Q.PBranchLines[2,1]<-0
-			Q.PBranchLines[2,2]<-Qphy$edge.length[2]
-			Q.PBranchLines[2,3]<-HBranchLines[Qphy$Hassoc[2],3]
+		Q.PConnectorLines<-matrix(NA,ncol=4,nrow=0)
+		colnames(Q.PConnectorLines)<-c("x","y1","y2","hostJump")
   
-			Q.PConnectorLines<-matrix(NA,ncol=4,nrow=0)
-			colnames(Q.PConnectorLines)<-c("x","y1","y2","hostJump")
+		Q.noPNodes<-length(Qphy$edge[,1])+1          # total number of nodes in the parasite phylogeny
+		Q.firstPNode<-(length(Qphy$edge[,1])/2)+2    # the first internal node in the parasite phylogeny
   
-			Q.noPNodes<-length(Qphy$edge[,1])+1          # total number of nodes in the parasite phylogeny
-			Q.firstPNode<-(length(Qphy$edge[,1])/2)+2    # the first internal node in the parasite phylogeny
-  
-			if(length(Qphy$edge[,1])>2) {
-				for(i in (Q.firstPNode+1):Q.noPNodes) { # loop covering all internal nodes
-					Q.daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two new branches to be added
-					Q.motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
-					tnew<-Q.PBranchLines[Q.motherBranch,2]    # time point when the new branches begin
-					Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[1]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[1]], 3]))
-					Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[2]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[2]], 3]))
-				}
-			}
-  
-  
-			for(i in Q.firstPNode:Q.noPNodes) { # loop covering all internal P nodes
-				daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two daughter branches extending from node
-    
-				tnew<-Q.PBranchLines[daughterBranches[1],1]   # time point of the node
-				if (i==Q.firstPNode) {
-					hostJump<-FALSE
-				}
-				if (i>Q.firstPNode) {
-					motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
-					hostJump<-(Qphy$Hassoc[daughterBranches[1]]==Qphy$Hassoc[motherBranch])   # whether or not the node corresponds to a host jump
-				}
-				Q.PConnectorLines<-rbind(Q.PConnectorLines, c(tnew, Q.PBranchLines[daughterBranches[1], 3], 												Q.PBranchLines[daughterBranches[2], 3], hostJump))
+		if(length(Qphy$edge[,1])>2) {
+			for(i in (Q.firstPNode+1):Q.noPNodes) { # loop covering all internal nodes
+				Q.daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two new branches to be added
+				Q.motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
+				tnew<-Q.PBranchLines[Q.motherBranch,2]    # time point when the new branches begin
+				Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[1]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[1]], 3]))
+				Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[2]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[2]], 3]))
 			}
 		}
+
+  
+		for(i in Q.firstPNode:Q.noPNodes) { # loop covering all internal P nodes
+			daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two daughter branches extending from node
+   
+			tnew<-Q.PBranchLines[daughterBranches[1],1]   # time point of the node
+			if (i==Q.firstPNode) {
+				hostJump<-FALSE
+			}
+			if (i>Q.firstPNode) {
+				motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
+				hostJump<-(Qphy$Hassoc[daughterBranches[1]]==Qphy$Hassoc[motherBranch])   # whether or not the node corresponds to a host jump
+			}
+			Q.PConnectorLines<-rbind(Q.PConnectorLines, c(tnew, Q.PBranchLines[daughterBranches[1], 3], 											Q.PBranchLines[daughterBranches[2], 3], hostJump))
+		}
+		
 	}
+	
 	if (!is.null(Hphy$root.edge)) { # adding root branch if there is one
 		HBranchLines<-t(t(HBranchLines)+c(Hphy$root.edge,Hphy$root.edge,0))
 	    HBranchLines<-rbind(c(0,Hphy$root.edge,(HBranchLines[1,3]+HBranchLines[2,3])/2),HBranchLines)
 	    HConnectorLines<-t(t(HConnectorLines)+c(Hphy$root.edge,0,0))
     	
-    	if (OnlyHResistance=="FALSE") {
+    	if (plotPEvolution[[1]]=="TRUE") {
 		    PBranchLines<-t(t(PBranchLines)+c(Pphy$root.edge,Pphy$root.edge,0))
 			    if (is.null(Pphy$root.Hassoc)) Proot.y<-HBranchLines[1,3]
 			    else Proot.y<-HBranchLines[Pphy$root.Hassoc,3]
 		    PBranchLines<-rbind(c(0,Pphy$root.edge,Proot.y),PBranchLines)
 		    PConnectorLines<-t(t(PConnectorLines)+c(Pphy$root.edge,0,0,0))
-    
-		    if(class(cophy[[3]])=="phylo") {
-		    	Q.PBranchLines<-t(t(Q.PBranchLines)+c(Qphy$root.edge,Qphy$root.edge,0))
-			    	if (is.null(Qphy$root.Hassoc)) Q.Proot.y<-HBranchLines[1,3] 
-    				else Q.Proot.y<-HBranchLines[Qphy$root.Hassoc,3]
-				Q.PBranchLines<-rbind(c(0,Qphy$root.edge,Q.Proot.y),Q.PBranchLines)
-				Q.PConnectorLines<-t(t(Q.PConnectorLines)+c(Qphy$root.edge,0,0,0))
-			}
-  
-			# shifting parasite lines a bit to make them better visible:
-  
-			xshift<-max(HBranchLines[,2])/1000 + Pphy$root.time
+		    
+		    xshift<-max(HBranchLines[,2])/1000 + Pphy$root.time
 				if (class(TraitTracking)=="list") yshift<-0.5
 				else yshift<-0.1
 			PBranchLines<-sweep(PBranchLines,2,-c(xshift,xshift,yshift))
@@ -192,14 +188,21 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 				else
 					PConnectorLines[1,1:3]<-PConnectorLines[1,1:3]+c(xshift,yshift,yshift)
   
-			if(class(cophy[[3]])=="phylo") {
-				Q.xshift<-max(HBranchLines[,2])/1000 + Qphy$root.time
-				Q.yshift<-0.1
-				Q.PBranchLines<-sweep(Q.PBranchLines,2,-c(Q.xshift,Q.xshift,Q.yshift))
-				if (length(Q.PConnectorLines[,1])>1) 
-					Q.PConnectorLines[,1:3]<-sweep(Q.PConnectorLines[,1:3],2,-c(Q.xshift,Q.yshift,Q.yshift))
-				else 
-					Q.PConnectorLines[1,1:3]<-Q.PConnectorLines[1,1:3]+c(Q.xshift,Q.yshift,Q.yshift)
+    	}
+		if(plotPEvolution[[2]]=="TRUE" & class(cophy[[3]])=="phylo") {
+	    	Q.PBranchLines<-t(t(Q.PBranchLines)+c(Qphy$root.edge,Qphy$root.edge,0))
+		    	if (is.null(Qphy$root.Hassoc)) Q.Proot.y<-HBranchLines[1,3] 
+    			else Q.Proot.y<-HBranchLines[Qphy$root.Hassoc,3]
+			Q.PBranchLines<-rbind(c(0,Qphy$root.edge,Q.Proot.y),Q.PBranchLines)
+			Q.PConnectorLines<-t(t(Q.PConnectorLines)+c(Qphy$root.edge,0,0,0))
+			
+			Q.xshift<-max(HBranchLines[,2])/1000 + Qphy$root.time
+			Q.yshift<-0.1
+			Q.PBranchLines<-sweep(Q.PBranchLines,2,-c(Q.xshift,Q.xshift,Q.yshift))
+			if (length(Q.PConnectorLines[,1])>1) {
+				Q.PConnectorLines[,1:3]<-sweep(Q.PConnectorLines[,1:3],2,-c(Q.xshift,Q.yshift,Q.yshift))
+			} else {
+				Q.PConnectorLines[1,1:3]<-Q.PConnectorLines[1,1:3]+c(Q.xshift,Q.yshift,Q.yshift)
 			}
 		}
 	} 
@@ -226,8 +229,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 				}
 			}
 		}
-		for(i in unique(c(greenLines[,1], greenLines[,2])))  # loop covering all internal nodes
-		{
+		for(i in unique(c(greenLines[,1], greenLines[,2])))  {# loop covering all internal nodes
 			daughterBranches<-which(greenLines[,1]==i)   # indices of the two daughter branches extending from node
 			if (length(daughterBranches)==2) {
 				tnew<-greenLines[daughterBranches[1],1]   # time point of the node
@@ -251,7 +253,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 		for(i in 1:length(greenConnections[,1]))
 			lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='lawn green')
 	}
-	if (OnlyHResistance=="FALSE") {
+	if (plotPEvolution[[1]]==TRUE) {
 		for(i in 1:length(PBranchLines[,1]))
 			lines(c(PBranchLines[i,1], PBranchLines[i,2]), c(PBranchLines[i,3], PBranchLines[i,3]), 									col=ParasiteCol[[1]])
 		for(i in 1:length(PConnectorLines[,1])) {
@@ -259,17 +261,17 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 				arrows(PConnectorLines[i,1], PConnectorLines[i,2], PConnectorLines[i,1], PConnectorLines[i,3], 							col= ParasiteCol[[1]], length=0.1, angle=10)
 			else
 				lines(c(PConnectorLines[i,1], PConnectorLines[i,1]), c(PConnectorLines[i,2], PConnectorLines[i,3]), 					col=ParasiteCol[[1]])
-			}
-		if (class(cophy[[3]])=="phylo") {
-			for(i in 1:length(Q.PBranchLines[,1])) {
-				lines(c(Q.PBranchLines[i,1], Q.PBranchLines[i,2]), c(Q.PBranchLines[i,3], Q.PBranchLines[i,3]), 							col= ParasiteCol[[2]])
-			}
-			for(i in 1:length(Q.PConnectorLines[,1])) {
-				if (Q.PConnectorLines[i,4]==TRUE) {
-					arrows(Q.PConnectorLines[i,1], Q.PConnectorLines[i,2], Q.PConnectorLines[i,1], 											Q.PConnectorLines[i,3], col=ParasiteCol[[2]], length=0.1, angle=10)
-				} else {
-					lines(c(Q.PConnectorLines[i,1], Q.PConnectorLines[i,1]), c(Q.PConnectorLines[i,2], 										Q.PConnectorLines[i,3]), col= ParasiteCol[[2]])
-				}
+		}
+	}
+	if (plotPEvolution[[1]]==TRUE & class(cophy[[3]])=="phylo") {
+		for(i in 1:length(Q.PBranchLines[,1])) {
+			lines(c(Q.PBranchLines[i,1], Q.PBranchLines[i,2]), c(Q.PBranchLines[i,3], Q.PBranchLines[i,3]), 							col= ParasiteCol[[2]])
+		}
+		for(i in 1:length(Q.PConnectorLines[,1])) {
+			if (Q.PConnectorLines[i,4]==TRUE) {
+				arrows(Q.PConnectorLines[i,1], Q.PConnectorLines[i,2], Q.PConnectorLines[i,1], 											Q.PConnectorLines[i,3], col=ParasiteCol[[2]], length=0.1, angle=10)
+			} else {
+				lines(c(Q.PConnectorLines[i,1], Q.PConnectorLines[i,1]), c(Q.PConnectorLines[i,2], 										Q.PConnectorLines[i,3]), col= ParasiteCol[[2]])
 			}
 		}
 	}
