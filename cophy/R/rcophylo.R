@@ -412,6 +412,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #'
 #' This function simulates the codiversification of a clade of parasites on a given host phylogeny (simulated or estimated) that is provided.
 #' 
+#' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree.
 #' @param beta parasite host jump rate.
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
@@ -435,8 +436,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #' @examples
 #' rcophylo_PonH()
 
-rcophylo_PonH<-function(H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
-  tmax<-max(H.tree$tDeath)
+rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   
   # adjusting the evolutionary rates to probabilities per time step:
   nu     <- nu*timestep
