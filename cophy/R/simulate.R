@@ -266,7 +266,7 @@ parsimulate.PonH.singleparam<-function(Htrees,fromHtree=NA, toHtree=NA, tmax,P.s
   parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,timestep)
   names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","timestep")
   
-  nHtrees<-length(fromHtree:toHtree)
+  nHtrees<-length(Htrees)
   
   print("    Converting host trees to phylo format...")
   HtreesPhylo<-lapply(Htrees,convert_HBranchesToPhylo)  # converting to APE Phylo format
