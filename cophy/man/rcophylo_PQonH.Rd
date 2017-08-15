@@ -4,12 +4,14 @@
 \alias{rcophylo_PQonH}
 \title{Cophylogeny simulation of two parasites on an existing host tree.}
 \usage{
-rcophylo_PQonH(H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
+rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
   sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
   prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
   ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
 \arguments{
+\item{tmax}{maximum timepoint to which to run simulation}
+
 \item{H.tree}{a pre-built host phylogenetic tree}
 
 \item{beta}{parasite host jump rate}

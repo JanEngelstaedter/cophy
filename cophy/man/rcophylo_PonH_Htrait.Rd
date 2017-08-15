@@ -4,13 +4,15 @@
 \alias{rcophylo_PonH_Htrait}
 \title{A parasite tree building function with host response to infection}
 \usage{
-rcophylo_PonH_Htrait(H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
+rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
   nu = 0.5, epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, omega = 10,
   rho = 0.5, psi = 0.5, TraitTracking = NA, prune.extinct = FALSE,
   export.format = "Phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
   timestep = 0.001)
 }
 \arguments{
+\item{tmax}{maximum timepoint to which to run simulation}
+
 \item{H.tree}{a pre-built host phylogenetic tree}
 
 \item{beta}{parasite host jump rate}
