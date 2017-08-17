@@ -187,6 +187,80 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
   stats
 }
 
+
+#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param Htrees: pre-built host trees on which to simulate parasite trees
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+#' @param tmax: maximum time for which to simulate
+#' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param beta: parasite host jump rate
+#' @param gamma.P: dependency on genetic distance for host jumps
+#' @param gamma.Q: dependency on genetic distance for host jumps
+#' @param sigma.self: probability of successful co-infection with related parasite following host jump
+#' @param sigma.cross: probability of successful co-infection with unrelated parasite following host jump
+#' @param mu.P: parasite extinction rate
+#' @param mu.Q: parasite extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps1: the number of starting points for the parasite trees
+#' @param reps2: the number of replicates per starting point
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords multiple Host coevolving Parasite phylogeny, statistics
+#' @export
+#' @examples
+#' simulate_cophys_PQonH()
+
+simulate_cophys_PQonH<-function(Htrees,fromHtree=NA,toHtree=NA,tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep,reps1,reps2,filename=NA)
+{
+  times<-list(start=NA,end=NA,duration=NA)
+  times[[1]]<-Sys.time()
+  
+  parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,mu.P,mu.Q,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","mu.P","mu.Q","timestep")
+  
+  nHtrees<-length(Htrees)
+  HtreesPhylo<-lapply(Htrees,convert_HBranchesToPhylo)  # converting to APE Phylo format
+  
+  P.Ptrees<-list() # an empty list that will later contain all the P parasite trees 
+  Q.Ptrees<-list() # an empty list that will later contain all the Q parasite trees 
+  stats<-matrix(NA,nrow=nHtrees*reps1*reps2,ncol=13)
+  colnames(stats)<-c("HTreeNo","PQTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
+  i<-0
+  if (is.na(fromHtree)) {
+    fromHtree<-1
+  }
+  if (is.na(toHtree)) {
+    toHtree<-nHtrees
+  }
+  for(i0 in fromHtree:toHtree) {
+    if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+      stop("Can't have multiple start points when parasites initiate on the first host branch!")
+    }
+    ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
+    Gdist<-get_GDist(Htrees[[i0]],t=P.startT)
+    for(i1 in 1:reps1) {
+      for(i2 in 1:reps2) {
+        i<-i+1
+        cophy<-rcophylo_PQonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P,gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,mu.P=mu.P,mu.Q=mu.Q,P.startT=P.startT,ini.Hbranch=ini.HBranches[i1],timestep=timestep,Gdist=Gdist)
+        P.Ptrees[[i]]<-cophy[[2]]
+        Q.Ptrees[[i]]<-cophy[[3]]
+        stats[i,]<-c(i0,i,ini.HBranches[i1],i2,get.2Pinfectionstats(cophy))
+      }
+    }		
+    
+    times[[2]]<-Sys.time()
+    times[[3]]<-times[[2]]-times[[1]]
+    
+    output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"P.Ptrees"=P.Ptrees,"Q.Ptrees"=Q.Ptrees,"statistics"=stats,"times"=times)
+    save(output,file=paste(filename,".RData",sep=""))
+    print(paste("Simulations for host tree",i0,"finished!"))	
+  }
+  stats
+}
+
+
 #' A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
 #'
 #' The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
