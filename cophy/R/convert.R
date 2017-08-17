@@ -915,10 +915,14 @@ convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA
 		for (i in fromHtree:toHtree) {
 			TreesToConvert[[i-(fromHtree-1)]]<- Hbranches[[i]]
 		}
-		if (length(fromHtree:toHtree)==1) phylo <-convert_HBtoPhy(TreesToConvert[[1]])
-		else phylo<-lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE Phylo format
-		for (i in fromHtree:toHtree) {
-			HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
+		if (length(fromHtree:toHtree)==1) {
+			phylo <-convert_HBtoPhy(TreesToConvert[[1]])
+			HtreesPhylo[[fromHtree]]<-phylo
+		} else {
+			phylo<-lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE Phylo format
+			for (i in fromHtree:toHtree) {
+				HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
+			}
 		}
 	} else {
 		if (nHtrees==1) HtreesPhylo<-convert_HBtoPhy(Hbranches)
