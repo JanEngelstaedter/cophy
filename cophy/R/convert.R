@@ -254,7 +254,7 @@ convert_HPBranchesToCophylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 #' @param HBranches: Host-tree in raw matrix format
 #' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 
-convert_HBranchesToPhylo<-function(HBranches,prune.extinct=FALSE)
+convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
 {
   # number of host and parasite branches:
   nHBranches<-nrow(HBranches)
@@ -888,3 +888,43 @@ convert_HPQCophyloToBranches<-function(cophy)
   
   return(list(HBranches,P.PBranches,Q.PBranches))
 }
+
+#' Converting raw host trees to phylo format
+#'
+#' The following function converts raw host tree matricies into phylo format
+#' @param Hbranches: Host-tree in raw matrix format
+#' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @param fromHtree: starting host-tree
+#' @param toHtree: finishing host-tree
+
+convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA, toHtree=NA)
+{
+	if (class(Hbranches)=="data.frame") nHtrees<-1
+	else nHtrees<-length(Hbranches)
+  
+	if (is.na(fromHtree)) {
+		fromHtree<-1
+	}
+	if (is.na(toHtree)) {
+    	toHtree<-nHtrees
+	}
+  
+	TreesToConvert<-list()
+	HtreesPhylo<-list()
+	if (length(fromHtree:toHtree)!=nHtrees) {
+		for (i in fromHtree:toHtree) {
+			TreesToConvert[[i-(fromHtree-1)]]<- Hbranches[[i]]
+		}
+		if (length(fromHtree:toHtree)==1) phylo <-convert_HBtoPhy(TreesToConvert[[1]])
+		else phylo<-lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE Phylo format
+		for (i in fromHtree:toHtree) {
+			HtreesPhylo[[i]] <-phylo[[i-(fromHtree-1)]]
+		}
+	} else {
+		if (nHtrees==1) HtreesPhylo<-convert_HBtoPhy(Hbranches)
+		else HtreesPhylo <-lapply(Hbranches, convert_HBtoPhy)  # converting to APE Phylo format
+	}
+	HtreesPhylo
+}
+
+
