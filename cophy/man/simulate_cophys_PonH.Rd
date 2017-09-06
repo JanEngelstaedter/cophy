@@ -2,10 +2,11 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_cophys_PonH}
 \alias{simulate_cophys_PonH}
-\title{A function to simulate many random parasite phylogenies on pre-built host-trees and calculate statistics}
+\title{A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.}
 \usage{
-simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA, tmax, P.startT,
-  beta, gamma, sigma, nu, timestep, reps1 = 1, reps2, filename = NA)
+simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
+  gamma, sigma, nu, timestep, reps1 = 1, reps2 = 1, filename = NA,
+  ncores = 1, DBINC = 100)
 }
 \arguments{
 \item{Htrees:}{pre-built host trees on which to simulate parasite trees}
@@ -13,8 +14,6 @@ simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA, tmax, P.startT,
 \item{fromHtree:}{starting host-tree}
 
 \item{toHtree:}{finishing host-tree}
-
-\item{tmax:}{maximum time for which to simulate}
 
 \item{P.startT:}{the timepoint at which a parasite invades the host-tree}
 
@@ -33,14 +32,17 @@ simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA, tmax, P.startT,
 \item{reps2:}{the number of replicates per starting point}
 
 \item{filename:}{name underwhich set of simulations and statistics will be saved}
+
+\item{ncores:}{the number of cores that will be used to run simulations in parallel}
 }
 \description{
-A function to run a certain number of replicate simulations, save all the trees and output all stats.
+The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
 }
 \examples{
 simulate_cophys_PonH()
 }
 \keyword{Host-Parasite}
 \keyword{multiple}
+\keyword{parallel}
 \keyword{phylogeny,}
-\keyword{statistics}
+\keyword{statistics,}

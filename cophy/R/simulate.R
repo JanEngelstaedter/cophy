@@ -4,8 +4,46 @@
 #   calculates some basic summary statistics and saves the results in a file.
 
 # This file is part of the R-package 'cophylo'.
-DBINC<-100
-code.version=2
+#DBINC<-100
+#code.version<-0.0.0.9000
+
+#' A function to simulate many random host phylogenies 
+#'
+#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param tmax: maximum time for which to simulate
+#' @param lambda: host speciation rate
+#' @param K: carrying capacity for host species
+#' @param mu: host extinction rate
+#' @param timestep: timestep for simulations
+#' @param reps: number of times to simulate this set of parameters
+#' @param filename: name underwhich set of simulations and statistics will be saved
+#' @keywords multiple Host phylogenies
+#' @export
+#' @examples
+#' simulate_HostTrees()
+
+simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
+{
+  times<-list(start=NA,end=NA,duration=NA)
+  times[[1]]<-Sys.time()
+  parameters<-c(tmax,lambda,mu,K,timestep)
+  names(parameters)<-c("tmax","lambda","mu","K","timestep")
+  all.trees<-list() # an empty list that will later contain all the trees 
+  for(i in 1:reps)
+  {
+    Hphy<-rcophylo_H(tmax=tmax,lambda=lambda,mu=mu,timestep=timestep,K=K,export.format="Raw")
+    all.trees[[i]]<-Hphy		
+    if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
+      print(paste("Replicate",i,"finished!"))
+  }
+  
+  times[[2]]<-Sys.time()
+  times[[3]]<-times[[2]]-times[[1]]
+  
+  output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
+  save(output,file=paste(filename,".RData",sep=""))
+}
+
 #' A function to simulate many random cophylogenies and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
@@ -51,42 +89,6 @@ simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,K,timestep,rep
   stats
 }
 
-#' A function to simulate many random host phylogenies 
-#'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
-#' @param tmax: maximum time for which to simulate
-#' @param lambda: host speciation rate
-#' @param K: carrying capacity for host species
-#' @param mu: host extinction rate
-#' @param timestep: timestep for simulations
-#' @param reps: number of times to simulate this set of parameters
-#' @param filename: name underwhich set of simulations and statistics will be saved
-#' @keywords multiple Host phylogenies
-#' @export
-#' @examples
-#' simulate_cophys_H()
-
-simulate_cophys_H<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
-{
-  times<-list(start=NA,end=NA,duration=NA)
-  times[[1]]<-Sys.time()
-  parameters<-c(tmax,lambda,mu,K,timestep)
-  names(parameters)<-c("tmax","lambda","mu","K","timestep")
-  all.trees<-list() # an empty list that will later contain all the trees 
-  for(i in 1:reps)
-  {
-    Hphy<-rcophylo_H(tmax=tmax,lambda=lambda,mu=mu,timestep=timestep,K=K,export.format="Raw")
-    all.trees[[i]]<-Hphy		
-    if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
-      print(paste("Replicate",i,"finished!"))
-  }
-  
-  times[[2]]<-Sys.time()
-  times[[3]]<-times[[2]]-times[[1]]
-  
-  output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
-  save(output,file=paste(filename,".RData",sep=""))
-}
 
 #' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
 #'
@@ -109,8 +111,9 @@ simulate_cophys_H<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
 #' @examples
 #' simulate_cophys_PonH()
 
-simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma,sigma,nu,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
+simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma,sigma,nu,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
+	code.version<-2
   tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
   
   print(paste("Simulations for ",filename," started.",sep=""))
@@ -212,7 +215,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
 #' @examples
 #' simulate_cophys_PQonH()
 
-simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
+simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
@@ -323,7 +326,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @examples
 #' simulate_cophys_PonH_Htrait()
 
-simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1)
+simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
@@ -411,4 +414,3 @@ simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toH
   stats
   
 }
-
