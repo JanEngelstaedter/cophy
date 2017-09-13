@@ -1134,8 +1134,8 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' @examples
 #' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
-  
+rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
+{	  
   # adjusting the evolutionary rates to timesteps:
   nu     		<- nu*timestep
   beta    		<- beta*timestep

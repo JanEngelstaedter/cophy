@@ -7,9 +7,11 @@
 convert_HPQCophyloToBranches(cophy)
 }
 \arguments{
-\item{cophy:}{a cophylogeny (in phylo format) containing one host and two parasite trees
-convert_HPQCophyloToBranches()}
+\item{cophy:}{a cophylogeny (in phylo format) containing one host and two parasite trees}
 }
 \description{
 The following function converts a phylo host-(dual) parasite tree into internal Branches format
+}
+\examples{
+convert_HPQCophyloToBranches()
 }

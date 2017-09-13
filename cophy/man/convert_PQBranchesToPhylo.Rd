@@ -16,3 +16,6 @@ convert_PQBranchesToPhylo(P.PBranches, Q.PBranches, prune.extinct = FALSE)
 \description{
 The following function converts raw dual parasite tree dataframes into phylo format
 }
+\examples{
+convert_PQBranchesToPhylo()
+}

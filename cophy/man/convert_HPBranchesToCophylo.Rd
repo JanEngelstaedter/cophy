@@ -16,3 +16,6 @@ convert_HPBranchesToCophylo(HBranches, PBranches, prune.extinct = FALSE)
 \description{
 The following function converts raw host-parasite tree matricies into phylo format
 }
+\examples{
+convert_HPBranchesToCophylo()
+}

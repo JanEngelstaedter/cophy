@@ -19,3 +19,6 @@ convert_HBranchesToPhylo(Hbranches, prune.extinct = FALSE, fromHtree = NA,
 \description{
 The following function converts raw host tree matricies into phylo format
 }
+\examples{
+convert_HBranchesToPhylo()
+}

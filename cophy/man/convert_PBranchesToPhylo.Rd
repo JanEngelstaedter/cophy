@@ -14,6 +14,9 @@ convert_PBranchesToPhylo(PBranches, prune.extinct = FALSE)
 \description{
 The following function converts a raw parasite tree matrix into phylo format
 }
+\examples{
+convert_PBranchesToPhylo()
+}
 \keyword{convert,}
 \keyword{format,}
 \keyword{phylo}
