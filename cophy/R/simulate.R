@@ -31,7 +31,7 @@ simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
   all.trees<-list() # an empty list that will later contain all the trees 
   for(i in 1:reps)
   {
-    Hphy<-rcophylo_H(tmax=tmax,lambda=lambda,mu=mu,timestep=timestep,K=K,export.format="Raw")
+    Hphy<-rphylo_H(tmax=tmax,lambda=lambda,mu=mu,timestep=timestep,K=K,export.format="Raw")
     all.trees[[i]]<-Hphy		
     if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
       print(paste("Replicate",i,"finished!"))
@@ -40,7 +40,7 @@ simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
   times[[2]]<-Sys.time()
   times[[3]]<-times[[2]]-times[[1]]
   
-  output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
+  output<-list("parameters"=parameters,"replications"=reps,"Trees"=all.trees,"times"=times)
   save(output,file=paste(filename,".RData",sep=""))
 }
 
