@@ -11,6 +11,9 @@
 #' @param HBranches: Host-tree in raw matrix format
 #' @param PBranches: Parasite-tree in raw matrix format
 #' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @export
+#' @examples
+#' convert_HPBranchesToCophylo()
 
 convert_HPBranchesToCophylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 {
@@ -395,6 +398,9 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
 #' @param PBranches: Parasite-tree in raw matrix format
 #' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo 
+#' @export
+#' @examples
+#' convert_PBranchesToPhylo()
 
 convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 {
@@ -530,6 +536,9 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 #' @param P.PBranches: Parasite-tree in raw matrix format
 #' @param Q.PBranches: Parasite-tree in raw matrix format
 #' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
+#' @export
+#' @examples
+#' convert_PQBranchesToPhylo()
 
 convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 {
@@ -781,6 +790,9 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 #' @param prune.extinct: whether to remove all extinct branches (defaulting to FALSE)
 #' @param fromHtree: starting host-tree
 #' @param toHtree: finishing host-tree
+#' @export
+#' @examples
+#' convert_HBranchesToPhylo()
 
 convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA, toHtree=NA)
 {
@@ -821,6 +833,8 @@ convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA
 #'
 #' The following function converts a phylo host-parasite tree into internal Branches format
 #' @param cophy: a cophylogeny (in phylo format) containing one host and one parasite tree
+#' @export
+#' @examples
 #' convert_HPCophyloToBranches()
 
 convert_HPCophyloToBranches<-function(cophy)
@@ -870,6 +884,8 @@ convert_HPCophyloToBranches<-function(cophy)
 #'
 #' The following function converts a phylo host-(dual) parasite tree into internal Branches format
 #' @param cophy: a cophylogeny (in phylo format) containing one host and two parasite trees
+#' @export
+#' @examples
 #' convert_HPQCophyloToBranches()
 
 convert_HPQCophyloToBranches<-function(cophy)

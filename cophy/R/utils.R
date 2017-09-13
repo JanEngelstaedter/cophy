@@ -12,6 +12,9 @@
 #' @param epsilon.1to0: the basline mutation rate for a host to lose the resistance trait
 #' @param epsilon.0to1: the basline mutation rate for a host to gain the resistance trait
 #' @param timestep: timestep for simulations
+#' @export
+#' @examples
+#' get_preInvasionTraits()
 
 get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, timestep=0.001)
 {
