@@ -379,6 +379,9 @@ get.2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 #' Calculating the distance matrix between host branches alive at a particular timepoint
 #' @param branches: raw branches matrix of a host tree
 #' @param t: timepoint in simulation at which you want distance information
+#' @export
+#' @examples
+#' get_GDist()
 
 
 get_GDist<-function(branches,t=NA)

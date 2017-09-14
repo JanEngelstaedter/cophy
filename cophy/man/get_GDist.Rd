@@ -14,3 +14,6 @@ get_GDist(branches, t = NA)
 \description{
 Calculating the distance matrix between host branches alive at a particular timepoint
 }
+\examples{
+get_GDist()
+}
