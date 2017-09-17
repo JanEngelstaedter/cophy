@@ -386,30 +386,30 @@ get.2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 
 get_GDist<-function(branches,t=NA)
 {
-  if (is.na(t)) t<-max(branches$tDeath)
+  if (is.na(t)) t<-max(branches[,5])
   if (t==0) { # initialise the Gdist matrix in the case that there is no invasion
     Gdist	<-matrix(0,nrow=1,ncol=1)
     return(Gdist)
   } 
-  liveBranches<-branches[branches$tBirth<=t & branches$tDeath>=t,]
+  liveBranches<-branches[branches[,3]<=t & branches[,5]>=t,]
   n<-length(liveBranches[,1])
   
   if (n==0) return(NA)
   if (n==1) return(0)
   
-  NodeTimes<-branches$tDeath[order(branches$nodeDeath)] # vector of times for each node in the tree
+  NodeTimes<-branches[,5][order(branches[,4])] # vector of times for each node in the tree
   
   # create list of ancestor nodes for each living branch
   ancNodes<-vector("list",n)
   
   for(i in 1:n)
   {
-    nodeB<-liveBranches$nodeBirth[i]
+    nodeB<-liveBranches[,2][i]
     ancNodes[[i]]<-nodeB
     while(nodeB>1) # do until you hit the root node
     {
-      j<-match(nodeB,branches$nodeDeath)
-      nodeB<-branches$nodeBirth[j]
+      j<-match(nodeB,branches[,4])
+      nodeB<-branches[,2][j]
       ancNodes[[i]]<-c(ancNodes[[i]],nodeB)
     }
     ancNodes[[i]]<-rev(ancNodes[[i]])  # revert the order of nodes

@@ -263,7 +263,7 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
   nHBranches<-nrow(HBranches)
   
   # number of living host and parasite species:
-  nHAlive<-sum(HBranches$alive[HBranches$alive==TRUE])
+  nHAlive<-sum(HBranches[,1][HBranches[,1]==TRUE])
   
   # check if we have a host tree (with more than the initial branch):
   if (nHBranches==1)
@@ -276,7 +276,7 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
   # deleting the first branch (the root) of host and parasite trees:
   # (This is necessary because Phylo trees in APE don't have an initial branch.)
   
-  Hroot.edge  <-HBranches$tDeath[1]-HBranches$tBirth[1]
+  Hroot.edge  <-HBranches[,5][1]-HBranches[,3][1]
   HBranches <-HBranches[-1,]  
   nHBranches <-nHBranches-1
   
@@ -289,22 +289,22 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
   
   for ( i in 1:(nHBranches+1))
   {
-    if ( any( HBranches$nodeBirth == i ) )     # is node i an internal node?
+    if ( any( HBranches[,2] == i ) )     # is node i an internal node?
     {										
-      rHBranches$nodeBirth[HBranches$nodeBirth == i] <- i.int
-      rHBranches$nodeDeath[HBranches$nodeDeath == i] <- i.int
+      rHBranches[,2][HBranches[,2] == i] <- i.int
+      rHBranches[,4][HBranches[,4] == i] <- i.int
       i.int <- i.int + 1 
     }
     else 									# node i is an external node
     {
-      if ((nHAlive>0)&&(HBranches$alive[HBranches$nodeDeath==i]==1))
+      if ((nHAlive>0)&&(HBranches[,1][HBranches[,4]==i]==1))
       {
-        rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.tip
+        rHBranches[,4][HBranches[,4]==i]<-i.tip
         i.tip <- i.tip + 1
       }
       else
       {
-        rHBranches$nodeDeath[HBranches$nodeDeath==i]<-i.ext
+        rHBranches[,4][HBranches[,4]==i]<-i.ext
         i.ext <- i.ext + 1
       }
     }
@@ -317,20 +317,20 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
     # find nodes that don't leave any descendents:
     
     nodeHDead<-rep(TRUE,nHBranches+1)
-    nodeHDead[rHBranches$nodeBirth[1]]<-FALSE # root is definitely alive!
+    nodeHDead[rHBranches[,2][1]]<-FALSE # root is definitely alive!
     for(i in 1:nHAlive)
     {
       n<-i
       while (nodeHDead[n]==TRUE)
       {
         nodeHDead[n]<-FALSE
-        n<-rHBranches$nodeBirth[rHBranches$nodeDeath==n]
+        n<-rHBranches[,2][rHBranches[,4]==n]
       }
     }
     
     # keep only branches that terminate in live nodes:
     
-    prunedHBranches<-rHBranches[!nodeHDead[rHBranches$nodeDeath],]
+    prunedHBranches<-rHBranches[!nodeHDead[rHBranches[,4]],]
     
     # find and collapse nodes that are no nodes anymore:
     
@@ -384,7 +384,7 @@ convert_HBtoPhy<-function(HBranches,prune.extinct=FALSE)
     Hphy$Nnode<-nHAlive-1
   } else   # extinct taxa included:
   {
-    Hphy <- list( edge = cbind(rHBranches$nodeBirth, rHBranches$nodeDeath),edge.length=rHBranches$tDeath-rHBranches$tBirth,tip.label=paste("t", 1:(1+nHBranches/2), sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
+    Hphy <- list( edge = cbind(rHBranches[,2], rHBranches[,4]),edge.length=rHBranches[,5]-rHBranches[,3],tip.label=paste("t", 1:(1+nHBranches/2), sep=""),root.edge=Hroot.edge, nAlive=nHAlive)
     class(Hphy) 		   <- "phylo"
     Hphy$Nnode 			   <- nHBranches/2
   }
