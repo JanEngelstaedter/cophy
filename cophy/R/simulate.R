@@ -341,11 +341,13 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
   	tmax<-max(Htrees$tDeath) #find maximum timepoint from host tree
   } else {
   	nHtrees<-length(Htrees) 
-  	tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
+  	tmax<-max(Htrees[[1]][,5]) #find maximum timepoint from host tree
   }
   
-  print("    Converting host trees to phylo format...")
-  HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
+  if (is.na(HtreesPhylo)) {
+  	print("    Converting host trees to phylo format...")
+  	HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
+  }
   
   Ptrees<-list() # an empty list that will later contain all the parasite trees 
   stats<-matrix(NA,nrow=length(fromHtree:toHtree)*reps1*reps2,ncol=8)
@@ -375,11 +377,30 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
   print("    Running parasite simulations...")
   for(i0 in fromHtree:toHtree)
   {
-    if (length(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)])==1 && reps1>1){
+    if (length(Htrees[[i0]][,6][which(Htrees[[i0]][,5]>=P.startT & Htrees[[i0]][,3]<=P.startT)])==1 && reps1>1){
       stop("Can't have multiple start points when parasites initiate on the first host branch!")
     }
-    ini.HBranches<-sample(Htrees[[i0]]$branchNo[which(Htrees[[i0]]$tDeath>=P.startT & Htrees[[i0]]$tBirth<=P.startT)], reps1)
-    
+    ini.HBranches<-sample(Htrees[[i0]][,6][which(Htrees[[i0]][,5]>=P.startT & Htrees[[i0]][,3]<=P.startT)], reps1)
+    if (class(Htrees[[i0]])=="data.frame") {
+    	# parallel loop for running the simulations:
+	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
+    	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
+	    	  i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
+    	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
+    	}
+    } else if (class(Htrees[[i0]])=="big.matrix") {
+    	descripTrees<-list()
+		for (i in 1:length(Htrees)) {
+			descripTrees[[i]]<-describe(Htrees[[i]])
+		}
+		
+		# parallel loop for running the simulations:
+	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
+    	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
+	    	  i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
+    	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=attach.big.matrix(descripTrees[[i0]]),beta=beta,gamma=gamma,sigma=sigma,nu=nu,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch=ini.Hbranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
+    	  }
+    }
     # parallel loop for running the simulations:
     Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number

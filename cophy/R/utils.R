@@ -18,10 +18,21 @@
 
 get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, timestep=0.001)
 {
+  epsilon.1to0	<- epsilon.1to0*timestep
+  epsilon.0to1	<- epsilon.0to1*timestep
   t<-0 # initiate time counter
   
-  HBranches<-H.tree[which(H.tree$tDeath>=0 && H.tree$tBirth==0),] # begin from the initial branch
-  HBranches$Resistance<-0 # set the initial trait value to zero
+  if (class(H.tree)=="data.frame") {
+  	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
+  	HBranches$Resistance<-0 # set the initial trait value to zero
+  } else if (class(H.tree)=="big.matrix") { # allowing the use of bigmatrix to reduce RAM burden
+  	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
+  	HBranches<-t(as.data.frame(HBranches))
+  	res<-data.frame(Resistance=0)
+  	HBranches<-cbind(HBranches, res)
+  } else {
+  	stop("H.tree object of incompatible data type")
+  }
   
   TraitTracking<-vector("list",length(H.tree[,1]))
   for (i in 1:length(H.tree[,1])) {
@@ -38,21 +49,21 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
       for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
       {
         # Speciation events:
-        if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
+        if (i %in% H.tree[,2])   # Check if host death is due to speciation
         {					
           H.Speciations		<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
           
           TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
           
-          daughterBranches	<-which(H.tree$nodeBirth == i)
+          daughterBranches	<-which(H.tree[,2] == i)
           
           HBranches           <-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           HBranches          	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           
           timepoint           <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
           
-          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
-          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 															HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,3][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree[,3][daughterBranches[2]], 															HBranches$Resistance[H.Speciations])
           
           # delete all extinct hosts from living tree
           HBranches	<-HBranches[-H.Speciations,] 

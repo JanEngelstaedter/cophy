@@ -444,7 +444,7 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,prune.ext
   
   # Set beginning for P simulation
   
-  HBranches<-H.tree[which(H.tree$tDeath>=P.startT & H.tree$tBirth<=P.startT),]  # which host branches are alive at invasion time T?
+  HBranches<-H.tree[which(H.tree[,5]>=P.startT & H.tree[,3]<=P.startT),]  # which host branches are alive at invasion time T?
   
   if (is.na(ini.Hbranch))  # no initial host branch specified --> choose random branch
   {
@@ -1173,7 +1173,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     Gdist	<-get_GDist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
   }	
   
-  HBranchDeathTimes<-sort(H.tree$tDeath[H.tree$tDeath>=P.startT & H.tree$alive==FALSE])
+  HBranchDeathTimes<-sort(H.tree[,5][H.tree[,5]>=P.startT & H.tree[,1]==FALSE])
   HDeathIndex<-1
   
   continue<-TRUE
@@ -1194,17 +1194,17 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
       for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
       {
         # Cospeciation events:
-        if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
+        if (i %in% H.tree[,2])   # Check if host death is due to speciation
         {
           H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
           TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
           
-          daughterBranches			<-which(H.tree$nodeBirth == i)
+          daughterBranches			<-which(H.tree[,2] == i)
           HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           
-          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree$tBirth[daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
-          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree $tBirth[daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,1][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree[,3][daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
           
           
           timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
@@ -1241,8 +1241,8 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
                 PDeadBranches<-rbind(PDeadBranches, data.frame(alive=rep(FALSE,DBINC) ,nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
               
               
-              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree$branchNo[daughterBranches[1]], nPBranches+1))
-              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree$branchNo[daughterBranches[2]], nPBranches+2)) 
+              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree[,6][daughterBranches[1]], nPBranches+1))
+              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree[,6][daughterBranches[2]], nPBranches+2)) 
               nextPNode               <-nextPNode+1
               nPAlive                 <-nPAlive+1
               nPBranches              <-nPBranches+2
@@ -1498,7 +1498,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
   PBranches	<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
   PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
   
-  for (i in which(H.tree$alive==1)) {
+  for (i in which(H.tree[,1]==1)) {
     TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
   }
   

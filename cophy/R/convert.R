@@ -797,6 +797,7 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA, toHtree=NA)
 {
 	if (class(Hbranches)=="data.frame") nHtrees<-1
+	else if (class(Hbranches)=="big.matrix") nHtrees<-1
 	else nHtrees<-length(Hbranches)
   
 	if (is.na(fromHtree)) {
