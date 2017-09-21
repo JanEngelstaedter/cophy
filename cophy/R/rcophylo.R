@@ -1203,7 +1203,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
           HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
           
-          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,1][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,3][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
           TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree[,3][daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
           
           
