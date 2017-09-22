@@ -1426,7 +1426,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     Htrait.1.noP		<-which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
     
     # which hosts mutate?
-    if (class(Htrait.0.P)!="numeric") {# & length(Htrait.0.P)>0) {
+    if (class(Htrait.0.P)=="numeric") {# & length(Htrait.0.P)>0) {
       Mutate.0to1.P		<-rbinom(1,length(Htrait.0.P),epsilon.0to1*omega) # how many susceptible hosts 										evolve resistance in presence of P?
     } else {
       Mutate.0to1.P<-0
