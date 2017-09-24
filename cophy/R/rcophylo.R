@@ -1135,13 +1135,8 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' rcophylo_PonH_Htrait()
 
 rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
-{	  
-  # adjusting the evolutionary rates to timesteps:
-  nu     		<- nu*timestep
-  beta    		<- beta*timestep
-  epsilon.1to0	<- epsilon.1to0*timestep
-  epsilon.0to1	<- epsilon.0to1*timestep
-  
+{	
+  #organising inputs
   if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
     Get.preinvasionTraits	<-get_preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep= timestep)
     HBranches<-Get.preinvasionTraits[[1]]
@@ -1151,6 +1146,12 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     TraitTracking	<-TraitTracking[[2]]
   }
   
+  # adjusting the evolutionary rates to timesteps:
+  nu     		<- nu*timestep
+  beta    		<- beta*timestep
+  epsilon.1to0	<- epsilon.1to0*timestep
+  epsilon.0to1	<- epsilon.0to1*timestep
+	  
   # Set beginning for P simulation
   
   if (is.na(ini.Hbranch))  # no initial host branch specified --> choose random branch
@@ -1415,8 +1416,8 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     
     # host mutation:
     # which hosts have which resistance status?
-    hostTrait.0			<-which(HBranches$Resistance==0) # host branches w/ particular trait at time t
-    hostTrait.1			<-which(HBranches$Resistance==1) # host branches w/ particular trait at time t
+    #hostTrait.0			<-which(HBranches$Resistance==0) # host branches w/ particular trait at time t
+    #hostTrait.1			<-which(HBranches$Resistance==1) # host branches w/ particular trait at time t
     
     # resistance status of hosts infected with parasites
     Htrait.0.P			<-which(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc) # which susceptible hosts harbour a parasite?
@@ -1426,25 +1427,25 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     Htrait.1.noP		<-which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
     
     # which hosts mutate?
-    if (class(Htrait.0.P)=="numeric") {# & length(Htrait.0.P)>0) {
+    if (class(Htrait.0.P)=="numeric" | class(Htrait.0.P)=="integer") {# & length(Htrait.0.P)>0) {
       Mutate.0to1.P		<-rbinom(1,length(Htrait.0.P),epsilon.0to1*omega) # how many susceptible hosts 										evolve resistance in presence of P?
     } else {
       Mutate.0to1.P<-0
     }
-    
-    if (class(Htrait.1.P)=="numeric") {# & length(Htrait.1.P)>0) {
+
+    if (class(Htrait.1.P)=="numeric" | class(Htrait.1.P)=="integer") {# & length(Htrait.1.P)>0) {
       Mutate.1to0.P		<-rbinom(1,length(Htrait.1.P),epsilon.1to0*(1/omega)) # how many resistant hosts 									evolve susceptibility in presence of P?
     } else {
       Mutate.1to0.P<-0
     }
-    
-    if (class(Htrait.0.noP)=="numeric") {# & length(Htrait.0.noP)) {
+
+    if (class(Htrait.0.noP)=="numeric" | class(Htrait.0.noP)=="integer") {# & length(Htrait.0.noP)) {
       Mutate.0to1.noP		<-rbinom(1,length(Htrait.0.noP),epsilon.0to1) # how many susceptible hosts evolve 									resistance in absence of P?
     } else {
       Mutate.0to1.noP<-0
     }
-    
-    if (class(Htrait.1.noP)=="numeric") {# & length(Htrait.1.noP)>0) {
+
+    if (class(Htrait.1.noP)=="numeric" | class(Htrait.1.noP)=="integer") {# & length(Htrait.1.noP)>0) {
       Mutate.1to0.noP		<-rbinom(1,length(Htrait.1.noP),epsilon.1to0) # how many resistant hosts evolve 									susceptibility in absence of P?
     } else {
       Mutate.1to0.noP<-0

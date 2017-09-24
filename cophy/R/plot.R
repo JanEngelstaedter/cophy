@@ -119,54 +119,51 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 		}
  	}
 		
-	if (plotPEvolution[[2]]==TRUE & length(cophy)>=3) {
-		if (class(cophy[[3]])=="phylo") {
-			Qphy<-cophy[[3]]
+	if (plotPEvolution[[2]]==TRUE & length(cophy)>=3 & class(cophy[[3]])=="phylo") {
+		Qphy<-cophy[[3]]
   	
-	  		# determining lines to be drawn for the Q parasite phylogeny:
+	  	# determining lines to be drawn for the Q parasite phylogeny:
 	  
-			Q.PBranchLines<-matrix(NA,ncol=3,nrow=2)
-			colnames(Q.PBranchLines)<-c("x1","x2","y")
-			Q.PBranchLines[1,1]<-0
-			Q.PBranchLines[1,2]<-Qphy$edge.length[1]
-			Q.PBranchLines[1,3]<-HBranchLines[Qphy$Hassoc[1],3]
+		Q.PBranchLines<-matrix(NA,ncol=3,nrow=2)
+		colnames(Q.PBranchLines)<-c("x1","x2","y")
+		Q.PBranchLines[1,1]<-0
+		Q.PBranchLines[1,2]<-Qphy$edge.length[1]
+		Q.PBranchLines[1,3]<-HBranchLines[Qphy$Hassoc[1],3]
  
-			Q.PBranchLines[2,1]<-0
-			Q.PBranchLines[2,2]<-Qphy$edge.length[2]
-			Q.PBranchLines[2,3]<-HBranchLines[Qphy$Hassoc[2],3]
+		Q.PBranchLines[2,1]<-0
+		Q.PBranchLines[2,2]<-Qphy$edge.length[2]
+		Q.PBranchLines[2,3]<-HBranchLines[Qphy$Hassoc[2],3]
   
-			Q.PConnectorLines<-matrix(NA,ncol=4,nrow=0)
-			colnames(Q.PConnectorLines)<-c("x","y1","y2","hostJump")
+		Q.PConnectorLines<-matrix(NA,ncol=4,nrow=0)
+		colnames(Q.PConnectorLines)<-c("x","y1","y2","hostJump")
   
-			Q.noPNodes<-length(Qphy$edge[,1])+1          # total number of nodes in the parasite phylogeny
-			Q.firstPNode<-(length(Qphy$edge[,1])/2)+2    # the first internal node in the parasite phylogeny
+		Q.noPNodes<-length(Qphy$edge[,1])+1          # total number of nodes in the parasite phylogeny
+		Q.firstPNode<-(length(Qphy$edge[,1])/2)+2    # the first internal node in the parasite phylogeny
   
-			if(length(Qphy$edge[,1])>2) {
-				for(i in (Q.firstPNode+1):Q.noPNodes) { # loop covering all internal nodes
-					Q.daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two new branches to be added
-					Q.motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
-					tnew<-Q.PBranchLines[Q.motherBranch,2]    # time point when the new branches begin
-					Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[1]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[1]], 3]))
-					Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[2]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[2]], 3]))
-				}
-			}
-
-  
-			for(i in Q.firstPNode:Q.noPNodes) { # loop covering all internal P nodes
-				daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two daughter branches extending from node
-   
-				tnew<-Q.PBranchLines[daughterBranches[1],1]   # time point of the node
-				if (i==Q.firstPNode) {
-					hostJump<-FALSE
-				}
-				if (i>Q.firstPNode) {
-					motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
-					hostJump<-(Qphy$Hassoc[daughterBranches[1]]==Qphy$Hassoc[motherBranch])   # whether or not the node corresponds to a host jump
-				}
-				Q.PConnectorLines<-rbind(Q.PConnectorLines, c(tnew, Q.PBranchLines[daughterBranches[1], 3], 											Q.PBranchLines[daughterBranches[2], 3], hostJump))
+		if(length(Qphy$edge[,1])>2) {
+			for(i in (Q.firstPNode+1):Q.noPNodes) { # loop covering all internal nodes
+				Q.daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two new branches to be added
+				Q.motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
+				tnew<-Q.PBranchLines[Q.motherBranch,2]    # time point when the new branches begin
+				Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[1]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[1]], 3]))
+				Q.PBranchLines<-rbind(Q.PBranchLines, c(tnew, tnew+Qphy$edge.length[Q.daughterBranches[2]], 										HBranchLines[Qphy$Hassoc[Q.daughterBranches[2]], 3]))
 			}
 		}
-		
+
+  
+		for(i in Q.firstPNode:Q.noPNodes) { # loop covering all internal P nodes
+			daughterBranches<-which(Qphy$edge[,1]==i)   # indices of the two daughter branches extending from node
+
+			tnew<-Q.PBranchLines[daughterBranches[1],1]   # time point of the node
+			if (i==Q.firstPNode) {
+				hostJump<-FALSE
+			}
+			if (i>Q.firstPNode) {
+				motherBranch<-match(i,Qphy$edge[,2])   # index of the mother branch
+				hostJump<-(Qphy$Hassoc[daughterBranches[1]]==Qphy$Hassoc[motherBranch])   # whether or not the node corresponds to a host jump
+			}
+			Q.PConnectorLines<-rbind(Q.PConnectorLines, c(tnew, Q.PBranchLines[daughterBranches[1], 3], 										Q.PBranchLines[daughterBranches[2], 3], hostJump))
+		}
 	}
 	
 	if (!is.null(Hphy$root.edge)) { # adding root branch if there is one
