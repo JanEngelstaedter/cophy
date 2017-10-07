@@ -6,12 +6,14 @@
 \usage{
 simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
   toHtree = NA, beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5,
-  epsilon.1to0, epsilon.0to1, omega, rho, psi, TraitTracking = NA,
+  epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking = NA,
   prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
   reps1 = 1, reps2 = 1, ini.Hbranch = NA, Gdist = NA,
   timestep = 0.001, filename = NA, ncores = 1, DBINC = 100)
 }
 \arguments{
+\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
+
 \item{tmax:}{maximum time for which to simulate}
 
 \item{Htrees:}{a pre-built host phylogenetic tree}

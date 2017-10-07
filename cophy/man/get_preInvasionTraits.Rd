@@ -5,9 +5,11 @@
 \title{A function to calculate the initial host resistance trait values prior to host clade invasion by a parasite}
 \usage{
 get_preInvasionTraits(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
-  timestep = 0.001)
+  startTrait = NA, timestep = 0.001)
 }
 \arguments{
+\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
+
 \item{tmax:}{maximum time for which to simulate}
 
 \item{H.tree:}{a pre-built host phylogenetic tree}

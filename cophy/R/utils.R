@@ -11,12 +11,13 @@
 #' @param P.startT: the timepoint at which a parasite invades the host-tree
 #' @param epsilon.1to0: the basline mutation rate for a host to lose the resistance trait
 #' @param epsilon.0to1: the basline mutation rate for a host to gain the resistance trait
+#' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
 #' @param timestep: timestep for simulations
 #' @export
 #' @examples
 #' get_preInvasionTraits()
 
-get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, timestep=0.001)
+get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, startTrait=NA, timestep=0.001)
 {
   epsilon.1to0	<- epsilon.1to0*timestep
   epsilon.0to1	<- epsilon.0to1*timestep
@@ -24,11 +25,20 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
   
   if (class(H.tree)=="data.frame") {
   	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
-  	HBranches$Resistance<-0 # set the initial trait value to zero
+  	if (is.na(startTrait)) {
+  		HBranches$Resistance<-sample(c(0,1), 1, 0.5) # randomly choose start value
+  	} else if (startTrait %in% c(0,1)) {
+  		HBranches$Resistance<-startTrait
+  	}
+  	
   } else if (class(H.tree)=="big.matrix") { # allowing the use of bigmatrix to reduce RAM burden
   	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
   	HBranches<-t(as.data.frame(HBranches))
-  	res<-data.frame(Resistance=0)
+  	if (is.na(startTrait)) {
+  		res<-data.frame(Resistance=sample(c(0,1), 1, 0.5)) # randomly choose start value
+  	} else if (startTrait %in% c(0,1)) {
+  		res<-data.frame(Resistance=startTrait)
+  	}
   	HBranches<-cbind(HBranches, res)
   } else {
   	stop("H.tree object of incompatible data type")
@@ -40,7 +50,7 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, ti
     colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value")
   }
   
-  TraitTracking[[1]][1,]<-c(0,0) # Setting initial trait value and simulation start time
+  TraitTracking[[1]][1,]<-c(0, HBranches$Resistance) # Setting initial trait value and simulation start time
   
   while (t<=P.startT) {
     t<-t+timestep

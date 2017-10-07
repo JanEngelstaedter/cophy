@@ -1115,6 +1115,7 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' @param nu parasite extinction rate
 #' @param epsilon.0to1 the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
 #' @param epsilon.1to0 the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
+#' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
 #' @param omega factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
 #' @param rho factor by which parasite extinction rate increases in response to host resistance
 #' @param psi factor by which parasite host-jump success decreases due to resistance of the new host
@@ -1134,11 +1135,11 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' @examples
 #' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
+rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, startTrait=NA, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
 {	
   #organising inputs
   if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
-    Get.preinvasionTraits	<-get_preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, timestep= timestep)
+    Get.preinvasionTraits	<-get_preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, timestep= timestep)
     HBranches<-Get.preinvasionTraits[[1]]
     TraitTracking<-Get.preinvasionTraits[[2]]
   } else { # If have already calculated preinvasion traits

@@ -5,10 +5,10 @@
 \title{A parasite tree building function with host response to infection}
 \usage{
 rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
-  nu = 0.5, epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, omega = 10,
-  rho = 0.5, psi = 0.5, TraitTracking = NA, prune.extinct = FALSE,
-  export.format = "Phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
-  timestep = 0.001)
+  nu = 0.5, epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, startTrait = NA,
+  omega = 10, rho = 0.5, psi = 0.5, TraitTracking = NA,
+  prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+  ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
 \arguments{
 \item{tmax}{maximum timepoint to which to run simulation}
@@ -26,6 +26,8 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 \item{epsilon.1to0}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
 
 \item{epsilon.0to1}{the baseline rate that a host with trait value 0 will mutate to a host with trait value 1}
+
+\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
 
 \item{omega}{factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites}
 
