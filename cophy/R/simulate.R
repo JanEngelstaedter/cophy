@@ -136,6 +136,13 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
   	tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
   }
   
+  if (is.na(fromHtree)) {
+    fromHtree<-1
+  }
+  if (is.na(toHtree)) {
+    toHtree<-nHtrees
+  }
+  
   print("    Converting host trees to phylo format...")
   HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
   
