@@ -98,7 +98,7 @@ get_infectionFrequencies<-function(cophy)
 
 # The following function should be incorporated into get_infection Frequencies:
 
-get.2Pinfectionlevels<-function(cophy)
+get_2Pinfectionlevels<-function(cophy)
 {
   if (cophy[[1]]$nAlive>0)
   {
@@ -142,7 +142,7 @@ get.2Pinfectionlevels<-function(cophy)
 #' @keywords cophylogeny, statistics
 #' @export
 #' @examples
-#' get.infectionstats()
+#' get_infectionstats()
 
 get_infectionStatistics<-function(cophy)
 {
@@ -166,9 +166,9 @@ get_infectionStatistics<-function(cophy)
 
 # This should be incorporated into get_infectionStatistics:
 
-get.2Pinfectionstats<-function(cophy)
+get_2Pinfectionstats<-function(cophy)
 {
-  HistData<-get.2Pinfectionlevels(cophy)
+  HistData<-get_2Pinfectionlevels(cophy)
   NoHspecies=cophy[[1]]$nAlive
   P.NoPspecies=cophy[[2]]$nAlive
   Q.NoPspecies=cophy[[3]]$nAlive
@@ -287,7 +287,7 @@ get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 
 # Needs to be incorporated into get_PEventsThroughTime function:
 
-get.2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
+get_2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 {
   Branches<-convert_HPQCophyloToBranches(cophy)
   HBranches<-Branches[[1]]
@@ -511,3 +511,22 @@ get_infectionFrequenciesSubtrees<-function(cophy,tips)
   HbranchesInfected<-HbranchNumbers %in% cophy[[2]]$Hassoc[PExtantBranchNumbers]
   return(sum(HbranchesInfected)/length(HbranchNumbers)) 
 }
+
+
+#' Function to calculate the time of the last surviving parasite species
+#' 
+#' @param phy: parasite tree in phylo format
+#' @keywords last parasite
+#' @export
+#' @examples
+#' get_PextinctionTime()
+
+get_PextinctionTime<-function(phy)
+{
+	if (is.null(phy)) return(NA)
+	if (nrow(phy$edge)>=2)  # proper tree?
+		return(max(node.depth.edgelength(phy))+phy$root.edge+phy$root.time)
+	else # root edge only
+		return(phy$root.edge+phy$root.time)
+}
+
