@@ -476,7 +476,7 @@ get_PHDistCorrelation<-function(cophy)
     return(NA)
   }
   cophy<-convert_HPCophyloToBranches(cophy)
-  if (sum(cophy[[2]][,1]==TRUE)>2) # need to be at least three surviving parasites
+  if (sum(cophy[[2]][,1]==TRUE)>4) # need to be at least five surviving parasites
   {
     Hdist<-get_GDist(cophy[[1]]) # collect the Gdist matrix for the hosts
     Pdist<-get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
@@ -492,7 +492,51 @@ get_PHDistCorrelation<-function(cophy)
     return(NA)
 }
 
+#' Calculating the correlation between the distance matrixes of parasites and their associated hosts within subtrees specified by particular height
+#' @param cophy: a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' @param h: numeric scalar or vector with heights where the tree should be cut.
+#' @param k: an integer scalar or vector with the desired number of groups
+#' @keywords genetic distance, correlation
+#' @export
+#' @examples
+#' get_PHDistSubtreeCorrelation()
 
+get_PHDistSubtreeCorrelation <-function(cophy, h=NULL, k=NULL)
+{
+  #Hdist<-cophenetic.phylo(cophy[[1]])[1:cophy[[1]]$nAlive,1:cophy[[1]]$nAlive]
+  #subtreeclustering<-cutree(hclust(as.dist(Hdist)),h=h, k=k)
+  #nsubtrees<-max(subtreeclustering)
+  if (length(cophy[[2]]$tip.label)==1) {
+    return(NA)
+  }
+  cophy<-convert_HPCophyloToBranches(cophy)
+  if (sum(cophy[[2]][,1]==TRUE)>2) # need to be at least three surviving parasites
+  {
+    Hdist<-get_GDist(cophy[[1]]) # collect the Gdist matrix for the hosts
+    Pdist<-get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
+    subtreeclustering<-cutree(hclust(as.dist(Hdist)),h=h, k=k)
+ nsubtrees<-max(subtreeclustering)
+    Halive<-which(cophy[[1]]$tDeath==max(cophy[[1]]$tDeath)) # which hosts are alive?
+    Palive<-which(cophy[[2]]$tDeath==max(cophy[[2]]$tDeath)) # which parasites are alive?
+    Pcarrier<-cophy[[2]]$Hassoc[Palive] # Host branch carrying an extant parasite
+    Hdist<-Hdist[Halive %in% Pcarrier,Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
+
+    subtreeclustering<-subtreeclustering[Halive %in% Pcarrier]
+
+    Porder<-match(Pcarrier,Halive[Halive %in% Pcarrier])             # Order on which Hassoc branches appear in the parasite tree
+
+    subtreeclustering<-subtreeclustering[Porder]
+
+    SubtreeCorrelations<-list()
+
+    for (i in 1: nsubtrees) {
+      SubtreeCorrelations[[i]]<-cor(x=Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)])], y=Pdist[which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Pdist[which(subtreeclustering==i),which(subtreeclustering==i)])])
+    }
+    return(SubtreeCorrelations)
+  }
+  else
+    return(NA)
+}
 
 #' The following function returns the fraction of infected host species within a subclade of a host tree that is specified by tips, a vector of tip labels.
 #' 

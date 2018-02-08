@@ -22,6 +22,8 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 	if (class(cophy[[length(cophy)]])=="phylo") {
 		TraitTracking <-NA
 		if (plotHResistance=="TRUE") warning("Cophy object does not contain host resistance information")
+	} else if (plotHResistance==FALSE) {
+         TraitTracking <-NA
 	} else {
 		TraitTracking <-cophy[[length(cophy)]]
 	}
@@ -248,9 +250,9 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
   
 	if(class(TraitTracking)=="list") {
 		for(i in 1:nrow(greenLines))
-			lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col='lawn green')
+			lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col= ResistanceCol)
 		for(i in 1:length(greenConnections[,1]))
-			lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col='lawn green')
+			lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col=ResistanceCol)
 	}
 	if (plotPEvolution[[1]]==TRUE) {
 		for(i in 1:length(PBranchLines[,1]))
