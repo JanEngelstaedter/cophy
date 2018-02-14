@@ -216,7 +216,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
       
       # parasite host jumps:
       
-      hostJumpProb<-beta*nHAlive
+      hostJumpProb<-beta*(nHAlive-1)
       if (hostJumpProb>1) {
         print("Warning: host jump probability > 1!")
         hostJumpProb<-1
@@ -1019,7 +1019,7 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
     
     # parasite host jumps:		
     nHAlive			<-length(HBranches[,1])			
-    hostJumpProb	<-beta*nHAlive
+    hostJumpProb	<-beta*(nHAlive-1)
     
     if (hostJumpProb>1) {
       print("Warning: host jump probability > 1!")
@@ -1412,7 +1412,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
     
     # parasite host jumps:		
     nHAlive		<-length(HBranches[,1])
-    hostJumpProb<-beta*nHAlive
+    hostJumpProb<-beta*(nHAlive-1)
     
     if (hostJumpProb>1) {
       print("Warning: host jump probability > 1!")
