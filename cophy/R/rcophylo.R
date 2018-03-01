@@ -19,6 +19,8 @@ DBINC<-100
 #'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n}, 
 #'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
 #' @param nu a numeric value giving the parasite extinction rate.
+#' @param kappa parasite speciation rate within hosts
+#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" or "Raw" (see Value below) (exported as an object of ape phylo class, the default setting), 
 #'   or "Raw" (a matrix where rows are all the branches, this is the used format internally).
@@ -31,13 +33,14 @@ DBINC<-100
 #' @examples
 #' rcophylo_HP()
 
-rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=0.2, sigma=0, nu=0.5, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
+rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0, delta=0, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda*timestep
   mu    <- mu*timestep
   nu    <- nu*timestep
   beta   <- beta*timestep
+  kappa <- kappa*timestep
   
   nHAlive <-0
   while (nHAlive==0) { # simulate until surviving tree is built
@@ -75,7 +78,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
       # update Gdist matrix:
       Gdist<-Gdist+2*timestep
       diag(Gdist)<-0  # cleaning up so that distance between branch to itself is always 0
-      
+
       # host extinction events:
       nHToDie<-rbinom(1,nHAlive,mu)  # how many host species go extinct?
       if (nHToDie>0) {
@@ -167,7 +170,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
           # cospeciation of parasites:									
           assocP<-which(PBranches$Hassoc==HBranches$branchNo[i]) # retrieve associated parasites
           if (length(assocP)>0) { # make sure argument greater then length 0
-            for(j in assocP) {			
+            for(j in assocP) {		
               PBranches$alive[j]	   <-FALSE 
               PBranches$nodeDeath[j] <-nextPNode
               PBranches$tDeath[j]    <-timepoint
@@ -184,12 +187,63 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
               nPBranches            <-nPBranches+2
             }
             PBranches<-PBranches[-assocP,]  # removing all mother parasite branches that have co-speciated
+            
+            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1)<delta) {
+                whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
+                
+                PBranches$alive[whichBranch]	   <-FALSE
+                PBranches$nodeDeath[whichBranch] <-nextPNode					
+                PBranches$tDeath[whichBranch]    <-timepoint
+                
+                nPDeadBranches		   <-nPDeadBranches+1
+                PDeadBranches[nPDeadBranches,]<-PBranches[whichBranch,] # copy branches updated with death info to dead tree	
+                if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
+                  PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+                nextPNode          <-nextPNode+1
+                nPAlive			       <-nPAlive-1
+                PBranches<-PBranches[-whichBranch,] # removing dead parasite branche
+              }
+            }
           }
         }
         HBranches<-HBranches[-HToSpeciate,]   # removing all host mother branches that have speciated
         Gdist<-Gdist[-HToSpeciate,]
         Gdist<-Gdist[,-HToSpeciate]
       }
+      
+      # parasite speciation (independent of hosts)
+		if (kappa>0) {
+			nPToSpeciate	<-rbinom(1,nPAlive,kappa) # how many parasite species go extinct?
+		} else {
+			nPToSpeciate<-0
+    		}
+    
+	    if (nPToSpeciate>0) {
+			PToSpeciate<-sample.int(nPAlive,nPToSpeciate) # which parasites?
+			PToSpeciate<-PToSpeciate[PBranches$tBirth[PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+			for (i in PToSpeciate) {
+				timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
+				PBranches$alive[i]	   <-FALSE
+				PBranches$nodeDeath[i] <-nextPNode					
+				PBranches$tDeath[i]    <-timepoint
+        
+				nPDeadBranches		     <-nPDeadBranches+1
+				PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree	
+				if (length(PDeadBranches[,1])==nPDeadBranches) {# if dataframe containing dead branches is full
+					PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+				}
+        
+				PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+1))
+				PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+2)) 
+				nextPNode               <-nextPNode+1
+				nPAlive                 <-nPAlive+1
+				nPBranches              <-nPBranches+2
+			}
+			if (length(PToSpeciate)>0) {
+				PBranches<-PBranches[-PToSpeciate,] # removing all dead parasite branches
+			}
+		}
       
       # parasite extinction:
       
@@ -208,8 +262,8 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
             PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))					
           
           
-          nextPNode              <-nextPNode+1
-          nPAlive			       <-nPAlive-1
+          	nextPNode              <-nextPNode+1
+          	nPAlive			       <-nPAlive-1
         }
         PBranches<-PBranches[-PToDie,] # removing all mother parasite branches that have co-speciated
       }		
@@ -257,7 +311,6 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
             }	
           }
         }
-        
         if (length(parasitesToDelete)>0)
           PBranches<-PBranches[-parasitesToDelete,] # removing all mother parasite branches that have host jumped
       }
@@ -286,9 +339,9 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
   
   PBranches<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
   PBranches<-PBranches[order(PBranches[,"branchNo"]),]
-  
+  print(PBranches)
   if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
-    return(convert_HPBranchesToCophylo(HBranches,PBranches,prune.extinct))
+    return(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches))
   else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches,PBranches))
 }
@@ -421,8 +474,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
 #' @param nu parasite extinction rate.
 #' @param kappa parasite speciation rate within hosts
-#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, 
-#'              whereas delta=1 means that one of the lineages will always be lost during cospeciation.
+#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (a matrix where rows are all the branches, this is the used format internally).
 #' @param P.startT the timepoint at which a parasite invades the host tree.
@@ -439,7 +491,7 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #' @examples
 #' rcophylo_PonH()
 
-rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa=0, delta=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0, delta=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   
   # adjusting the evolutionary rates to probabilities per time step:
   nu    <- nu*timestep
@@ -539,7 +591,7 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa=0, 
             }
             PBranches <-PBranches[-P.Speciations,]  # removing all mother parasite branches that have co-speciated
             
-            if (delta>0) {  # parasite loss during speciation; one of the new branches dies immediately
+            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
               if(runif(1)<delta) {
                 whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
                 
@@ -726,7 +778,7 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa=0, 
   PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
   
   if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
-    return(convert_HPBranchesToCophylo(HBranches,PBranches))
+    return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
   } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches,PBranches))
   } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
@@ -750,6 +802,10 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa=0, 
 #'   where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.
 #' @param nu.P a numeric value giving the extinction rate of parasites of type P
 #' @param nu.Q a numeric value giving the extinction rate of parasites of type Q
+#' @param kappa.P parasite speciation rate within hosts for parasites of type P
+#' @param kappa.Q parasite speciation rate within hosts for parasites of type Q
+#' @param delta.P probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type P.
+#' @param delta.Q probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type Q.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
 #' @param P.startT a numeric value giving the the timepoint at which a parasite invades the host-tree
@@ -766,12 +822,14 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa=0, 
 #' @examples
 #' randomcophy.2PonH()
 
-rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5,prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
+rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {	
   
   # adjusting the evolutionary rates to timesteps:
   nu.P		<- nu.P*timestep
   nu.Q		<- nu.Q*timestep
   beta		<- beta*timestep
+  kappa.P	<- kappa.P*timestep
+  kappa.Q	<- kappa.Q*timestep
   
   # Set beginning for P simulation
   
@@ -872,6 +930,23 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
               P.nPBranches   <-P.nPBranches+2
             }
             P.PBranches	<-P.PBranches[-P.P.Speciations,]  # removing all mother parasite branches that have co-speciated
+            if (delta.P>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1)<delta.P) {
+                whichBranch<-sample(c(P.nPAlive-1, P.nPAlive),1)  # which of the two daughter branches dies?
+                
+                P.PBranches$alive[whichBranch]	   <-FALSE
+                P.PBranches$nodeDeath[whichBranch] <-P.nextPNode					
+                P.PBranches$tDeath[whichBranch]    <-timepoint
+                
+                P.nPDeadBranches		   			<-P.nPDeadBranches+1
+                P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[whichBranch,] # copy branches updated with death info to dead tree	
+                if (length(P.PDeadBranches[,1])==P.nPDeadBranches) # if dataframe containing dead branches is full
+                  P.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+                P.nextPNode         <-P.nextPNode+1
+                P.nPAlive			<-P.nPAlive-1
+                P.PBranches			<-P.PBranches[-whichBranch,] # removing dead parasite branche
+              }
+            }
           }
           
           # Q cospeciations
@@ -896,6 +971,23 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
               Q.nPBranches   <-Q.nPBranches+2
             }
             Q.PBranches	<-Q.PBranches[-Q.P.Speciations,]  # removing all mother parasite branches that have co-speciated
+            if (delta.Q>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1)<delta.Q) {
+                whichBranch<-sample(c(Q.nPAlive-1, Q.nPAlive),1)  # which of the two daughter branches dies?
+                
+                Q.PBranches$alive[whichBranch]	   <-FALSE
+                Q.PBranches$nodeDeath[whichBranch] <-Q.nextPNode					
+                Q.PBranches$tDeath[whichBranch]    <-timepoint
+                
+                Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
+                Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[whichBranch,] # copy branches updated with death info to dead tree	
+                if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) # if dataframe containing dead branches is full
+                  Q.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+                Q.nextPNode         <-Q.nextPNode+1
+                Q.nPAlive			<-Q.nPAlive-1
+                Q.PBranches			<-Q.PBranches[-whichBranch,] # removing dead parasite branche
+              }
+            }
           }
           
           # delete all extinct hosts from living tree
@@ -964,6 +1056,38 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
       
     } # finished checking if any H deaths occured
     
+    # parasite speciation (independent of hosts)
+    if (kappa.P>0) {
+      P.nPToSpeciate	<-rbinom(1,P.nPAlive,kappa.P) # how many parasite species go extinct?
+    } else {
+      P.nPToSpeciate<-0
+    }
+    
+    if (P.nPToSpeciate>0) {
+      P.PToSpeciate<-sample.int(P.nPAlive,P.nPToSpeciate) # which parasites?
+      P.PToSpeciate<-P.PToSpeciate[P.PBranches$tBirth[P.PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      
+      for (i in P.PToSpeciate) {	
+        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
+        P.PBranches$alive[i]	   <-FALSE
+        P.PBranches$nodeDeath[i] <-P.nextPNode					
+        P.PBranches$tDeath[i]    <-timepoint
+        
+        P.nPDeadBranches		     <-P.nPDeadBranches+1
+        P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[i,] # copy branches updated with death info to dead tree	
+        if (length(P.PDeadBranches[,1])==P.nPDeadBranches) # if dataframe containing dead branches is full
+          P.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        
+        P.PBranches               <-rbind(P.PBranches,c(TRUE,P.nextPNode,timepoint,0,0,P.PBranches$Hassoc[i], P.nPBranches+1))
+        P.PBranches               <-rbind(P.PBranches,c(TRUE,P.nextPNode,timepoint,0,0,P.PBranches$Hassoc[i], P.nPBranches+2)) 
+        P.nextPNode               <-P.nextPNode+1
+        P.nPAlive                 <-P.nPAlive+1
+        P.nPBranches              <-P.nPBranches+2
+      }
+      if (length(P.PToSpeciate)>0)
+        P.PBranches<-P.PBranches[-P.PToSpeciate,] # removing all dead parasite branches
+    }
+    
     # P parasite extinction:
     P.nPToDie	<-rbinom(1,P.nPAlive,nu.P) # how many parasite species go extinct?
     
@@ -988,6 +1112,38 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
       if (length(P.PToDie)>0) {
         P.PBranches<-P.PBranches[-P.PToDie, ] # removing all dead parasite branches
       }
+    }
+    
+    # parasite speciation (independent of hosts)
+    if (kappa.Q>0) {
+      Q.nPToSpeciate	<-rbinom(1,Q.nPAlive,kappa.Q) # how many parasite species go extinct?
+    } else {
+      Q.nPToSpeciate<-0
+    }
+    
+    if (Q.nPToSpeciate>0) {
+      Q.PToSpeciate<-sample.int(Q.nPAlive,Q.nPToSpeciate) # which parasites?
+      Q.PToSpeciate<-Q.PToSpeciate[Q.PBranches$tBirth[Q.PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      
+      for (i in Q.PToSpeciate) {	
+        timepoint			   		<-t-runif(1,max=timestep) # random timepoint for extinction event
+        Q.PBranches$alive[i]	   	<-FALSE
+        Q.PBranches$nodeDeath[i] 	<-Q.nextPNode					
+        Q.PBranches$tDeath[i]    	<-timepoint
+        
+        Q.nPDeadBranches		     <-Q.nPDeadBranches+1
+        Q.PDeadBranches[Q.nPDeadBranches,]<-Q.PBranches[i,] # copy branches updated with death info to dead tree	
+        if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) # if dataframe containing dead branches is full
+          Q.PDeadBranches<-rbind(Q.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        
+        Q.PBranches               <-rbind(Q.PBranches,c(TRUE,Q.nextPNode,timepoint,0,0,Q.PBranches$Hassoc[i], Q.nPBranches+1))
+        Q.PBranches               <-rbind(Q.PBranches,c(TRUE,Q.nextPNode,timepoint,0,0,Q.PBranches$Hassoc[i], Q.nPBranches+2)) 
+        Q.nextPNode               <-Q.nextPNode+1
+        Q.nPAlive                 <-Q.nPAlive+1
+        Q.nPBranches              <-Q.nPBranches+2
+      }
+      if (length(Q.PToSpeciate)>0)
+        Q.PBranches<-Q.PBranches[-Q.PToSpeciate,] # removing all dead parasite branches
     }
     
     # Q parasite extinction:
@@ -1165,6 +1321,8 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
 #' @param sigma probability of successful co-infection following host jump
 #' @param nu parasite extinction rate
+#' @param kappa parasite speciation rate within hosts
+#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
 #' @param epsilon.0to1 the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
 #' @param epsilon.1to0 the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
 #' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
@@ -1187,7 +1345,7 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.2,gamma.Q=0.2,sigma.sel
 #' @examples
 #' rcophylo_PonH_Htrait()
 
-rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,epsilon.1to0=0.01, epsilon.0to1=0.001, startTrait=NA, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
+rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5, kappa=0, delta=0, epsilon.1to0=0.01, epsilon.0to1=0.001, startTrait=NA, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) 
 {	
   #organising inputs
   if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
@@ -1204,6 +1362,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
   beta    		<- beta*timestep
   epsilon.1to0	<- epsilon.1to0*timestep
   epsilon.0to1	<- epsilon.0to1*timestep
+  kappa			<- kappa*timestep
 	  
   # Set beginning for P simulation
   
@@ -1302,6 +1461,23 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
               nPBranches              <-nPBranches+2
             }
             PBranches <-PBranches[-P.Speciations,]  # removing all mother parasite branches that have co-speciated
+            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1)<delta) {
+                whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
+                
+                PBranches$alive[whichBranch]	   <-FALSE
+                PBranches$nodeDeath[whichBranch] <-nextPNode					
+                PBranches$tDeath[whichBranch]    <-timepoint
+                
+                nPDeadBranches		   <-nPDeadBranches+1
+                PDeadBranches[nPDeadBranches,]<-PBranches[whichBranch,] # copy branches updated with death info to dead tree	
+                if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
+                  PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+                nextPNode          <-nextPNode+1
+                nPAlive			       <-nPAlive-1
+                PBranches<-PBranches[-whichBranch,] # removing dead parasite branche
+              }
+            }
           }
           
           # delete all extinct hosts from living tree
@@ -1350,6 +1526,38 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
       } # completed loop through H.Death.Nodes	
       
     } # finished checking if any H deaths occured
+    
+    # parasite speciation (independent of hosts)
+    if (kappa>0) {
+      nPToSpeciate	<-rbinom(1,nPAlive,kappa) # how many parasite species go extinct?
+    } else {
+      nPToSpeciate<-0
+    }
+    
+    if (nPToSpeciate>0) {
+      PToSpeciate<-sample.int(nPAlive,nPToSpeciate) # which parasites?
+      PToSpeciate<-PToSpeciate[PBranches$tBirth[PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      
+      for (i in PToSpeciate) {	
+        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
+        PBranches$alive[i]	   <-FALSE
+        PBranches$nodeDeath[i] <-nextPNode					
+        PBranches$tDeath[i]    <-timepoint
+        
+        nPDeadBranches		     <-nPDeadBranches+1
+        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree	
+        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
+          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        
+        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+1))
+        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+2)) 
+        nextPNode               <-nextPNode+1
+        nPAlive                 <-nPAlive+1
+        nPBranches              <-nPBranches+2
+      }
+      if (length(PToSpeciate)>0)
+        PBranches<-PBranches[-PToSpeciate,] # removing all dead parasite branches
+    }
     
     # parasite extinction:
     hostTrait.0			<-which(HBranches$Resistance==0) # host branches w/ particular trait at time t
@@ -1555,7 +1763,7 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
   for (i in which(H.tree[,1]==1)) {
     TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
   }
-  
+  print(PBranches)
   if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches), TraitTracking))
   } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
@@ -1563,5 +1771,6 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,e
   } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
     return(list(convert_PBranchesToPhylo(PBranches), TraitTracking))
   }
+  
 }
 
