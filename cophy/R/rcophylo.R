@@ -341,7 +341,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
   PBranches<-PBranches[order(PBranches[,"branchNo"]),]
   print(PBranches)
   if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
-    return(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches))
+    return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
   else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches,PBranches))
 }
