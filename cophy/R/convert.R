@@ -404,6 +404,9 @@ convert_HBtoPhy <-function(HBranches,prune.extinct=FALSE)
 
 convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 {
+  # number of branches:
+  nPBranches<-length(PBranches[,1])
+  
   # number of living parasite species:
   nPAlive<-sum(PBranches$alive[PBranches$alive==TRUE])
   
@@ -412,12 +415,10 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
   
   Proot.edge  <-PBranches$tDeath[1]-PBranches$tBirth[1]
   Proot.time  <-PBranches$tBirth[1]
-  Proot.Hassoc<-PBranches$Hassoc[which(PBranches$Hassoc==1)]
-  PBranches   <-PBranches[-which(PBranches$Hassoc==1),]  # deleting the first branch (the root)
+  Proot.Hassoc<-PBranches$Hassoc[1]
   PBranches$Hassoc<-PBranches$Hassoc-1
-  
-  # number of branches:
-  nPBranches<-nrow(PBranches)
+  PBranches   <-PBranches[-1,]  # deleting the first branch (the root)
+  nPBranches <-nPBranches-1
   
   # relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones:
   
@@ -426,7 +427,7 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
   i.ext <- nPAlive + 1
   i.int <- (nPBranches/2 + 2)
   
-  for ( i in PBranches$nodeBirth[1]:(nPBranches+1))
+  for ( i in 1:(nPBranches+1))
   {
     if ( any( PBranches$nodeBirth == i ) )     # is node i an internal node?
     {										
@@ -459,7 +460,6 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
     nodePDead[rPBranches$nodeBirth[1]]<-FALSE # root is definitely alive!
     for(i in 1:nPAlive)
     {
-    	print(i)
       n<-i
       while (nodePDead[n]==TRUE)
       {
@@ -529,6 +529,7 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
   
   return(Pphy)
 }
+
 
 
 #' Converting raw trees to phylo format
