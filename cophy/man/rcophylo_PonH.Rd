@@ -4,9 +4,10 @@
 \alias{rcophylo_PonH}
 \title{Cophylogeny simulation on an existing host tree.}
 \usage{
-rcophylo_PonH(tmax, H.tree, beta = 0.1, gamma = 0.2, sigma = 0,
-  nu = 0.5, prune.extinct = FALSE, export.format = "Phylo",
-  P.startT = 0, ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
+rcophylo_PonH(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
+  nu = 0.5, kappa = 0, delta = 0, prune.extinct = FALSE,
+  export.format = "Phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
+  timestep = 0.001)
 }
 \arguments{
 \item{tmax}{maximum timepoint to which to run simulation}
@@ -22,6 +23,10 @@ Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
 where \eqn{n} is the number of pre-existing parasites on the new host branch.}
 
 \item{nu}{parasite extinction rate.}
+
+\item{kappa}{parasite speciation rate within hosts}
+
+\item{delta}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
 

@@ -63,18 +63,18 @@ simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
 #' @examples
 #' simulate_cophys_HP()
 
-simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,K,timestep,reps,filename=NA)
+simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep,reps,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
-  parameters<-c(tmax,lambda,mu,beta,gamma,sigma,nu,K,timestep)
-  names(parameters)<-c("tmax","lambda","mu","beta","gamma","sigma","nu","K","timestep")
+  parameters<-c(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep)
+  names(parameters)<-c("tmax","lambda","mu","beta","gamma","sigma","nu","kappa","delta","K","timestep")
   all.trees<-list() # an empty list that will later contain all the trees 
   stats<-matrix(NA,nrow=reps,ncol=4)
   colnames(stats)<-c("NoHspecies","NoPspecies","FractionInfected","MeanNoInfections")
   for(i in 1:reps)
   {
-    cophy<-rcophylo_HP(tmax=tmax,lambda=lambda,mu=mu,beta=beta,gamma=gamma,sigma=sigma,nu=nu,timestep=timestep,K=K)
+    cophy<-rcophylo_HP(tmax=tmax,lambda=lambda,mu=mu,beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,timestep=timestep,K=K)
     all.trees[[i]]<-cophy		
     stats[i,]<-get_infectionStatistics(cophy)
     if ((reps<=20) | ((reps>20) & (reps<=50) & (i%%5==0)) | ((reps>50) & (reps<=100) & (i%%10==0)) | ((reps>100) & (reps<=500) & (i%%50==0)) | ((reps>500) & (i%%100==0)))
@@ -84,7 +84,7 @@ simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,K,timestep,rep
   times[[2]]<-Sys.time()
   times[[3]]<-times[[2]]-times[[1]]
   
-  output<-list("codeVersion"=code.version,"parameters"=parameters,"replications"=reps,"Trees"=all.trees,"statistics"=stats,"times"=times)
+  output<-list("parameters"=parameters,"replications"=reps,"Trees"=all.trees,"statistics"=stats,"times"=times)
   save(output,file=paste(filename,".RData",sep=""))
   stats
 }
@@ -111,7 +111,7 @@ simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,K,timestep,rep
 #' @examples
 #' simulate_cophys_PonH()
 
-simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma,sigma,nu,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
+simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
 	code.version<-2
   tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
@@ -125,8 +125,8 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","kappa","delta","timestep")
   
   if (class(Htrees)=="data.frame") {
   	nHtrees<-1
@@ -173,7 +173,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
     Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-      rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+      rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
     }
     
     # second loop to calculate the summary statistics:	
@@ -222,7 +222,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
 #' @examples
 #' simulate_cophys_PQonH()
 
-simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
+simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
@@ -233,8 +233,8 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   
-  parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","nu.P","nu.Q","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","nu.P","nu.Q","kappa.P","kappa.Q","delta.P","delta.Q","timestep")
   
   if (class(Htrees)=="data.frame") {
   	nHtrees<-1
@@ -281,7 +281,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
     Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PQonH','convert_PQBranchesToPhylo',"convert_HBranchesToPhylo",'DBINC'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-      rcophylo_PQonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,nu.P=nu.P,nu.Q=nu.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
+      rcophylo_PQonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,nu.P=nu.P,nu.Q=nu.Q,kappa.P=kappa.P,kappa.Q=kappa.Q,delta.P=delta.P,delta.Q=delta.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
     }
     
     # second loop to calculate the summary statistics:	
@@ -297,7 +297,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
     times[[2]]<-Sys.time()
     times[[3]]<-times[[2]]-times[[1]]
     
-    output<-list("codeVersion"=code.version,"parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
+    output<-list("parameters"=parameters,"replicates"=list("nHtrees"=nHtrees,"reps1"=reps1,"reps2"=reps2),"Htrees"=HtreesPhylo,"Ptrees"=Ptrees,"statistics"=stats,"times"=times)
     save(output,file=paste(filename,".RData",sep=""))
     print(paste("        Simulations for host tree",i0,"finished!"))	
   }
@@ -334,7 +334,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @examples
 #' simulate_cophys_PonH_Htrait()
 
-simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1,DBINC=100)
+simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
   
@@ -345,8 +345,8 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
   } else if (startTrait %in% c(0,1)) {
   	initialTrait<-startTrait
   }
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,epsilon.1to0,epsilon.0to1,initialTrait,omega,rho,psi,reps1,reps2,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","epsilon.1to0","epsilon.0to1","startTrait","omega","rho","psi","reps1","reps2","timestep")
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,kappa,delta,epsilon.1to0,epsilon.0to1,initialTrait,omega,rho,psi,reps1,reps2,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","kappa","delta","epsilon.1to0","epsilon.0to1","startTrait","omega","rho","psi","reps1","reps2","timestep")
   
   if (class(Htrees)=="data.frame") {
   	nHtrees<-1
@@ -412,14 +412,14 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
 	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo','DBINC'),.packages="ape") %dopar% {
     	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 	    	  i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
-    	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
+    	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
     	}
     } else if (class(Htrees[[i0]])=="big.matrix") {
 		# parallel loop for running the simulations:
 	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo','DBINC'),.packages=c("ape", "bigmemory")) %dopar% {
     	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number, ranges from 1:reps2
 	      i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point, ranges from 1:reps1
-	          	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=attach.big.matrix(descripTrees[[i0]]),beta=beta,gamma=gamma,sigma=sigma,nu=nu,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i2], Gdist=Gdist[[i0]], timestep=timestep)
+	          	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=attach.big.matrix(descripTrees[[i0]]),beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i2], Gdist=Gdist[[i0]], timestep=timestep)
     	 }
     }
     

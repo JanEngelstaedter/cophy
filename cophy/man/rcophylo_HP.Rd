@@ -5,8 +5,9 @@
 \title{Cophylogeny simulation}
 \usage{
 rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5, prune.extinct = FALSE,
-  export.format = "Phylo", timestep = 0.001)
+  beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
+  delta = 0, prune.extinct = FALSE, export.format = "Phylo",
+  timestep = 0.001)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
@@ -28,6 +29,10 @@ Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
 where \eqn{n} is the number of pre-existing parasites on the new host branch.}
 
 \item{nu}{a numeric value giving the parasite extinction rate.}
+
+\item{kappa}{parasite speciation rate within hosts}
+
+\item{delta}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
 

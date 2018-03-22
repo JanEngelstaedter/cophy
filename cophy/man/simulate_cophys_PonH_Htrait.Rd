@@ -5,10 +5,10 @@
 \title{A parallel parasite tree building function with host response to infection}
 \usage{
 simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
-  toHtree = NA, beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5,
-  epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking = NA,
-  prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
-  reps1 = 1, reps2 = 1, ini.Hbranch = NA, Gdist = NA,
+  toHtree = NA, beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5, kappa,
+  delta, epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi,
+  TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
+  P.startT = 0, reps1 = 1, reps2 = 1, ini.Hbranch = NA, Gdist = NA,
   timestep = 0.001, filename = NA, ncores = 1, DBINC = 100)
 }
 \arguments{

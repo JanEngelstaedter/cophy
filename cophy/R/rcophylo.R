@@ -339,7 +339,6 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
   
   PBranches<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
   PBranches<-PBranches[order(PBranches[,"branchNo"]),]
-  print(PBranches)
   if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
   else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
@@ -1763,7 +1762,6 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5, 
   for (i in which(H.tree[,1]==1)) {
     TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
   }
-  print(PBranches)
   if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches), TraitTracking))
   } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are

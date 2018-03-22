@@ -5,10 +5,11 @@
 \title{A parasite tree building function with host response to infection}
 \usage{
 rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
-  nu = 0.5, epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, startTrait = NA,
-  omega = 10, rho = 0.5, psi = 0.5, TraitTracking = NA,
-  prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
-  ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
+  nu = 0.5, kappa = 0, delta = 0, epsilon.1to0 = 0.01,
+  epsilon.0to1 = 0.001, startTrait = NA, omega = 10, rho = 0.5,
+  psi = 0.5, TraitTracking = NA, prune.extinct = FALSE,
+  export.format = "Phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
+  timestep = 0.001)
 }
 \arguments{
 \item{tmax}{maximum timepoint to which to run simulation}
@@ -22,6 +23,10 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 \item{sigma}{probability of successful co-infection following host jump}
 
 \item{nu}{parasite extinction rate}
+
+\item{kappa}{parasite speciation rate within hosts}
+
+\item{delta}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.}
 
 \item{epsilon.1to0}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
 

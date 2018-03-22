@@ -5,8 +5,9 @@
 \title{A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.}
 \usage{
 simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
-  gamma.P, gamma.Q, sigma.self, sigma.cross, nu.P, nu.Q, timestep, reps1 = 1,
-  reps2 = 1, filename = NA, ncores = 1, DBINC = 100)
+  gamma.P, gamma.Q, sigma.self, sigma.cross, nu.P, nu.Q, kappa.P, kappa.Q,
+  delta.P, delta.Q, timestep, reps1 = 1, reps2 = 1, filename = NA,
+  ncores = 1, DBINC = 100)
 }
 \arguments{
 \item{Htrees:}{pre-built host trees on which to simulate parasite trees}

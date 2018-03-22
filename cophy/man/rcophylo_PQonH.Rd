@@ -4,8 +4,9 @@
 \alias{rcophylo_PQonH}
 \title{Cophylogeny simulation of two parasites on an existing host tree.}
 \usage{
-rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.2, gamma.Q = 0.2,
+rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
   sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
+  kappa.P = 0, kappa.Q = 0, delta.P = 0, delta.Q = 0,
   prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
   ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
@@ -31,6 +32,14 @@ where \eqn{m} is the number of pre-existing parasites belonging the other type (
 \item{nu.P}{a numeric value giving the extinction rate of parasites of type P}
 
 \item{nu.Q}{a numeric value giving the extinction rate of parasites of type Q}
+
+\item{kappa.P}{parasite speciation rate within hosts for parasites of type P}
+
+\item{kappa.Q}{parasite speciation rate within hosts for parasites of type Q}
+
+\item{delta.P}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type P.}
+
+\item{delta.Q}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type Q.}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
 
