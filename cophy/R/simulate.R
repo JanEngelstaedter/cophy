@@ -22,7 +22,7 @@
 #' @examples
 #' simulate_HostTrees()
 
-simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
+simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -63,7 +63,7 @@ simulate_HostTrees<-function(tmax=0,lambda,mu,K,timestep,reps,filename=NA)
 #' @examples
 #' simulate_cophys_HP()
 
-simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep,reps,filename=NA)
+simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep,reps,filename=NA)
 {
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -206,6 +206,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @param fromHtree: starting host-tree
 #' @param toHtree: finishing host-tree
 #' @param P.startT: the timepoint at which a parasite invades the host-tree
+#' @param tmax: max timestep
 #' @param beta: parasite host jump rate
 #' @param gamma.P: dependency on genetic distance for host jumps
 #' @param gamma.Q: dependency on genetic distance for host jumps
@@ -227,6 +228,8 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
+  
+  tmax<-max(Htrees[[1]]$tDeath)
   
   # initialising cluster for parallel computation:
   cluster<-makeCluster(ncores,outfile="")
@@ -339,6 +342,8 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1,DBINC=100)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
+  
+  tmax<-max(Htrees[[1]]$tDeath)
   
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
