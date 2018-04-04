@@ -111,7 +111,7 @@ simulate_cophys_HP<-function(tmax=0,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,
 #' @examples
 #' simulate_cophys_PonH()
 
-simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
+simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1,DBINC=100)
 {
 	code.version<-2
   tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
@@ -143,8 +143,10 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,ga
     toHtree<-nHtrees
   }
   
-  print("    Converting host trees to phylo format...")
-  HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
+  if (is.na(HtreesPhylo)) {
+  	print("    Converting host trees to phylo format...")
+  	HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
+  }
   
   Ptrees<-list() # an empty list that will later contain all the parasite trees 
   stats<-matrix(NA,nrow=length(fromHtree:toHtree)*reps1*reps2,ncol=8)
