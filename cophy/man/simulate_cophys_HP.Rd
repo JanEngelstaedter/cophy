@@ -4,8 +4,8 @@
 \alias{simulate_cophys_HP}
 \title{A function to simulate many random cophylogenies and calculate statistics}
 \usage{
-simulate_cophys_HP(tmax = 0, lambda, mu, beta, gamma, sigma, nu, kappa, delta,
-  K, timestep, reps, filename = NA)
+simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
+  timestep, reps, filename = NA)
 }
 \arguments{
 \item{tmax:}{maximum time for which to simulate}

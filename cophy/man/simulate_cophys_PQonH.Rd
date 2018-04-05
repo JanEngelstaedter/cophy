@@ -18,6 +18,8 @@ simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
 
 \item{P.startT:}{the timepoint at which a parasite invades the host-tree}
 
+\item{tmax:}{max timestep}
+
 \item{beta:}{parasite host jump rate}
 
 \item{gamma.P:}{dependency on genetic distance for host jumps}

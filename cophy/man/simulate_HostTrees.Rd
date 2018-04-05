@@ -4,7 +4,7 @@
 \alias{simulate_HostTrees}
 \title{A function to simulate many random host phylogenies}
 \usage{
-simulate_HostTrees(tmax = 0, lambda, mu, K, timestep, reps, filename = NA)
+simulate_HostTrees(tmax, lambda, mu, K, timestep, reps, filename = NA)
 }
 \arguments{
 \item{tmax:}{maximum time for which to simulate}

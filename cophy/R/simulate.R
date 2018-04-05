@@ -296,7 +296,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
       for(i2 in 1:reps1)
       {
         i<-i+1
-        stats[i,]<-c(i0,i,ini.HBranches[i2],i1,get.2Pinfectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]],Ptrees[[i]][[2]])))
+        stats[i,]<-c(i0,i,ini.HBranches[i2],i1, get_2Pinfectionstats(list(HtreesPhylo[[i0]],Ptrees[[i]][[1]],Ptrees[[i]][[2]])))
       }
     
     times[[2]]<-Sys.time()
