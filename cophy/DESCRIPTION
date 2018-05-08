@@ -1,19 +1,22 @@
 Package: cophy
 Title: Constructing random cophylogenetic trees and analysing their statistics
 Version: 0.0.0.9000
+Date: 2018-05-08
 Authors@R: c(
-    person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "cre"),
-    person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = "aut"))
+    person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "aut"),
+    person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = c("aut", "cre")))
+URL: https://github.com/JanEngelstaedter/cophy
+BugReports: https://github.com/JanEngelstaedter/cophy/issues
 Description: Functions to simulate, plot and analyse codiversification of hosts
-    and their parasites.
+    and their parasites. 
 Depends:
     R (>= 3.3.1)
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Imports:
-    ape,
-    parallel,
-    foreach,
-    doParallel
+    ape (>= 5.0),
+    doParallel (>= 1.0.11),
+    foreach (>= 1.4.4),
+    parallel
 RoxygenNote: 6.0.1
