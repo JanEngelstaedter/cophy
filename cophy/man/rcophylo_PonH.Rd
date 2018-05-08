@@ -18,8 +18,8 @@ rcophylo_PonH(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 
 \item{gamma}{a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.}
 
-\item{sigma}{a numeric value determining how successful host shift are when the new host is already infected by a parasite. 
-Specifically, the probability of host shift success \eqn{(1-\sigma)^n}, 
+\item{sigma}{a numeric value determining how successful host shift are when the new host is already infected by a parasite.
+Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
 where \eqn{n} is the number of pre-existing parasites on the new host branch.}
 
 \item{nu}{parasite extinction rate.}
@@ -36,15 +36,15 @@ where \eqn{n} is the number of pre-existing parasites on the new host branch.}
 
 \item{ini.Hbranch}{numerical. The host branch number from which the parasite invasion is initiated. If left at the default value NA, a randomly chosen branch will be selected.}
 
-\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection. 
+\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection.
 Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds. 
+\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
 Increase to make the simulation faster or decrease to make it more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape". 
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees. 
+By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
+  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
   (These dataframes are what the function uses internally.)
 }
 \description{

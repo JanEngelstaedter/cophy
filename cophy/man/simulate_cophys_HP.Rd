@@ -8,27 +8,29 @@ simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
   timestep, reps, filename = NA)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate}
+\item{lambda}{host speciation rate}
 
-\item{lambda:}{host speciation rate}
+\item{mu}{host extinction rate}
 
-\item{K:}{carrying capacity for host species}
+\item{beta}{parasite host jump rate}
 
-\item{mu:}{host extinction rate}
+\item{gamma}{dependency on genetic distance for host jumps}
 
-\item{beta:}{parasite host jump rate}
+\item{sigma}{probability of successful co-infection following host jump}
 
-\item{gamma:}{dependency on genetic distance for host jumps}
+\item{nu}{parasite extinction rate}
 
-\item{sigma:}{probability of successful co-infection following host jump}
+\item{kappa}{the probability that a parasite duplicates within a host species}
 
-\item{nu:}{parasite extinction rate}
+\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
 
-\item{timestep:}{timestep for simulations}
+\item{K}{carrying capacity for host species}
 
-\item{reps:}{number of times to simulate this set of parameters}
+\item{timestep}{timestep for simulations}
 
-\item{filename:}{name underwhich set of simulations and statistics will be saved}
+\item{reps}{number of times to simulate this set of parameters}
+
+\item{filename}{name underwhich set of simulations and statistics will be saved}
 }
 \description{
 A function to run a certain number of replicate simulations, save all the trees and output all stats.

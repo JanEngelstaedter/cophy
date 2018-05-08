@@ -21,12 +21,12 @@ rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
 
 \item{gamma.Q}{a numeric value giving the dependency of host shift success of parasite Q on phylogenetic distance between the old and the new host (see Details).}
 
-\item{sigma.self}{a numeric value determining how successful host shift are when the new host is already infected by the same parasite. 
-Specifically, the probability of host shift success \eqn{(1-\sigma)^n}, 
+\item{sigma.self}{a numeric value determining how successful host shift are when the new host is already infected by the same parasite.
+Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
 where \eqn{n} is the number of pre-existing parasites of the same type (P or Q) on the new host branch.}
 
 \item{sigma.cross}{a numeric value determining how successful host shift are when the new host is already infected by the other parasite (see Details).
-Specifically, the probability of host shift success \eqn{(1-\sigma)^m}, 
+Specifically, the probability of host shift success \eqn{(1-\sigma)^m},
 where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.}
 
 \item{nu.P}{a numeric value giving the extinction rate of parasites of type P}
@@ -49,15 +49,15 @@ where \eqn{m} is the number of pre-existing parasites belonging the other type (
 
 \item{ini.Hbranch}{a numeric value giving the the host branch from which the parasite invasion is initiated.}
 
-\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection. 
+\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection.
 Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds. 
+\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
 Increase to make the simulation faster or decrease to make it more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape". 
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees. 
+By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
+  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
   (These dataframes are what the function uses internally.)
 }
 \description{

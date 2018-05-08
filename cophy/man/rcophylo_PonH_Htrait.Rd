@@ -40,6 +40,8 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 
 \item{psi}{factor by which parasite host-jump success decreases due to resistance of the new host}
 
+\item{TraitTracking}{an object which provides the evolutionary history of the parasite interaction trait.}
+
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
 
 \item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
@@ -48,15 +50,15 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 
 \item{ini.Hbranch}{the host branch from which the parasite invasion is initiated (defaults to NA)}
 
-\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection. 
+\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection.
 Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds. 
+\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
 Increase to make the simulation faster or decrease to make it more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape". 
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees. 
+By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
+  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
   (These dataframes are what the function uses internally.)
 }
 \description{

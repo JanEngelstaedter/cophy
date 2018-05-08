@@ -7,11 +7,11 @@
 get_branchNThroughTime(phy, tmax, dt)
 }
 \arguments{
-\item{phy:}{a phylogeny (object of APE class "phylo").}
+\item{phy}{a phylogeny (object of APE class "phylo").}
 
-\item{tmax:}{maximum time for which to simulate; may be greater than the actual tree length.}
+\item{tmax}{maximum time for which to simulate; may be greater than the actual tree length.}
 
-\item{dt:}{step size for performing calculations.}
+\item{dt}{step size for performing calculations.}
 }
 \description{
 Branch (=species) numbers through time.

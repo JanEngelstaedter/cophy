@@ -7,11 +7,13 @@
 get_tBirth(n, root.edge, edge.length, ancBranches)
 }
 \arguments{
-\item{n:}{some branch in a tree}
+\item{n}{some branch in a tree}
 
-\item{phy:}{the tree in phylo format}
+\item{root.edge}{object sourced from tree in phylo format}
 
-\item{ancBranches:}{the ancestral branches for the tree}
+\item{edge.length}{object sourced from tree in phylo format}
+
+\item{ancBranches}{the ancestral branches for the tree}
 }
 \description{
 (recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree

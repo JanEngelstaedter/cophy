@@ -7,9 +7,9 @@
 get_GDist(branches, t = NA)
 }
 \arguments{
-\item{branches:}{raw branches matrix of a host tree}
+\item{branches}{raw branches matrix of a host tree}
 
-\item{t:}{timepoint in simulation at which you want distance information}
+\item{t}{timepoint in simulation at which you want distance information}
 }
 \description{
 Calculating the distance matrix between host branches alive at a particular timepoint

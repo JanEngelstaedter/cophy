@@ -7,19 +7,19 @@
 simulate_HostTrees(tmax, lambda, mu, K, timestep, reps, filename = NA)
 }
 \arguments{
-\item{tmax:}{maximum time for which to simulate}
+\item{tmax}{maximum time for which to simulate}
 
-\item{lambda:}{host speciation rate}
+\item{lambda}{host speciation rate}
 
-\item{K:}{carrying capacity for host species}
+\item{mu}{host extinction rate}
 
-\item{mu:}{host extinction rate}
+\item{K}{carrying capacity for host species}
 
-\item{timestep:}{timestep for simulations}
+\item{timestep}{timestep for simulations}
 
-\item{reps:}{number of times to simulate this set of parameters}
+\item{reps}{number of times to simulate this set of parameters}
 
-\item{filename:}{name underwhich set of simulations and statistics will be saved}
+\item{filename}{name underwhich set of simulations and statistics will be saved}
 }
 \description{
 A function to run a certain number of replicate simulations, save all the trees and output all stats.

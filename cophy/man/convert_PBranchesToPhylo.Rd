@@ -7,9 +7,9 @@
 convert_PBranchesToPhylo(PBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{PBranches:}{Parasite-tree in raw matrix format}
+\item{PBranches}{Parasite-tree in raw matrix format}
 
-\item{prune.extinct:}{whether to remove all extinct branches (defaulting to FALSE)}
+\item{prune.extinct}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
 The following function converts a raw parasite tree matrix into phylo format

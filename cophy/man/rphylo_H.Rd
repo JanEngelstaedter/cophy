@@ -22,12 +22,12 @@ rphylo_H(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 
 \item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself)}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds. 
+\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
 Increase to make the simulation faster or decrease to make it more precise.}
 }
 \value{
-By default, an object of class "phylo" is returned, as specified in the R-package "ape". 
-  If the argument \code{export.format} is set to "Raw" the function returns a dataframe containing information on all the branches in the tree. 
+By default, an object of class "phylo" is returned, as specified in the R-package "ape".
+  If the argument \code{export.format} is set to "Raw" the function returns a dataframe containing information on all the branches in the tree.
   (This dataframe are what the function uses internally.)
 }
 \description{

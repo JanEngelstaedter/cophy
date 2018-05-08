@@ -7,7 +7,7 @@
 get_PextinctionTime(phy)
 }
 \arguments{
-\item{phy:}{parasite tree in phylo format}
+\item{phy}{parasite tree in phylo format}
 }
 \description{
 Function to calculate the time of the last surviving parasite species

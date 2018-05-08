@@ -6,34 +6,40 @@
 \usage{
 simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA,
   HtreesPhylo = NA, P.startT, beta, gamma, sigma, nu, kappa, delta, timestep,
-  reps1 = 1, reps2 = 1, filename = NA, ncores = 1, DBINC = 100)
+  reps1 = 1, reps2 = 1, filename = NA, ncores = 1)
 }
 \arguments{
-\item{Htrees:}{pre-built host trees on which to simulate parasite trees}
+\item{Htrees}{pre-built host trees on which to simulate parasite trees}
 
-\item{fromHtree:}{starting host-tree}
+\item{fromHtree}{starting host-tree}
 
-\item{toHtree:}{finishing host-tree}
+\item{toHtree}{finishing host-tree}
 
-\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+\item{HtreesPhylo}{list of host trees converted to phylo format}
 
-\item{beta:}{parasite host jump rate}
+\item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
-\item{gamma:}{dependency on genetic distance for host jumps}
+\item{beta}{parasite host jump rate}
 
-\item{sigma:}{probability of successful co-infection following host jump}
+\item{gamma}{dependency on genetic distance for host jumps}
 
-\item{nu:}{parasite extinction rate}
+\item{sigma}{probability of successful co-infection following host jump}
 
-\item{timestep:}{timestep for simulations}
+\item{nu}{parasite extinction rate}
 
-\item{reps1:}{the number of starting points for the parasite trees}
+\item{kappa}{the probability that a parasite duplicates within a host species}
 
-\item{reps2:}{the number of replicates per starting point}
+\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
 
-\item{filename:}{name underwhich set of simulations and statistics will be saved}
+\item{timestep}{timestep for simulations}
 
-\item{ncores:}{the number of cores that will be used to run simulations in parallel}
+\item{reps1}{the number of starting points for the parasite trees}
+
+\item{reps2}{the number of replicates per starting point}
+
+\item{filename}{name underwhich set of simulations and statistics will be saved}
+
+\item{ncores}{the number of cores that will be used to run simulations in parallel}
 }
 \description{
 The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.

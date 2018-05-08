@@ -7,11 +7,11 @@
 convert_HPBranchesToCophylo(HBranches, PBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{HBranches:}{Host-tree in raw matrix format}
+\item{HBranches}{Host-tree in raw matrix format}
 
-\item{PBranches:}{Parasite-tree in raw matrix format}
+\item{PBranches}{Parasite-tree in raw matrix format}
 
-\item{prune.extinct:}{whether to remove all extinct branches (defaulting to FALSE)}
+\item{prune.extinct}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
 The following function converts raw host-parasite tree matricies into phylo format

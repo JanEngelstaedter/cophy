@@ -7,7 +7,7 @@
 add_branchSurvival(Branches)
 }
 \arguments{
-\item{Branches:}{tree in internal branch format}
+\item{Branches}{tree in internal branch format}
 }
 \description{
 Function to add new column to Branches dataframe indicating for each branch whether or not it leaves any extant descendents

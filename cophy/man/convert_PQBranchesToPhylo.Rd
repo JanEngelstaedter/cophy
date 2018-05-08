@@ -7,11 +7,11 @@
 convert_PQBranchesToPhylo(P.PBranches, Q.PBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{P.PBranches:}{Parasite-tree in raw matrix format}
+\item{P.PBranches}{Parasite-tree in raw matrix format}
 
-\item{Q.PBranches:}{Parasite-tree in raw matrix format}
+\item{Q.PBranches}{Parasite-tree in raw matrix format}
 
-\item{prune.extinct:}{whether to remove all extinct branches (defaulting to FALSE)}
+\item{prune.extinct}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
 The following function converts raw dual parasite tree dataframes into phylo format

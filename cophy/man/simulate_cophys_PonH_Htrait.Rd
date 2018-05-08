@@ -9,48 +9,62 @@ simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
   delta, epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi,
   TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
   P.startT = 0, reps1 = 1, reps2 = 1, ini.Hbranch = NA, Gdist = NA,
-  timestep = 0.001, filename = NA, ncores = 1, DBINC = 100)
+  timestep = 0.001, filename = NA, ncores = 1)
 }
 \arguments{
+\item{Htrees}{a pre-built host phylogenetic tree}
+
+\item{fromHtree}{starting host-tree}
+
+\item{toHtree}{finishing host-tree}
+
+\item{beta}{parasite host jump rate}
+
+\item{gamma}{dependency on genetic distance for host jumps}
+
+\item{sigma}{probability of successful co-infection following host jump}
+
+\item{nu}{parasite extinction rate}
+
+\item{kappa}{the probability that a parasite duplicates within a host species}
+
+\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+
+\item{epsilon.1to0}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
+
+\item{epsilon.0to1}{the baseline rate that a host with trait value 0 will mutate to a host with trait value 1}
+
 \item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
 
-\item{tmax:}{maximum time for which to simulate}
+\item{omega}{factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites}
 
-\item{Htrees:}{a pre-built host phylogenetic tree}
+\item{rho}{factor by which parasite extinction rate increases in response to host resistance}
 
-\item{beta:}{parasite host jump rate}
+\item{psi}{factor by which parasite host-jump success decreases due to resistance of the new host}
 
-\item{gamma:}{dependency on genetic distance for host jumps}
+\item{TraitTracking}{an object which provides the evolutionary history of the parasite interaction trait. Needs to match host trees provided.}
 
-\item{sigma:}{probability of successful co-infection following host jump}
+\item{prune.extinct}{whether to remove all extinct branches defaulting to FALSE}
 
-\item{nu:}{parasite extinction rate}
+\item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
 
-\item{epsilon.0to1:}{the baseline rate that a host with trait value 0 will mutate to a host with trait value 1}
+\item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
-\item{epsilon.1to0:}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
+\item{reps1}{the number of starting points for the parasite trees}
 
-\item{omega:}{factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites}
+\item{reps2}{the number of replicates per starting point}
 
-\item{rho:}{factor by which parasite extinction rate increases in response to host resistance}
+\item{ini.Hbranch}{the host branch from which the parasite invasion is initiated (defaults to NA)}
 
-\item{psi:}{factor by which parasite host-jump success decreases due to resistance of the new host}
+\item{Gdist}{can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)}
 
-\item{prune.extinct:}{whether to remove all extinct branches defaulting to FALSE}
+\item{timestep}{timestep for simulations}
 
-\item{export.format:}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+\item{filename}{name underwhich set of simulations and statistics will be saved}
 
-\item{reps1:}{the number of starting points for the parasite trees}
+\item{ncores}{the number of cores that will be used to run simulations in parallel}
 
-\item{reps2:}{the number of replicates per starting point}
-
-\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
-
-\item{ini.Hbranch:}{the host branch from which the parasite invasion is initiated (defaults to NA)}
-
-\item{Gdist:}{can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)}
-
-\item{timestep:}{timestep for simulations}
+\item{P.startT}{the timepoint at which a parasite invades the host-tree}
 }
 \description{
 The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.

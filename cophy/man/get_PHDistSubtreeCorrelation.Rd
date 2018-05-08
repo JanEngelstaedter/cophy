@@ -7,11 +7,11 @@
 get_PHDistSubtreeCorrelation(cophy, h = NULL, k = NULL)
 }
 \arguments{
-\item{cophy:}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
 
-\item{h:}{numeric scalar or vector with heights where the tree should be cut.}
+\item{h}{numeric scalar or vector with heights where the tree should be cut.}
 
-\item{k:}{an integer scalar or vector with the desired number of groups}
+\item{k}{an integer scalar or vector with the desired number of groups}
 }
 \description{
 Calculating the correlation between the distance matrixes of parasites and their associated hosts within subtrees specified by particular height

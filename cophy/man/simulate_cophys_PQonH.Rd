@@ -7,44 +7,48 @@
 simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
   gamma.P, gamma.Q, sigma.self, sigma.cross, nu.P, nu.Q, kappa.P, kappa.Q,
   delta.P, delta.Q, timestep, reps1 = 1, reps2 = 1, filename = NA,
-  ncores = 1, DBINC = 100)
+  ncores = 1)
 }
 \arguments{
-\item{Htrees:}{pre-built host trees on which to simulate parasite trees}
+\item{Htrees}{pre-built host trees on which to simulate parasite trees}
 
-\item{fromHtree:}{starting host-tree}
+\item{fromHtree}{starting host-tree}
 
-\item{toHtree:}{finishing host-tree}
+\item{toHtree}{finishing host-tree}
 
-\item{P.startT:}{the timepoint at which a parasite invades the host-tree}
+\item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
-\item{tmax:}{max timestep}
+\item{beta}{parasite host jump rate}
 
-\item{beta:}{parasite host jump rate}
+\item{gamma.P}{dependency on genetic distance for host jumps}
 
-\item{gamma.P:}{dependency on genetic distance for host jumps}
+\item{gamma.Q}{dependency on genetic distance for host jumps}
 
-\item{gamma.Q:}{dependency on genetic distance for host jumps}
+\item{sigma.self}{probability of successful co-infection with related parasite following host jump}
 
-\item{sigma.self:}{probability of successful co-infection with related parasite following host jump}
+\item{sigma.cross}{probability of successful co-infection with unrelated parasite following host jump}
 
-\item{sigma.cross:}{probability of successful co-infection with unrelated parasite following host jump}
+\item{nu.P}{parasite extinction rate}
 
-\item{nu.P:}{parasite extinction rate}
+\item{nu.Q}{parasite extinction rate}
 
-\item{timestep:}{timestep for simulations}
+\item{kappa.P}{the probability that a parasite duplicates within a host species}
 
-\item{nu.Q:}{parasite extinction rate}
+\item{kappa.Q}{the probability that a parasite duplicates within a host species}
 
-\item{timestep:}{timestep for simulations}
+\item{delta.P}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
 
-\item{reps1:}{the number of starting points for the parasite trees}
+\item{delta.Q}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
 
-\item{reps2:}{the number of replicates per starting point}
+\item{timestep}{timestep for simulations}
 
-\item{filename:}{name underwhich set of simulations and statistics will be saved}
+\item{reps1}{the number of starting points for the parasite trees}
 
-\item{ncores:}{the number of cores that will be used to run simulations in parallel}
+\item{reps2}{the number of replicates per starting point}
+
+\item{filename}{name underwhich set of simulations and statistics will be saved}
+
+\item{ncores}{the number of cores that will be used to run simulations in parallel}
 }
 \description{
 The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
