@@ -47,6 +47,7 @@ simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 #' A function to simulate many random cophylogenies and calculate statistics
 #'
 #' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' @param tmax maximum time for which to simulate
 #' @param lambda host speciation rate
 #' @param K carrying capacity for host species
 #' @param mu host extinction rate
@@ -66,8 +67,6 @@ simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 
 simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep,reps,filename=NA)
 {
-  tmax<-max(Htrees[[1]]$tDeath)
-
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
   parameters<-c(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep)
@@ -113,6 +112,8 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @importFrom foreach %dopar%
+#' @importFrom bigmemory describe
 #' @export
 #' @examples
 #' simulate_cophys_PonH()
@@ -124,8 +125,8 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
   print(paste("Simulations for ",filename," started.",sep=""))
 
   # initialising cluster for parallel computation:
-  cluster<-makeCluster(ncores,outfile="")
-  registerDoParallel(cluster)
+  cluster<-parallel::makeCluster(ncores,outfile="")
+  doParallel::registerDoParallel(cluster)
 
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -163,7 +164,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
   print("    Calculating host genetic distance matrices...")
   # parallel loop for Gdist calculations:
 
-  Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
+  Gdist<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
     get_GDist(Htrees[[i0]],t=P.startT)
   }
 
@@ -177,7 +178,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 
     # parallel loop for running the simulations:
 
-    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH','convert_PBranchesToPhylo'),.packages="ape") %dopar% {
+    Ptrees[(i+1):(i+reps1*reps2)]<-foreach::foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH','convert_PBranchesToPhylo'),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
       rcophylo_PonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
@@ -200,7 +201,7 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
     save(output,file=paste(filename,".RData",sep=""))
     print(paste("        Simulations for host tree",i0,"finished!"))
   }
-  stopCluster(cluster)
+  parallel::stopCluster(cluster)
   stats
 }
 
@@ -228,6 +229,8 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @importFrom foreach %dopar%
+#' @importFrom bigmemory describe
 #' @export
 #' @examples
 #' simulate_cophys_PQonH()
@@ -239,8 +242,8 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
   tmax<-max(Htrees[[1]]$tDeath)
 
   # initialising cluster for parallel computation:
-  cluster<-makeCluster(ncores,outfile="")
-  registerDoParallel(cluster)
+  cluster<-parallel::makeCluster(ncores,outfile="")
+  doParallel::registerDoParallel(cluster)
 
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -276,7 +279,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
   print("    Calculating host genetic distance matrices...")
   # parallel loop for Gdist calculations:
 
-  Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
+  Gdist<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
     get_GDist(Htrees[[i0]],t=P.startT)
   }
 
@@ -290,7 +293,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 
     # parallel loop for running the simulations:
 
-    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PQonH','convert_PQBranchesToPhylo',"convert_HBranchesToPhylo"),.packages="ape") %dopar% {
+    Ptrees[(i+1):(i+reps1*reps2)]<-foreach::foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PQonH','convert_PQBranchesToPhylo',"convert_HBranchesToPhylo"),.packages="ape") %dopar% {
       i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
       i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
       rcophylo_PQonH(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma.P=gamma.P, gamma.Q=gamma.Q,sigma.self=sigma.self,sigma.cross=sigma.cross,nu.P=nu.P,nu.Q=nu.Q,kappa.P=kappa.P,kappa.Q=kappa.Q,delta.P=delta.P,delta.Q=delta.Q, P.startT=P.startT,ini.Hbranch=ini.HBranches[i2],timestep=timestep,Gdist=Gdist[[i0]],export.format="PhyloPonly")
@@ -313,7 +316,7 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
     save(output,file=paste(filename,".RData",sep=""))
     print(paste("        Simulations for host tree",i0,"finished!"))
   }
-  stopCluster(cluster)
+  parallel::stopCluster(cluster)
   stats
 }
 
@@ -322,9 +325,9 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #'
 #' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
 #' @param Htrees a pre-built host phylogenetic tree
+#' @param HtreesPhylo list of host trees converted to phylo format
 #' @param fromHtree starting host-tree
 #' @param toHtree finishing host-tree
-#' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param beta parasite host jump rate
 #' @param gamma dependency on genetic distance for host jumps
 #' @param sigma probability of successful co-infection following host jump
@@ -340,20 +343,23 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @param TraitTracking an object which provides the evolutionary history of the parasite interaction trait. Needs to match host trees provided.
 #' @param prune.extinct whether to remove all extinct branches defaulting to FALSE
 #' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param reps1 the number of starting points for the parasite trees
 #' @param reps2 the number of replicates per starting point
-#' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param ini.Hbranch the host branch from which the parasite invasion is initiated (defaults to NA)
 #' @param Gdist can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
 #' @param timestep timestep for simulations
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords Host-Parasite phylogeny
+#' @importFrom foreach %dopar%
+#' @importFrom bigmemory describe
+#' @importFrom bigmemory attach.big.matrix
 #' @export
 #' @examples
 #' simulate_cophys_PonH_Htrait()
 
-simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1)
+simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
 
@@ -388,21 +394,21 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
   i<-0
 
   # initialising cluster for parallel computation:
-  cluster<-makeCluster(ncores,outfile="")
-  registerDoParallel(cluster)
+  cluster<-parallel::makeCluster(ncores,outfile="")
+  doParallel::registerDoParallel(cluster)
 
   # calculating all genetic distances in parallel:
 
   if (any(is.na(Gdist))) {
     print("    Calculating host genetic distance matrices...")
     # parallel loop for Gdist calculations:
-    Gdist<-foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
+    Gdist<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
       get_GDist(Htrees[[i0]],t=P.startT)
     }
   }
 
   if (class(TraitTracking)=="logical") {
-    TraitTracking<-foreach(i0=fromHtree:toHtree,.export=c('get_preInvasionTraits'),.packages="ape") %dopar% {
+    TraitTracking<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_preInvasionTraits'),.packages="ape") %dopar% {
       get_preInvasionTraits(H.tree=Htrees[[i0]], P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, timestep=timestep)
     }
   }
@@ -410,7 +416,7 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
   if (class(Htrees[[1]])=="big.matrix") {
     	descripTrees<-list()
 		for (j in 1:length(Htrees)) {
-			descripTrees[[j]]<-describe(Htrees[[j]])
+			descripTrees[[j]]<-bigmemory::describe(Htrees[[j]])
 		}
   }
 
@@ -430,17 +436,17 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
 
     if (class(Htrees[[i0]])=="data.frame") {
     	# parallel loop for running the simulations:
-	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo'),.packages="ape") %dopar% {
+	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach::foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo'),.packages="ape") %dopar% {
     	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number
 	    	  i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point
     	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=Htrees[[i0]],beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i1], Gdist=Gdist[[i0]], timestep=timestep)
     	}
     } else if (class(Htrees[[i0]])=="big.matrix") {
 		# parallel loop for running the simulations:
-	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo'),.packages=c("ape", "bigmemory")) %dopar% {
+	    Ptrees[(i+1):(i+reps1*reps2)]<-foreach::foreach(i12=1:(reps1*reps2),.export=c('rcophylo_PonH_Htrait','convert_PBranchesToPhylo'),.packages=c("ape", "bigmemory")) %dopar% {
     	  i1<-(i12-1) %/% reps1 + 1 # creating a counter for the relpicate number, ranges from 1:reps2
 	      i2<-((i12-1) %% reps1) + 1 # creating a counter for the starting time point, ranges from 1:reps1
-	          	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=attach.big.matrix(descripTrees[[i0]]),beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i2], Gdist=Gdist[[i0]], timestep=timestep)
+	          	  rcophylo_PonH_Htrait(tmax=tmax,H.tree=bigmemory::attach.big.matrix(descripTrees[[i0]]),beta=beta,gamma=gamma,sigma=sigma,nu=nu,kappa=kappa,delta=delta,epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, omega=omega, rho=rho, psi=psi, TraitTracking=TraitTracking[[i0]], prune.extinct=FALSE,export.format="PhyloPonly",P.startT=P.startT, ini.Hbranch= IniBranch[i2], Gdist=Gdist[[i0]], timestep=timestep)
     	 }
     }
 
@@ -467,7 +473,7 @@ simulate_cophys_PonH_Htrait <-function(tmax, Htrees, HtreesPhylo=NA, fromHtree=N
     save(output,file=paste(filename,".RData",sep=""))
     print(paste("        Simulations for host tree",i0,"finished!"))
   }
-  stopCluster(cluster)
+  parallel::stopCluster(cluster)
   stats
 
 }

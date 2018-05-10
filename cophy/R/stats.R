@@ -450,14 +450,14 @@ get_PHDist<-function(cophy)
   colnames(PHtips)<-c("P","H")
   hostAssocs<-cophy[[2]]$Hassoc[match(1:length(cophy[[2]]$tip.label),cophy[[2]]$edge[,2])]  # branch numbers associated with the parasite tip labels
   PHtips[,2]<-cophy[[1]]$tip.label[cophy[[1]]$edge[hostAssocs,2]] # looking up the host tip labels
-  PHtips<-PHtips[match(getExtant(cophy[[2]]),PHtips[,1]),,drop=FALSE] # removing extinct parasites
+  PHtips<-PHtips[match(phytools::getExtant(cophy[[2]]),PHtips[,1]),,drop=FALSE] # removing extinct parasites
 
   # next, two matrices of parasite and corresponding host patristric distances can be constructed:
 
-  Pdist<-cophenetic.phylo(cophy[[2]])
+  Pdist<-ape::cophenetic.phylo(cophy[[2]])
   Pdist<-Pdist[match(PHtips[,1],rownames(Pdist)),match(PHtips[,1],colnames(Pdist)),drop=FALSE]
 
-  Hdist<-cophenetic.phylo(cophy[[1]])
+  Hdist<-ape::cophenetic.phylo(cophy[[1]])
   Hdist<-Hdist[match(PHtips[,2],rownames(Hdist)),match(PHtips[,2],colnames(Hdist)),drop=FALSE]
   return(list(Pdist,Hdist))
 }
@@ -486,7 +486,7 @@ get_PHDistCorrelation<-function(cophy)
     Hdist<-Hdist[Halive %in% Pcarrier,Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
 
     Porder<-match(Pcarrier,Halive[Halive %in% Pcarrier])		# Order on which Hassoc branches appear in the parasite 																	tree
-    return(cor(x=Hdist[Porder, Porder][upper.tri(Hdist[Porder, Porder])], y=Pdist[upper.tri(Pdist)]))
+    return(stats::cor(x=Hdist[Porder, Porder][upper.tri(Hdist[Porder, Porder])], y=Pdist[upper.tri(Pdist)]))
   }
   else
     return(NA)
@@ -514,7 +514,7 @@ get_PHDistSubtreeCorrelation <-function(cophy, h=NULL, k=NULL)
   {
     Hdist<-get_GDist(cophy[[1]]) # collect the Gdist matrix for the hosts
     Pdist<-get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
-    subtreeclustering<-cutree(hclust(as.dist(Hdist)),h=h, k=k)
+    subtreeclustering<-stats::cutree(stats::hclust(stats::as.dist(Hdist)),h=h, k=k)
  nsubtrees<-max(subtreeclustering)
     Halive<-which(cophy[[1]]$tDeath==max(cophy[[1]]$tDeath)) # which hosts are alive?
     Palive<-which(cophy[[2]]$tDeath==max(cophy[[2]]$tDeath)) # which parasites are alive?
@@ -530,7 +530,7 @@ get_PHDistSubtreeCorrelation <-function(cophy, h=NULL, k=NULL)
     SubtreeCorrelations<-list()
 
     for (i in 1: nsubtrees) {
-      SubtreeCorrelations[[i]]<-cor(x=Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)])], y=Pdist[which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Pdist[which(subtreeclustering==i),which(subtreeclustering==i)])])
+      SubtreeCorrelations[[i]]<-stats::cor(x=Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Hdist[Porder, Porder][which(subtreeclustering==i),which(subtreeclustering==i)])], y=Pdist[which(subtreeclustering==i),which(subtreeclustering==i)][upper.tri(Pdist[which(subtreeclustering==i),which(subtreeclustering==i)])])
     }
     return(SubtreeCorrelations)
   }
@@ -569,7 +569,7 @@ get_PextinctionTime<-function(phy)
 {
 	if (is.null(phy)) return(NA)
 	if (nrow(phy$edge)>=2)  # proper tree?
-		return(max(node.depth.edgelength(phy))+phy$root.edge+phy$root.time)
+		return(max(ape::node.depth.edgelength(phy))+phy$root.edge+phy$root.time)
 	else # root edge only
 		return(phy$root.edge+phy$root.time)
 }

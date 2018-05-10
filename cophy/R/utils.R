@@ -6,7 +6,6 @@
 #' A function to calculate the initial host resistance trait values prior to host clade invasion by a parasite
 #'
 #' This function simulates a parasite phylogenetic tree over a pre-built host-tree. While simulating parasite tree, also simulates the evolution of a host resistance trait as a result of stochastic mutation as well as in responce to the presence of a parasite. The success of the parasite being influenced by the resistance or susceptibility of the host.
-#' @param tmax maximum time for which to simulate
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param epsilon.1to0 the basline mutation rate for a host to lose the resistance trait
@@ -98,8 +97,8 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, st
     # See if there is any trait mutation on the living branches
 
     # host mutation:
-    Mutate.0to1			<-rbinom(1,length(which(HBranches$Resistance==0)),epsilon.0to1) # how many parasite species go extinct?
-    Mutate.1to0			<-rbinom(1,length(which(HBranches$Resistance==1)),epsilon.1to0) # how many parasite species go extinct?
+    Mutate.0to1			<-stats::rbinom(1,length(which(HBranches$Resistance==0)),epsilon.0to1) # how many parasite species go extinct?
+    Mutate.1to0			<-stats::rbinom(1,length(which(HBranches$Resistance==1)),epsilon.1to0) # how many parasite species go extinct?
 
     if (Mutate.0to1>0) {
       HToMutate<-sample.int(length(which(HBranches$Resistance==0)),Mutate.0to1) # which parasites?
@@ -107,7 +106,7 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, st
 
       for (i in HBranches$branchNo[which(HBranches$Resistance==0)[HToMutate]]) {
         HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-stats::runif(1,max=timestep),1))
       }
     }
 
@@ -116,7 +115,7 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, st
       HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
       for (i in HBranches$branchNo[which(HBranches$Resistance==1)[HToMutate]]) {
         HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-stats::runif(1,max=timestep),0))
       }
     }
   }

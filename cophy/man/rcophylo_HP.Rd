@@ -51,5 +51,5 @@ By default, an object of class "cophylo" is returned that is a list of phylo obj
 This function simulates a random host tree with a random parasite tree evolving on that host tree.
 }
 \examples{
-rcophylo_HP()
+rcophylo_HP(tmax=5, k=5)
 }

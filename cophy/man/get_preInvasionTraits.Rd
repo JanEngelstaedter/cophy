@@ -19,8 +19,6 @@ get_preInvasionTraits(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
 \item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
 
 \item{timestep}{timestep for simulations}
-
-\item{tmax}{maximum time for which to simulate}
 }
 \description{
 This function simulates a parasite phylogenetic tree over a pre-built host-tree. While simulating parasite tree, also simulates the evolution of a host resistance trait as a result of stochastic mutation as well as in responce to the presence of a parasite. The success of the parasite being influenced by the resistance or susceptibility of the host.

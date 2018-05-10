@@ -3,21 +3,22 @@
 # This file contains functions to plot cophylogenies.
 # This file is part of the R-package 'cophylo'.
 
-
 #' Cophylogeny plot
 #'
 #' This function plots a host-parasite cophylogenetic tree,
-#' @param cophy a cophylogeny (object of class "cophylo") containing a host tree and a parasite tree. This may also contain either a second parasite tree or host and parasite trait values.
+#' @param cophy a cophylogeny (object of class "cophy") containing a host tree and a parasite tree. This may also contain either a second parasite tree or host and parasite trait values.
 #' @param ParasiteCol a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.
 #' @param ResistanceCol in the case that a TraitTracking object is available, gives the option to choose the plotting colour.
 #' @param plotHResistance boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.
 #' @param plotPEvolution boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.
 #' @keywords cophylogeny, plot
+#' @importFrom graphics arrows
+#' @importFrom graphics lines
 #' @export
 #' @examples
 #' plot.cophylo()
 
-plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", plotHResistance=TRUE, plotPEvolution=c(TRUE, TRUE))
+plot.cophy<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", plotHResistance=TRUE, plotPEvolution=c(TRUE, TRUE))
 {
 	if (class(cophy[[length(cophy)]])=="phylo") {
 		TraitTracking <-NA
@@ -223,7 +224,7 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 
 		for (i in 1:length(TraitTracking)) {
 			if (nrow(TraitTracking[[i]])==1) {
-				greenLines<-rbind(greenLines, c(TraitTracking[[i]][[1,1]], tmax, HBranchLines[i,3]))
+				greenLines<-rbind(greenLines, c(TraitTracking[[i]][[1,1]], max(HBranchLines$x2), HBranchLines[i,3]))
 			} else {
 				for (j in 1:(nrow(TraitTracking[[i]])-1)) {
 					if (TraitTracking[[i]][[j,2]]==1) {
@@ -243,38 +244,38 @@ plot.cophylo<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn 
 
 	# plotting all lines:
 
-	plot.new()
-	plot.window(xlim=c(0,max(HBranchLines[,2])), ylim=c(0,max(HBranchLines[,3])))
+	graphics::plot.new()
+	graphics::plot.window(xlim=c(0,max(HBranchLines[,2])), ylim=c(0,max(HBranchLines[,3])))
 	for(i in 1:length(HBranchLines[,1]))
-		lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
+	  graphics::lines(c(HBranchLines[i,1],HBranchLines[i,2]),c(HBranchLines[i,3],HBranchLines[i,3]))
 	for(i in 1:length(HConnectorLines[,1]))
-		lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
+	  graphics::lines(c(HConnectorLines[i,1],HConnectorLines[i,1]),c(HConnectorLines[i,2],HConnectorLines[i,3]))
 
 	if(class(TraitTracking)=="list") {
 		for(i in 1:nrow(greenLines))
-			lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col= ResistanceCol)
+		  graphics::lines(c(greenLines[i,1], greenLines[i,2]), c(greenLines[i,3],greenLines[i,3]), col= ResistanceCol)
 		for(i in 1:length(greenConnections[,1]))
-			lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col=ResistanceCol)
+		  graphics::lines(c(greenConnections[i,1], greenConnections[i,1]),c(greenConnections[i,2], greenConnections[i,3]), col=ResistanceCol)
 	}
 	if (plotP==TRUE) {
 		for(i in 1:length(PBranchLines[,1]))
-			lines(c(PBranchLines[i,1], PBranchLines[i,2]), c(PBranchLines[i,3], PBranchLines[i,3]), 									col=ParasiteCol[[1]])
+		  graphics::lines(c(PBranchLines[i,1], PBranchLines[i,2]), c(PBranchLines[i,3], PBranchLines[i,3]), 									col=ParasiteCol[[1]])
 		for(i in 1:length(PConnectorLines[,1])) {
 			if (PConnectorLines[i,4]==TRUE)
-				arrows(PConnectorLines[i,1], PConnectorLines[i,2], PConnectorLines[i,1], PConnectorLines[i,3], 							col= ParasiteCol[[1]], length=0.1, angle=10)
+			  graphics::arrows(PConnectorLines[i,1], PConnectorLines[i,2], PConnectorLines[i,1], PConnectorLines[i,3], 							col= ParasiteCol[[1]], length=0.1, angle=10)
 			else
-				lines(c(PConnectorLines[i,1], PConnectorLines[i,1]), c(PConnectorLines[i,2], PConnectorLines[i,3]), 					col=ParasiteCol[[1]])
+			  graphics::lines(c(PConnectorLines[i,1], PConnectorLines[i,1]), c(PConnectorLines[i,2], PConnectorLines[i,3]), 					col=ParasiteCol[[1]])
 		}
 	}
 	if (plotQ==TRUE) {
 		for(i in 1:length(Q.PBranchLines[,1])) {
-			lines(c(Q.PBranchLines[i,1], Q.PBranchLines[i,2]), c(Q.PBranchLines[i,3], Q.PBranchLines[i,3]), 							col= ParasiteCol[[2]])
+		  graphics::lines(c(Q.PBranchLines[i,1], Q.PBranchLines[i,2]), c(Q.PBranchLines[i,3], Q.PBranchLines[i,3]), 							col= ParasiteCol[[2]])
 		}
 		for(i in 1:length(Q.PConnectorLines[,1])) {
 			if (Q.PConnectorLines[i,4]==TRUE) {
-				arrows(Q.PConnectorLines[i,1], Q.PConnectorLines[i,2], Q.PConnectorLines[i,1], 											Q.PConnectorLines[i,3], col=ParasiteCol[[2]], length=0.1, angle=10)
+			  graphics::arrows(Q.PConnectorLines[i,1], Q.PConnectorLines[i,2], Q.PConnectorLines[i,1], 											Q.PConnectorLines[i,3], col=ParasiteCol[[2]], length=0.1, angle=10)
 			} else {
-				lines(c(Q.PConnectorLines[i,1], Q.PConnectorLines[i,1]), c(Q.PConnectorLines[i,2], 										Q.PConnectorLines[i,3]), col= ParasiteCol[[2]])
+			  graphics::lines(c(Q.PConnectorLines[i,1], Q.PConnectorLines[i,1]), c(Q.PConnectorLines[i,2], 										Q.PConnectorLines[i,3]), col= ParasiteCol[[2]])
 			}
 		}
 	}

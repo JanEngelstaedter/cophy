@@ -4,7 +4,7 @@
 \alias{simulate_cophys_PonH_Htrait}
 \title{A parallel parasite tree building function with host response to infection}
 \usage{
-simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
+simulate_cophys_PonH_Htrait(Htrees, HtreesPhylo = NA, fromHtree = NA,
   toHtree = NA, beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5, kappa,
   delta, epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi,
   TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
@@ -13,6 +13,8 @@ simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
 }
 \arguments{
 \item{Htrees}{a pre-built host phylogenetic tree}
+
+\item{HtreesPhylo}{list of host trees converted to phylo format}
 
 \item{fromHtree}{starting host-tree}
 
@@ -63,8 +65,6 @@ simulate_cophys_PonH_Htrait(tmax, Htrees, HtreesPhylo = NA, fromHtree = NA,
 \item{filename}{name underwhich set of simulations and statistics will be saved}
 
 \item{ncores}{the number of cores that will be used to run simulations in parallel}
-
-\item{P.startT}{the timepoint at which a parasite invades the host-tree}
 }
 \description{
 The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.

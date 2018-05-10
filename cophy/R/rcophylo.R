@@ -29,9 +29,11 @@ DBINC<-100
 #' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
 #'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
 #'   (These dataframes are what the function uses internally.)
+#' @importFrom stats rbinom
+#' @importFrom stats runif
 #' @export
 #' @examples
-#' rcophylo_HP()
+#' rcophylo_HP(tmax=5, k=5)
 
 rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0, delta=0, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
 
@@ -363,6 +365,8 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
 #' @return By default, an object of class "phylo" is returned, as specified in the R-package "ape".
 #'   If the argument \code{export.format} is set to "Raw" the function returns a dataframe containing information on all the branches in the tree.
 #'   (This dataframe are what the function uses internally.)
+#' @importFrom stats rbinom
+#' @importFrom stats runif
 #' @export
 #' @examples
 #' rphylo_H()
@@ -486,6 +490,8 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
 #'   (These dataframes are what the function uses internally.)
 #' @keywords Host-Parasite phylogeny
+#' @importFrom stats rbinom
+#' @importFrom stats runif
 #' @export
 #' @examples
 #' rcophylo_PonH()
@@ -817,6 +823,8 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0,
 #' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
 #'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
 #'   (These dataframes are what the function uses internally.)
+#' @importFrom stats rbinom
+#' @importFrom stats runif
 #' @export
 #' @examples
 #' randomcophy.2PonH()
@@ -1341,6 +1349,8 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.s
 #' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
 #'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
 #'   (These dataframes are what the function uses internally.)
+#' @importFrom stats rbinom
+#' @importFrom stats runif
 #' @export
 #' @examples
 #' rcophylo_PonH_Htrait()

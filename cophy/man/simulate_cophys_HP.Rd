@@ -8,6 +8,8 @@ simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
   timestep, reps, filename = NA)
 }
 \arguments{
+\item{tmax}{maximum time for which to simulate}
+
 \item{lambda}{host speciation rate}
 
 \item{mu}{host extinction rate}
