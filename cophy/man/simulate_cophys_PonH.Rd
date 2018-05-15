@@ -45,7 +45,9 @@ simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA,
 The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
 }
 \examples{
-simulate_cophys_PonH()
+Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+simulate_cophys_PonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
+kappa=0, delta=0, timestep=0.001, filename="file")
 }
 \keyword{Host-Parasite}
 \keyword{multiple}

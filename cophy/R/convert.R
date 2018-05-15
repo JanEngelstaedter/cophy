@@ -13,7 +13,8 @@
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @export
 #' @examples
-#' convert_HPBranchesToCophylo()
+#' HPBranches<-rcophylo_HP(tmax=5, export.format = "Raw")
+#' convert_HPBranchesToCophylo(HBranches=HPBranches[[1]], PBranches=HPBranches[[2]])
 
 convert_HPBranchesToCophylo<-function(HBranches,PBranches,prune.extinct=FALSE)
 {
@@ -400,7 +401,8 @@ convert_HBtoPhy <-function(HBranches,prune.extinct=FALSE)
 #' @keywords format, convert, phylo
 #' @export
 #' @examples
-#' convert_PBranchesToPhylo()
+#' HPBranches<-rcophylo_HP(tmax=5, export.format = "Raw")
+#' convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
 
 convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 {
@@ -540,7 +542,9 @@ convert_PBranchesToPhylo<-function(PBranches,prune.extinct=FALSE)
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @export
 #' @examples
-#' convert_PQBranchesToPhylo()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, export.format="Raw")
+#' convert_PQBranchesToPhylo(P.PBranches=HPQtree[[2]],Q.PBranches=HPQtree[[2]])
 
 convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 {
@@ -794,7 +798,8 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 #' @param toHtree finishing host-tree
 #' @export
 #' @examples
-#' convert_HBranchesToPhylo()
+#' Hbranches<-rphylo_H(tmax=5, export.format = "Raw")
+#' convert_HBranchesToPhylo(Hbranches=Hbranches)
 
 convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA, toHtree=NA)
 {
@@ -838,7 +843,8 @@ convert_HBranchesToPhylo <-function(Hbranches, prune.extinct=FALSE, fromHtree=NA
 #' @param cophy a cophylogeny (in phylo format) containing one host and one parasite tree
 #' @export
 #' @examples
-#' convert_HPCophyloToBranches()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' convert_HPCophyloToBranches(cophy=HPBranches)
 
 convert_HPCophyloToBranches<-function(cophy)
 {
@@ -889,7 +895,9 @@ convert_HPCophyloToBranches<-function(cophy)
 #' @param cophy a cophylogeny (in phylo format) containing one host and two parasite trees
 #' @export
 #' @examples
-#' convert_HPQCophyloToBranches()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5)
+#' convert_HPQCophyloToBranches(cophy=HPQtree)
 
 convert_HPQCophyloToBranches<-function(cophy)
 {
@@ -897,7 +905,7 @@ convert_HPQCophyloToBranches<-function(cophy)
   HBranches<-data.frame(alive=rep(NA,nrow(cophy[[1]]$edge)),nodeBirth=cophy[[1]]$edge[,1],tBirth=NA,nodeDeath=cophy[[1]]$edge[,2],tDeath=NA,branchNo=2:(nrow(cophy[[1]]$edge)+1))
   ancBranches<-match(HBranches$nodeBirth,HBranches$nodeDeath)
 
-  HBranches$tBirth<-sapply(1:length(HBranches$nodeBirth),get_tBirth,phy=cophy[[1]],ancBranches=ancBranches)
+  HBranches$tBirth<-sapply(1:length(HBranches$nodeBirth), get_tBirth, cophy[[1]]$root.edge, cophy[[1]]$edge.length, ancBranches=ancBranches)
   HBranches$tDeath<-HBranches$tBirth+cophy[[1]]$edge.length
   rootNode<-cophy[[1]]$edge[match(NA,ancBranches),1]
   HBranches<-rbind(data.frame(alive=NA,nodeBirth=0,tBirth=0,nodeDeath=rootNode,tDeath=cophy[[1]]$root.edge,branchNo=1),HBranches) # adding the root
@@ -914,7 +922,8 @@ convert_HPQCophyloToBranches<-function(cophy)
 
   P.ancBranches<-match(P.PBranches$nodeBirth,P.PBranches$nodeDeath)
 
-  P.PBranches$tBirth<-sapply(1:length(P.PBranches$nodeBirth),get_tBirth,phy=cophy[[2]],ancBranches=P.ancBranches) + cophy[[2]]$root.time
+  P.PBranches$tBirth<-sapply(1:length(P.PBranches$nodeBirth),get_tBirth,cophy[[2]]$root.edge, cophy[[2]]$edge.length,ancBranches=P.ancBranches) + cophy[[2]]$root.time
+
   P.PBranches$tDeath<-P.PBranches$tBirth+cophy[[2]]$edge.length
   P.PBranches$Hassoc<-cophy[[2]]$Hassoc+1
   P.rootNode<-cophy[[2]]$edge[match(NA,P.ancBranches),1]
@@ -932,7 +941,8 @@ convert_HPQCophyloToBranches<-function(cophy)
 
   Q.ancBranches<-match(Q.PBranches$nodeBirth,Q.PBranches$nodeDeath)
 
-  Q.PBranches$tBirth<-sapply(1:length(Q.PBranches$nodeBirth),get_tBirth,phy=cophy[[3]],ancBranches=Q.ancBranches) + cophy[[3]]$root.time
+  Q.PBranches$tBirth<-sapply(1:length(Q.PBranches$nodeBirth),get_tBirth,cophy[[3]]$root.edge, cophy[[3]]$edge.length,ancBranches=Q.ancBranches) + cophy[[3]]$root.time
+
   Q.PBranches$tDeath<-Q.PBranches$tBirth+cophy[[3]]$edge.length
   Q.PBranches$Hassoc<-cophy[[3]]$Hassoc+1
   Q.rootNode<-cophy[[3]]$edge[match(NA,Q.ancBranches),1]

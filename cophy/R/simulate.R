@@ -20,7 +20,7 @@
 #' @keywords multiple Host phylogenies
 #' @export
 #' @examples
-#' simulate_HostTrees()
+#' simulate_HostTrees(tmax=5,lambda=1,mu=0.5,K=5,timestep=0.001,reps=10,filename="file")
 
 simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 {
@@ -63,7 +63,8 @@ simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 #' @keywords Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
-#' simulate_cophys_HP()
+#' simulate_cophys_HP(tmax=5, lambda=1, mu=0.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0,
+#'  delta=0, K=5, timestep=0.001, reps=10, filename="file")
 
 simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,timestep,reps,filename=NA)
 {
@@ -112,16 +113,17 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' simulate_cophys_PonH()
+#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+#' simulate_cophys_PonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
+#' kappa=0, delta=0, timestep=0.001, filename="file")
 
 simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
 {
-  tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
-
   print(paste("Simulations for ",filename," started.",sep=""))
 
   # initialising cluster for parallel computation:
@@ -130,6 +132,21 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
+
+  if (class(Htrees)=="data.frame") {
+  	nHtrees<-1
+  	tmax<-max(Htrees$tDeath) #find maximum timepoint from host tree
+  } else {
+  	nHtrees<-length(Htrees)
+  	tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
+  }
+
+  if (is.na(fromHtree)) {
+    fromHtree<-1
+  }
+  if (is.na(toHtree)) {
+    toHtree<-nHtrees
+  }
 
   parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep)
   names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","kappa","delta","timestep")
@@ -229,17 +246,19 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
+#' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' simulate_cophys_PQonH()
+#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+#' simulate_cophys_PQonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma.P=0.02, gamma.Q=0.02,
+#'  sigma.self=0, sigma.cross=0, nu.P=0.5, nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0,
+#'  timestep=0.001, filename="PQonHtrees")
 
 simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
-
-  tmax<-max(Htrees[[1]]$tDeath)
 
   # initialising cluster for parallel computation:
   cluster<-parallel::makeCluster(ncores,outfile="")
@@ -248,23 +267,13 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
 
-  parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","nu.P","nu.Q","kappa.P","kappa.Q","delta.P","delta.Q","timestep")
-
-  if (class(Htrees)=="data.frame") {
+   if (class(Htrees)=="data.frame") {
   	nHtrees<-1
   	tmax<-max(Htrees$tDeath) #find maximum timepoint from host tree
   } else {
   	nHtrees<-length(Htrees)
   	tmax<-max(Htrees[[1]]$tDeath) #find maximum timepoint from host tree
   }
-
-  print("    Converting host trees to phylo format...")
-  HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
-
-  Ptrees<-list() # an empty list that will later contain all the parasite trees
-  stats<-matrix(NA,nrow=length(fromHtree:toHtree)*reps1*reps2,ncol=13)
-  colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
 
   i<-0
   if (is.na(fromHtree)) {
@@ -274,12 +283,22 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
     toHtree<-nHtrees
   }
 
+  parameters<-c(tmax,P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma.P","gamma.Q","sigma.self","sigma.cross","nu.P","nu.Q","kappa.P","kappa.Q","delta.P","delta.Q","timestep")
+
+  print("    Converting host trees to phylo format...")
+  HtreesPhylo<-convert_HBranchesToPhylo(Hbranches=Htrees, fromHtree=fromHtree, toHtree=toHtree)
+
+  Ptrees<-list() # an empty list that will later contain all the parasite trees
+  stats<-matrix(NA,nrow=length(fromHtree:toHtree)*reps1*reps2,ncol=13)
+  colnames(stats)<-c("HTreeNo","PTreeNo","IniHBranch","Rep","noHspecies","P.NoPspecies","Q.NoPspecies","P.fractionInfected","Q.fractionInfected","PandQ.fractionHinfected","P.meanInfectionLevel","Q.meanInfectionLevel","Total.meanInfection")
+
   # calculating all genetic distances in parallel:
 
   print("    Calculating host genetic distance matrices...")
   # parallel loop for Gdist calculations:
 
-  Gdist<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
+	Gdist<-foreach::foreach(i0=fromHtree:toHtree,.export=c('get_GDist'),.packages="ape") %dopar% {
     get_GDist(Htrees[[i0]],t=P.startT)
   }
 
@@ -352,18 +371,20 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @param filename name underwhich set of simulations and statistics will be saved
 #' @param ncores the number of cores that will be used to run simulations in parallel
 #' @keywords Host-Parasite phylogeny
+#' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 #' @importFrom bigmemory describe
 #' @importFrom bigmemory attach.big.matrix
 #' @export
 #' @examples
-#' simulate_cophys_PonH_Htrait()
+#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+#' simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
+#' kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001, startTrait=0, omega=10, rho=0.75,
+#' psi=0.75, timestep=0.001, filename="file")
 
 simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
-
-  tmax<-max(Htrees[[1]]$tDeath)
 
   times<-list(start=NA,end=NA,duration=NA)
   times[[1]]<-Sys.time()
@@ -372,8 +393,6 @@ simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toH
   } else if (startTrait %in% c(0,1)) {
   	initialTrait<-startTrait
   }
-  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,kappa,delta,epsilon.1to0,epsilon.0to1,initialTrait,omega,rho,psi,reps1,reps2,timestep)
-  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","kappa","delta","epsilon.1to0","epsilon.0to1","startTrait","omega","rho","psi","reps1","reps2","timestep")
 
   if (class(Htrees)=="data.frame") {
   	nHtrees<-1
@@ -382,6 +401,16 @@ simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toH
   	nHtrees<-length(Htrees)
   	tmax<-max(Htrees[[1]][,5]) #find maximum timepoint from host tree
   }
+
+  if (is.na(fromHtree)) {
+    fromHtree<-1
+  }
+  if (is.na(toHtree)) {
+    toHtree<-nHtrees
+  }
+
+  parameters<-c(tmax,P.startT,beta,gamma,sigma,nu,kappa,delta,epsilon.1to0,epsilon.0to1,initialTrait,omega,rho,psi,reps1,reps2,timestep)
+  names(parameters)<-c("tmax","P.startT","beta","gamma","sigma","nu","kappa","delta","epsilon.1to0","epsilon.0to1","startTrait","omega","rho","psi","reps1","reps2","timestep")
 
   if (any(is.na(HtreesPhylo))) {
   	print("    Converting host trees to phylo format...")

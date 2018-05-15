@@ -34,7 +34,7 @@ By default, an object of class "phylo" is returned, as specified in the R-packag
 This function simulates a random phylogenetic tree. This tree can then be used as a host tree on which parasites can evolve, using the \code{\link{rcophylo_PonH}} function.
 }
 \examples{
-rphylo_H()
+rphylo_H(tmax=5)
 }
 \keyword{Host}
 \keyword{phylogeny}

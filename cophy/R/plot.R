@@ -1,25 +1,71 @@
 # plot.R
 
 # This file contains functions to plot cophylogenies.
-# This file is part of the R-package 'cophylo'.
+# This file is part of the R-package 'cophy'.
+
+
+#' Creates a cophy object
+#'
+#' This function creates an object of class 'cophy', which can be passed to the plot.cophy() function. This object must contain at least one host and one parasite tree, but can also contain a second parasite tree and a TraitTracking object.
+#' @param H.tree a pre-built host phylogenetic tree of class 'phylo' (required)
+#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo' (required)
+#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo' (optional)
+#' @param TraitTracking an object that tracks the evolution of a parasite response trait on the host tree (optional)
+#' @keywords cophy, object
+#' @export
+#' @examples
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' cophylogeny(HPtree[[1]], HPtree[[2]])
+
+cophylogeny<-function(H.tree, P.tree, Q.tree=NA, TraitTracking=NA) {
+  if (class(H.tree)=="data.frame") {
+    H.tree<-convert_HBranchesToPhylo(Hbranches=H.tree)
+  }
+
+  if (class(H.tree)=="data.frame") {
+    P.tree<-convert_PBranchesToPhylo(PBranches=P.tree)
+  }
+
+  if (class(H.tree)=="data.frame") {
+    Q.tree<-convert_PBranchesToPhylo(PBranches=Q.tree)
+  }
+
+  if (is.na(Q.tree) & is.na(TraitTracking)) {
+    cophy<-list(H.tree, P.tree)
+  } else if (!is.na(Q.tree) & is.na(TraitTracking)) {
+    cophy<-list(H.tree, P.tree, TraitTracking)
+  } else if (is.na(Q.tree) & !is.na(TraitTracking)) {
+    cophy<-list(H.tree, P.tree, Q.tree)
+  } else {
+    cophy<-list(H.tree, P.tree, Q.tree, TraitTracking)
+  }
+
+  class(cophy)<-"cophylogeny"
+  return(cophy)
+}
 
 #' Cophylogeny plot
 #'
 #' This function plots a host-parasite cophylogenetic tree,
-#' @param cophy a cophylogeny (object of class "cophy") containing a host tree and a parasite tree. This may also contain either a second parasite tree or host and parasite trait values.
+#' @param x a cophylogeny (object of class "cophy" built by the cophy(H.tree, P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a parasite tree. This may also contain a second parasite tree or/and parasite trait values.
 #' @param ParasiteCol a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.
 #' @param ResistanceCol in the case that a TraitTracking object is available, gives the option to choose the plotting colour.
 #' @param plotHResistance boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.
 #' @param plotPEvolution boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.
+#' @param ... other parameters to be passed to plotting functions.
 #' @keywords cophylogeny, plot
 #' @importFrom graphics arrows
 #' @importFrom graphics lines
 #' @export
 #' @examples
-#' plot.cophylo()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' plot(cophylogeny(HPtree[[1]], HPtree[[2]]))
 
-plot.cophy<-function(cophy, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", plotHResistance=TRUE, plotPEvolution=c(TRUE, TRUE))
+plot.cophylogeny<-function(x, ParasiteCol=c("Red", "Blue"), ResistanceCol="lawn green", plotHResistance=TRUE, plotPEvolution=c(TRUE, TRUE), ...)
 {
+  cophy<-x
 	if (class(cophy[[length(cophy)]])=="phylo") {
 		TraitTracking <-NA
 		if (plotHResistance=="TRUE") warning("Cophy object does not contain host resistance information")

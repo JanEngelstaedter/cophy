@@ -13,5 +13,7 @@ convert_HPQCophyloToBranches(cophy)
 The following function converts a phylo host-(dual) parasite tree into internal Branches format
 }
 \examples{
-convert_HPQCophyloToBranches()
+Htree<-rphylo_H(tmax=5, export.format="Raw")
+HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5)
+convert_HPQCophyloToBranches(cophy=HPQtree)
 }

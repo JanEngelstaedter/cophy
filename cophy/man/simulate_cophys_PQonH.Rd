@@ -54,7 +54,10 @@ simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
 The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
 }
 \examples{
-simulate_cophys_PQonH()
+Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+simulate_cophys_PQonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma.P=0.02, gamma.Q=0.02,
+ sigma.self=0, sigma.cross=0, nu.P=0.5, nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0,
+ timestep=0.001, filename="PQonHtrees")
 }
 \keyword{Host-Parasite}
 \keyword{multiple}

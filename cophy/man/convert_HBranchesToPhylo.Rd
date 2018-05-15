@@ -20,5 +20,6 @@ convert_HBranchesToPhylo(Hbranches, prune.extinct = FALSE, fromHtree = NA,
 The following function converts raw host tree matricies into phylo format
 }
 \examples{
-convert_HBranchesToPhylo()
+Hbranches<-rphylo_H(tmax=5, export.format = "Raw")
+convert_HBranchesToPhylo(Hbranches=Hbranches)
 }

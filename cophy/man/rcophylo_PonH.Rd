@@ -51,7 +51,8 @@ By default, an object of class "cophylo" is returned that is a list of phylo obj
 This function simulates the codiversification of a clade of parasites on a given host phylogeny (simulated or estimated) that is provided.
 }
 \examples{
-rcophylo_PonH()
+Htree<-rphylo_H(tmax=5, export.format="Raw")
+rcophylo_PonH(H.tree=Htree, tmax=5)
 }
 \keyword{Host-Parasite}
 \keyword{phylogeny}

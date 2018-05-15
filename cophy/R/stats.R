@@ -8,11 +8,12 @@
 #' The following function counts host-jumps
 #'
 #' The following function counts the host-jumps of a host-parasite phylogeny
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' @param cophy a cophylogeny (object of class "cophy") containing one host and one parasite tree.
 #' @keywords cophylogeny, host-jumps
 #' @export
 #' @examples
-#' get_HostShifts()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_HostShifts(cophy=HPBranches)
 
 get_HostShifts<-function(cophy)
 {
@@ -72,7 +73,8 @@ get_HostShifts<-function(cophy)
 #' @keywords cophylogeny, infection-counts
 #' @export
 #' @examples
-#' get_infectionFrequencies()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_infectionFrequencies(cophy=HPBranches)
 
 get_infectionFrequencies<-function(cophy)
 {
@@ -142,7 +144,8 @@ get_2Pinfectionlevels<-function(cophy)
 #' @keywords cophylogeny, statistics
 #' @export
 #' @examples
-#' get_infectionstats()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_infectionStatistics(cophy=HPBranches)
 
 get_infectionStatistics<-function(cophy)
 {
@@ -229,14 +232,15 @@ get_branchNThroughTime<-function(phy,tmax,dt)
 #' Numbers of different events in parasite evolution.
 #'
 #' This function records parasites events through time including: Start of time interval, End of time interval, Number of living branches (at the end of time interval), cospeciation events, host shifts, extinction (with hosts surviving), co-extinction (extinction caused by host extinction), speciation events for lineages with surviving descendents
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and either one or two parasite trees.
+#' @param cophy a cophylogeny (object of class "cophy") containing one host and either one or two parasite trees.
 #' @param tmin the timepoint in the simulation from which parasite events should be recorded, default = 0 (start point for the cophylogeny)
 #' @param tmax the timepoint in the simulation until which parasite events should be recorded, default = 'max' (end point for the cophylogeny)
 #' @param dt step size for the time points at which calculations are made
 #' @keywords cophylogeny, events
 #' @export
 #' @examples
-#' get_PEventsThroughTime()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_PEventsThroughTime(cophy=HPBranches)
 
 get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 {
@@ -381,7 +385,8 @@ get_2PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1)
 #' @param t timepoint in simulation at which you want distance information
 #' @export
 #' @examples
-#' get_GDist()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' get_GDist(branches=Htree)
 
 
 get_GDist<-function(branches,t=NA)
@@ -439,7 +444,8 @@ get_GDist<-function(branches,t=NA)
 #' @keywords genetic distance
 #' @export
 #' @examples
-#' get_PHDist()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_PHDist(cophy=HPBranches)
 
 get_PHDist<-function(cophy)
 {
@@ -468,7 +474,8 @@ get_PHDist<-function(cophy)
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' get_PHDistCorrelation()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_PHDistCorrelation(cophy=HPBranches)
 
 get_PHDistCorrelation<-function(cophy)
 {
@@ -499,7 +506,8 @@ get_PHDistCorrelation<-function(cophy)
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' get_PHDistSubtreeCorrelation()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_PHDistSubtreeCorrelation(cophy=HPBranches, k=2)
 
 get_PHDistSubtreeCorrelation <-function(cophy, h=NULL, k=NULL)
 {
@@ -563,7 +571,8 @@ get_infectionFrequenciesSubtrees<-function(cophy,tips)
 #' @keywords last parasite
 #' @export
 #' @examples
-#' get_PextinctionTime()
+#' HPBranches<-rcophylo_HP(tmax=5)
+#' get_PextinctionTime(phy=HPBranches[[2]])
 
 get_PextinctionTime<-function(phy)
 {

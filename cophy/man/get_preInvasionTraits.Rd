@@ -24,5 +24,6 @@ get_preInvasionTraits(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
 This function simulates a parasite phylogenetic tree over a pre-built host-tree. While simulating parasite tree, also simulates the evolution of a host resistance trait as a result of stochastic mutation as well as in responce to the presence of a parasite. The success of the parasite being influenced by the resistance or susceptibility of the host.
 }
 \examples{
-get_preInvasionTraits()
+Htree<-rphylo_H(tmax=5, export.format="Raw")
+get_preInvasionTraits(H.tree=Htree, P.startT=2.5, epsilon.1to0=0.01, epsilon.0to1=0.01)
 }

@@ -38,7 +38,8 @@ simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
 A function to run a certain number of replicate simulations, save all the trees and output all stats.
 }
 \examples{
-simulate_cophys_HP()
+simulate_cophys_HP(tmax=5, lambda=1, mu=0.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0,
+ delta=0, K=5, timestep=0.001, reps=10, filename="file")
 }
 \keyword{Host-Parasite}
 \keyword{phylogeny,}

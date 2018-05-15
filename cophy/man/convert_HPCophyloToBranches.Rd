@@ -13,5 +13,6 @@ convert_HPCophyloToBranches(cophy)
 The following function converts a phylo host-parasite tree into internal Branches format
 }
 \examples{
-convert_HPCophyloToBranches()
+HPBranches<-rcophylo_HP(tmax=5)
+convert_HPCophyloToBranches(cophy=HPBranches)
 }

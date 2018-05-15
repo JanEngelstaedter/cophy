@@ -25,7 +25,7 @@ simulate_HostTrees(tmax, lambda, mu, K, timestep, reps, filename = NA)
 A function to run a certain number of replicate simulations, save all the trees and output all stats.
 }
 \examples{
-simulate_HostTrees()
+simulate_HostTrees(tmax=5,lambda=1,mu=0.5,K=5,timestep=0.001,reps=10,filename="file")
 }
 \keyword{Host}
 \keyword{multiple}

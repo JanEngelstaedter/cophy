@@ -13,7 +13,8 @@ get_infectionStatistics(cophy)
 The following function calculates the basic statistics concerning a particular simulation including: number of extant host species, number of extant parasite species, percentage of host species that are infected by at least one parasite, mean number of parasites per host
 }
 \examples{
-get_infectionstats()
+HPBranches<-rcophylo_HP(tmax=5)
+get_infectionStatistics(cophy=HPBranches)
 }
 \keyword{cophylogeny,}
 \keyword{statistics}

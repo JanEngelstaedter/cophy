@@ -7,13 +7,14 @@
 get_HostShifts(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophy") containing one host and one parasite tree.}
 }
 \description{
 The following function counts the host-jumps of a host-parasite phylogeny
 }
 \examples{
-get_HostShifts()
+HPBranches<-rcophylo_HP(tmax=5)
+get_HostShifts(cophy=HPBranches)
 }
 \keyword{cophylogeny,}
 \keyword{host-jumps}

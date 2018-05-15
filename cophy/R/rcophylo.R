@@ -369,7 +369,7 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' rphylo_H()
+#' rphylo_H(tmax=5)
 
 rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,export.format="Phylo",timestep=0.001) {
   # adjusting the evolutionary rates to timesteps:
@@ -494,7 +494,8 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' rcophylo_PonH()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' rcophylo_PonH(H.tree=Htree, tmax=5)
 
 rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0, delta=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {
 
@@ -827,7 +828,8 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0,
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' randomcophy.2PonH()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' rcophylo_PQonH(tmax=5, H.tree=Htree)
 
 rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {
 
@@ -1353,7 +1355,8 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.s
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' rcophylo_PonH_Htrait()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' rcophylo_PonH_Htrait(H.tree=Htree, tmax=5)
 
 rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5, kappa=0, delta=0, epsilon.1to0=0.01, epsilon.0to1=0.001, startTrait=NA, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001)
 {

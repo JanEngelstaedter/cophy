@@ -17,7 +17,8 @@ get_PHDistSubtreeCorrelation(cophy, h = NULL, k = NULL)
 Calculating the correlation between the distance matrixes of parasites and their associated hosts within subtrees specified by particular height
 }
 \examples{
-get_PHDistSubtreeCorrelation()
+HPBranches<-rcophylo_HP(tmax=5)
+get_PHDistSubtreeCorrelation(cophy=HPBranches, k=2)
 }
 \keyword{correlation}
 \keyword{distance,}

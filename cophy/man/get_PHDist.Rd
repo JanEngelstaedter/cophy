@@ -13,7 +13,8 @@ get_PHDist(cophy)
 The following function returns a matrix of the patristic distances between all extant parasite species, and another matrix with the patristic distances of the associated host species.
 }
 \examples{
-get_PHDist()
+HPBranches<-rcophylo_HP(tmax=5)
+get_PHDist(cophy=HPBranches)
 }
 \keyword{distance}
 \keyword{genetic}

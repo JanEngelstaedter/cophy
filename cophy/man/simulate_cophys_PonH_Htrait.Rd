@@ -70,7 +70,10 @@ simulate_cophys_PonH_Htrait(Htrees, HtreesPhylo = NA, fromHtree = NA,
 The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
 }
 \examples{
-simulate_cophys_PonH_Htrait()
+Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
+simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
+kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001, startTrait=0, omega=10, rho=0.75,
+psi=0.75, timestep=0.001, filename="file")
 }
 \keyword{Host-Parasite}
 \keyword{phylogeny}

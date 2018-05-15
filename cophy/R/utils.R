@@ -14,7 +14,8 @@
 #' @param timestep timestep for simulations
 #' @export
 #' @examples
-#' get_preInvasionTraits()
+#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' get_preInvasionTraits(H.tree=Htree, P.startT=2.5, epsilon.1to0=0.01, epsilon.0to1=0.01)
 
 get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, startTrait=NA, timestep=0.001)
 {

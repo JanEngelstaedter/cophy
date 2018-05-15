@@ -13,7 +13,8 @@ get_infectionFrequencies(cophy)
 The following function counts the number of hosts infected with a particular number of parasites from the same parasite phylogeny
 }
 \examples{
-get_infectionFrequencies()
+HPBranches<-rcophylo_HP(tmax=5)
+get_infectionFrequencies(cophy=HPBranches)
 }
 \keyword{cophylogeny,}
 \keyword{infection-counts}

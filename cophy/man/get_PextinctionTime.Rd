@@ -13,7 +13,8 @@ get_PextinctionTime(phy)
 Function to calculate the time of the last surviving parasite species
 }
 \examples{
-get_PextinctionTime()
+HPBranches<-rcophylo_HP(tmax=5)
+get_PextinctionTime(phy=HPBranches[[2]])
 }
 \keyword{last}
 \keyword{parasite}

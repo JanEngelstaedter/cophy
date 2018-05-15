@@ -15,5 +15,6 @@ get_GDist(branches, t = NA)
 Calculating the distance matrix between host branches alive at a particular timepoint
 }
 \examples{
-get_GDist()
+Htree<-rphylo_H(tmax=5, export.format="Raw")
+get_GDist(branches=Htree)
 }

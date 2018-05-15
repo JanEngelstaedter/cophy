@@ -65,7 +65,8 @@ By default, an object of class "cophylo" is returned that is a list of phylo obj
 The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
 }
 \examples{
-rcophylo_PonH_Htrait()
+Htree<-rphylo_H(tmax=5, export.format="Raw")
+rcophylo_PonH_Htrait(H.tree=Htree, tmax=5)
 }
 \keyword{Host-Parasite}
 \keyword{phylogeny}
