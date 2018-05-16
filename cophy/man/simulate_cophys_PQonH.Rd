@@ -2,7 +2,8 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_cophys_PQonH}
 \alias{simulate_cophys_PQonH}
-\title{A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.}
+\title{A function to simulate many random coevolving (dual)parasite phylogenies on
+pre-built host-trees and calculate statistics in parallel.}
 \usage{
 simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
   gamma.P, gamma.Q, sigma.self, sigma.cross, nu.P, nu.Q, kappa.P, kappa.Q,
@@ -24,21 +25,27 @@ simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
 
 \item{gamma.Q}{dependency on genetic distance for host jumps}
 
-\item{sigma.self}{probability of successful co-infection with related parasite following host jump}
+\item{sigma.self}{probability of successful co-infection with related
+parasite following host jump}
 
-\item{sigma.cross}{probability of successful co-infection with unrelated parasite following host jump}
+\item{sigma.cross}{probability of successful co-infection with unrelated
+parasite following host jump}
 
 \item{nu.P}{parasite extinction rate}
 
 \item{nu.Q}{parasite extinction rate}
 
-\item{kappa.P}{the probability that a parasite duplicates within a host species}
+\item{kappa.P}{the probability that a parasite duplicates within a host
+species}
 
-\item{kappa.Q}{the probability that a parasite duplicates within a host species}
+\item{kappa.Q}{the probability that a parasite duplicates within a host
+species}
 
-\item{delta.P}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+\item{delta.P}{the probability that a parasite is lost randomly in one of the
+daughter host species during a cospeciation event}
 
-\item{delta.Q}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+\item{delta.Q}{the probability that a parasite is lost randomly in one of the
+daughter host species during a cospeciation event}
 
 \item{timestep}{timestep for simulations}
 
@@ -46,12 +53,15 @@ simulate_cophys_PQonH(Htrees, fromHtree = NA, toHtree = NA, P.startT, beta,
 
 \item{reps2}{the number of replicates per starting point}
 
-\item{filename}{name underwhich set of simulations and statistics will be saved}
+\item{filename}{name underwhich set of simulations and statistics will be
+saved}
 
-\item{ncores}{the number of cores that will be used to run simulations in parallel}
+\item{ncores}{the number of cores that will be used to run simulations in
+parallel}
 }
 \description{
-The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
+The following function simulates two competing parasite phylogenetic trees on
+pre-built host trees using parallel computing.
 }
 \examples{
 Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))

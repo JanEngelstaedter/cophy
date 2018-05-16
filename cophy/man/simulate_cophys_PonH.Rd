@@ -2,7 +2,8 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_cophys_PonH}
 \alias{simulate_cophys_PonH}
-\title{A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.}
+\title{A function to simulate many random coevolving parasite phylogenies on
+pre-built host-trees and calculate statistics in parallel.}
 \usage{
 simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA,
   HtreesPhylo = NA, P.startT, beta, gamma, sigma, nu, kappa, delta, timestep,
@@ -29,7 +30,8 @@ simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA,
 
 \item{kappa}{the probability that a parasite duplicates within a host species}
 
-\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+\item{delta}{the probability that a parasite is lost randomly in one of the
+daughter host species during a cospeciation event}
 
 \item{timestep}{timestep for simulations}
 
@@ -37,12 +39,15 @@ simulate_cophys_PonH(Htrees, fromHtree = NA, toHtree = NA,
 
 \item{reps2}{the number of replicates per starting point}
 
-\item{filename}{name underwhich set of simulations and statistics will be saved}
+\item{filename}{name underwhich set of simulations and statistics will be
+saved}
 
-\item{ncores}{the number of cores that will be used to run simulations in parallel}
+\item{ncores}{the number of cores that will be used to run simulations in
+parallel}
 }
 \description{
-The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
+The following function simulates parasite phylogenetic trees on pre-built
+host trees using parallel computing.
 }
 \examples{
 Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))

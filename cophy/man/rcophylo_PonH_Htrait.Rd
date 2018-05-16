@@ -18,7 +18,8 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 
 \item{beta}{parasite host jump rate}
 
-\item{gamma}{a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.}
+\item{gamma}{a numeric value giving the dependency of host shift success of a
+parasite on phylogenetic distance between the old and the new host.}
 
 \item{sigma}{probability of successful co-infection following host jump}
 
@@ -26,43 +27,64 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
 
 \item{kappa}{parasite speciation rate within hosts}
 
-\item{delta}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.}
+\item{delta}{probability of lineage loss during co-speciation. delta=0
+specifies faithful transmission of the parasites to both new host species,
+whereas delta=1 means that one of the lineages will always be lost during
+cospeciation.}
 
-\item{epsilon.1to0}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
+\item{epsilon.1to0}{the baseline rate that a host with trait value 1 will
+mutate to a host with trait value 0}
 
-\item{epsilon.0to1}{the baseline rate that a host with trait value 0 will mutate to a host with trait value 1}
+\item{epsilon.0to1}{the baseline rate that a host with trait value 0 will
+mutate to a host with trait value 1}
 
-\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
+\item{startTrait}{specifies the initial resistance trait of the first host
+species (0 or 1). Defaults to NA (random)}
 
-\item{omega}{factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites}
+\item{omega}{factor by which switching between trait values is altered
+depending on the trait value of the host and presence of parasites}
 
-\item{rho}{factor by which parasite extinction rate increases in response to host resistance}
+\item{rho}{factor by which parasite extinction rate increases in response to
+host resistance}
 
-\item{psi}{factor by which parasite host-jump success decreases due to resistance of the new host}
+\item{psi}{factor by which parasite host-jump success decreases due to
+resistance of the new host}
 
-\item{TraitTracking}{an object which provides the evolutionary history of the parasite interaction trait.}
+\item{TraitTracking}{an object which provides the evolutionary history of the
+parasite interaction trait.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
+\item{prune.extinct}{logical. Determines whether or not to remove all extinct
+branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
+default setting)) or "Raw" (just a list of branches as used within the
+function itself)}
 
 \item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
-\item{ini.Hbranch}{the host branch from which the parasite invasion is initiated (defaults to NA)}
+\item{ini.Hbranch}{the host branch from which the parasite invasion is
+initiated (defaults to NA)}
 
-\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection.
-Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.}
+\item{Gdist}{optional: a pre-calculated distance matrix of the living host
+branches at time of infection. Providing this matrix will speed up the
+calculation which may be useful when running several simulations on the
+same host tree.}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
-Increase to make the simulation faster or decrease to make it more precise.}
+\item{timestep}{a numeric value giving the time step by which the simulation
+proceeds. Increase to make the simulation faster or decrease to make it
+more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-  (These dataframes are what the function uses internally.)
+By default, an object of class "cophylo" is returned that is a list
+  of phylo objects (one for the host and one for the parasite), as specified
+  in the R-package "ape". If the argument \code{export.format} is set to
+  "Raw" the function returns a list of dataframes containing information on
+  all the branches in the trees. (These dataframes are what the function uses
+  internally.)
 }
 \description{
-The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+The following function simulates a parasite phylogenetic tree on a pre-built
+host phylogeny.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")

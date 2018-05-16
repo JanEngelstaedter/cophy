@@ -7,10 +7,12 @@
 get_infectionFrequencies(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylo") containing one host
+and one parasite tree.}
 }
 \description{
-The following function counts the number of hosts infected with a particular number of parasites from the same parasite phylogeny
+The following function counts the number of hosts infected with a particular
+number of parasites from the same parasite phylogeny
 }
 \examples{
 HPBranches<-rcophylo_HP(tmax=5)

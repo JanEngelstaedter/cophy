@@ -3,14 +3,22 @@
 # This file various helper functions for internal use.
 # This file is part of the R-package 'cophylo'.
 
-#' A function to calculate the initial host resistance trait values prior to host clade invasion by a parasite
+#' A function to calculate the initial host resistance trait values prior to
+#' host clade invasion by a parasite
 #'
-#' This function simulates a parasite phylogenetic tree over a pre-built host-tree. While simulating parasite tree, also simulates the evolution of a host resistance trait as a result of stochastic mutation as well as in responce to the presence of a parasite. The success of the parasite being influenced by the resistance or susceptibility of the host.
+#' This function simulates a parasite phylogenetic tree over a pre-built
+#' host-tree. While simulating parasite tree, also simulates the evolution of a
+#' host resistance trait as a result of stochastic mutation as well as in
+#' responce to the presence of a parasite. The success of the parasite being
+#' influenced by the resistance or susceptibility of the host.
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param P.startT the timepoint at which a parasite invades the host-tree
-#' @param epsilon.1to0 the basline mutation rate for a host to lose the resistance trait
-#' @param epsilon.0to1 the basline mutation rate for a host to gain the resistance trait
-#' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
+#' @param epsilon.1to0 the basline mutation rate for a host to lose the
+#'   resistance trait
+#' @param epsilon.0to1 the basline mutation rate for a host to gain the
+#'   resistance trait
+#' @param startTrait specifies the initial resistance trait of the first host
+#'   species (0 or 1). Defaults to NA (random)
 #' @param timestep timestep for simulations
 #' @export
 #' @examples
@@ -125,7 +133,8 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, st
 
 
 
-#' (recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree
+#' (recursive) function to obtain the time of birth of a branch n, given a tree
+#' in phy in phylo format and a list of ancestor branches for that tree
 #'
 #' @param n some branch in a tree
 #' @param root.edge object sourced from tree in phylo format

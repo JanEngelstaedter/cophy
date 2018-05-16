@@ -30,25 +30,36 @@ simulate_cophys_PonH_Htrait(Htrees, HtreesPhylo = NA, fromHtree = NA,
 
 \item{kappa}{the probability that a parasite duplicates within a host species}
 
-\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+\item{delta}{the probability that a parasite is lost randomly in one of the
+daughter host species during a cospeciation event}
 
-\item{epsilon.1to0}{the baseline rate that a host with trait value 1 will mutate to a host with trait value 0}
+\item{epsilon.1to0}{the baseline rate that a host with trait value 1 will
+mutate to a host with trait value 0}
 
-\item{epsilon.0to1}{the baseline rate that a host with trait value 0 will mutate to a host with trait value 1}
+\item{epsilon.0to1}{the baseline rate that a host with trait value 0 will
+mutate to a host with trait value 1}
 
-\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
+\item{startTrait}{specifies the initial resistance trait of the first host
+species (0 or 1). Defaults to NA (random)}
 
-\item{omega}{factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites}
+\item{omega}{factor by which switching between trait values is altered
+depending on the trait value of the host and presence of parasites}
 
-\item{rho}{factor by which parasite extinction rate increases in response to host resistance}
+\item{rho}{factor by which parasite extinction rate increases in response to
+host resistance}
 
-\item{psi}{factor by which parasite host-jump success decreases due to resistance of the new host}
+\item{psi}{factor by which parasite host-jump success decreases due to
+resistance of the new host}
 
-\item{TraitTracking}{an object which provides the evolutionary history of the parasite interaction trait. Needs to match host trees provided.}
+\item{TraitTracking}{an object which provides the evolutionary history of the
+parasite interaction trait. Needs to match host trees provided.}
 
-\item{prune.extinct}{whether to remove all extinct branches defaulting to FALSE}
+\item{prune.extinct}{whether to remove all extinct branches defaulting to
+FALSE}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
+default setting)) or "Raw" (just a list of branches as used within the
+function itself)}
 
 \item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
@@ -56,18 +67,23 @@ simulate_cophys_PonH_Htrait(Htrees, HtreesPhylo = NA, fromHtree = NA,
 
 \item{reps2}{the number of replicates per starting point}
 
-\item{ini.Hbranch}{the host branch from which the parasite invasion is initiated (defaults to NA)}
+\item{ini.Hbranch}{the host branch from which the parasite invasion is
+initiated (defaults to NA)}
 
-\item{Gdist}{can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)}
+\item{Gdist}{can input a pre-calculated distance matrix of the living host
+branches at time of infection (defaults to NA)}
 
 \item{timestep}{timestep for simulations}
 
-\item{filename}{name underwhich set of simulations and statistics will be saved}
+\item{filename}{name underwhich set of simulations and statistics will be
+saved}
 
-\item{ncores}{the number of cores that will be used to run simulations in parallel}
+\item{ncores}{the number of cores that will be used to run simulations in
+parallel}
 }
 \description{
-The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+The following function simulates a parasite phylogenetic tree on a pre-built
+host phylogeny.
 }
 \examples{
 Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))

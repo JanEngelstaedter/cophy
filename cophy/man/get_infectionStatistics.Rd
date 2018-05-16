@@ -7,10 +7,14 @@
 get_infectionStatistics(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylo") containing one host
+and one parasite tree.}
 }
 \description{
-The following function calculates the basic statistics concerning a particular simulation including: number of extant host species, number of extant parasite species, percentage of host species that are infected by at least one parasite, mean number of parasites per host
+The following function calculates the basic statistics concerning a
+particular simulation including: number of extant host species, number of
+extant parasite species, percentage of host species that are infected by at
+least one parasite, mean number of parasites per host
 }
 \examples{
 HPBranches<-rcophylo_HP(tmax=5)

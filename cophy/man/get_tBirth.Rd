@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils.R
 \name{get_tBirth}
 \alias{get_tBirth}
-\title{(recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree}
+\title{(recursive) function to obtain the time of birth of a branch n, given a tree
+in phy in phylo format and a list of ancestor branches for that tree}
 \usage{
 get_tBirth(n, root.edge, edge.length, ancBranches)
 }
@@ -16,5 +17,6 @@ get_tBirth(n, root.edge, edge.length, ancBranches)
 \item{ancBranches}{the ancestral branches for the tree}
 }
 \description{
-(recursive) function to obtain the time of birth of a branch n, given a tree in phy in phylo format and a list of ancestor branches for that tree
+(recursive) function to obtain the time of birth of a branch n, given a tree
+in phy in phylo format and a list of ancestor branches for that tree
 }

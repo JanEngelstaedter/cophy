@@ -6,11 +6,17 @@
 
 #' Creates a cophy object
 #'
-#' This function creates an object of class 'cophy', which can be passed to the plot.cophy() function. This object must contain at least one host and one parasite tree, but can also contain a second parasite tree and a TraitTracking object.
+#' This function creates an object of class 'cophy', which can be passed to the
+#' plot.cophy() function. This object must contain at least one host and one
+#' parasite tree, but can also contain a second parasite tree and a
+#' TraitTracking object.
 #' @param H.tree a pre-built host phylogenetic tree of class 'phylo' (required)
-#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo' (required)
-#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo' (optional)
-#' @param TraitTracking an object that tracks the evolution of a parasite response trait on the host tree (optional)
+#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo'
+#'   (required)
+#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo'
+#'   (optional)
+#' @param TraitTracking an object that tracks the evolution of a parasite
+#'   response trait on the host tree (optional)
 #' @keywords cophy, object
 #' @export
 #' @examples
@@ -48,11 +54,24 @@ cophylogeny<-function(H.tree, P.tree, Q.tree=NA, TraitTracking=NA) {
 #' Cophylogeny plot
 #'
 #' This function plots a host-parasite cophylogenetic tree,
-#' @param x a cophylogeny (object of class "cophy" built by the cophy(H.tree, P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a parasite tree. This may also contain a second parasite tree or/and parasite trait values.
-#' @param ParasiteCol a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.
-#' @param ResistanceCol in the case that a TraitTracking object is available, gives the option to choose the plotting colour.
-#' @param plotHResistance boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.
-#' @param plotPEvolution boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.
+#' @param x a cophylogeny (object of class "cophy" built by the cophy(H.tree,
+#'   P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a
+#'   parasite tree. This may also contain a second parasite tree or/and parasite
+#'   trait values.
+#' @param ParasiteCol a list of length 2 that specifies the colours to use when
+#'   ploting parasite lineages. The first position indicates the colour of the
+#'   first parasite lineage. If there is a second parasite lineage, its colour
+#'   is specified by the second position. Defaults to red and blue.
+#' @param ResistanceCol in the case that a TraitTracking object is available,
+#'   gives the option to choose the plotting colour.
+#' @param plotHResistance boolean parameter to specify if resistance traits are
+#'   to be plotted. Default to TRUE, if no TraitTracking object is included in
+#'   cophy, a warning is returned.
+#' @param plotPEvolution boolean list parameter to specify if parasite evolution
+#'   is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability
+#'   to plot each of two parasite lineages. If only one parasite lineage if
+#'   provided and is to be plotted, the default can be used. If do not want to
+#'   plot any parasites, should be set simply to FALSE.
 #' @param ... other parameters to be passed to plotting functions.
 #' @keywords cophylogeny, plot
 #' @importFrom graphics arrows

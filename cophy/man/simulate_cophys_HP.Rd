@@ -24,7 +24,8 @@ simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
 
 \item{kappa}{the probability that a parasite duplicates within a host species}
 
-\item{delta}{the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event}
+\item{delta}{the probability that a parasite is lost randomly in one of the
+daughter host species during a cospeciation event}
 
 \item{K}{carrying capacity for host species}
 
@@ -32,10 +33,12 @@ simulate_cophys_HP(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, delta, K,
 
 \item{reps}{number of times to simulate this set of parameters}
 
-\item{filename}{name underwhich set of simulations and statistics will be saved}
+\item{filename}{name underwhich set of simulations and statistics will be
+saved}
 }
 \description{
-A function to run a certain number of replicate simulations, save all the trees and output all stats.
+A function to run a certain number of replicate simulations, save all the
+trees and output all stats.
 }
 \examples{
 simulate_cophys_HP(tmax=5, lambda=1, mu=0.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0,

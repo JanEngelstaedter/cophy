@@ -7,28 +7,41 @@ DBINC<-100
 
 #' Cophylogeny simulation
 #'
-#' This function simulates a random host tree with a random parasite tree evolving on that host tree.
+#' This function simulates a random host tree with a random parasite tree
+#' evolving on that host tree.
 #' @param tmax a numeric value giving the length of the simulation.
-#' @param nHmax a numeric value giving the number of host species at which the simulation is stopped.
+#' @param nHmax a numeric value giving the number of host species at which the
+#'   simulation is stopped.
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
 #' @param mu a numeric value giving the host extinction rate.
 #' @param beta a numeric value giving the baseline parasite host shift rate.
-#' @param gamma a numeric value giving the dependency of host shift success on phylogenetic distance between the old and the new host.
-#' @param sigma a numeric value determining how successful host shift are when the new host is already infected by a parasite.
-#'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
-#'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
+#' @param gamma a numeric value giving the dependency of host shift success on
+#'   phylogenetic distance between the old and the new host.
+#' @param sigma a numeric value determining how successful host shift are when
+#'   the new host is already infected by a parasite. Specifically, the
+#'   probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is the
+#'   number of pre-existing parasites on the new host branch.
 #' @param nu a numeric value giving the parasite extinction rate.
 #' @param kappa parasite speciation rate within hosts
-#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
-#' @param export.format either "Phylo" or "Raw" (see Value below) (exported as an object of ape phylo class, the default setting),
-#'   or "Raw" (a matrix where rows are all the branches, this is the used format internally).
-#' @param timestep a numeric value giving the time step by which the simulation proceeds.
-#'   Increase to make the simulation faster or decrease to make it more precise.
-#' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-#'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-#'   (These dataframes are what the function uses internally.)
+#' @param delta probability of lineage loss during co-speciation. delta=0
+#'   specifies faithful transmission of the parasites to both new host species,
+#'   whereas delta=1 means that one of the lineages will always be lost during
+#'   cospeciation.
+#' @param prune.extinct logical. Determines whether or not to remove all extinct
+#'   branches.
+#' @param export.format either "Phylo" or "Raw" (see Value below) (exported as
+#'   an object of ape phylo class, the default setting), or "Raw" (a matrix
+#'   where rows are all the branches, this is the used format internally).
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
+#' @return By default, an object of class "cophylo" is returned that is a list
+#'   of phylo objects (one for the host and one for the parasite), as specified
+#'   in the R-package "ape". If the argument \code{export.format} is set to
+#'   "Raw" the function returns a list of dataframes containing information on
+#'   all the branches in the trees. (These dataframes are what the function uses
+#'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
@@ -350,21 +363,29 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
 
 #' Phylogenetic (host) tree simulation
 #'
-#' This function simulates a random phylogenetic tree. This tree can then be used as a host tree on which parasites can evolve, using the \code{\link{rcophylo_PonH}} function.
+#' This function simulates a random phylogenetic tree. This tree can then be
+#' used as a host tree on which parasites can evolve, using the
+#' \code{\link{rcophylo_PonH}} function.
 #'
 #' @param tmax a numeric value giving the length of the simulation.
-#' @param nHmax a numeric value giving the number of host species at which the simulation is stopped.
+#' @param nHmax a numeric value giving the number of host species at which the
+#'   simulation is stopped.
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
 #' @param mu a numeric value giving the host extinction rate.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself)
-#' @param timestep a numeric value giving the time step by which the simulation proceeds.
-#'   Increase to make the simulation faster or decrease to make it more precise.
+#' @param prune.extinct logical. Determines whether or not to remove all extinct
+#'   branches.
+#' @param export.format either "Phylo" (exported in Ape Phylo format, the
+#'   default setting) or "Raw" (just a list of branches as used within the
+#'   function itself)
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
 #' @keywords Host phylogeny
-#' @return By default, an object of class "phylo" is returned, as specified in the R-package "ape".
-#'   If the argument \code{export.format} is set to "Raw" the function returns a dataframe containing information on all the branches in the tree.
-#'   (This dataframe are what the function uses internally.)
+#' @return By default, an object of class "phylo" is returned, as specified in
+#'   the R-package "ape". If the argument \code{export.format} is set to "Raw"
+#'   the function returns a dataframe containing information on all the branches
+#'   in the tree. (This dataframe are what the function uses internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
@@ -466,29 +487,46 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 
 #' Cophylogeny simulation on an existing host tree.
 #'
-#' This function simulates the codiversification of a clade of parasites on a given host phylogeny (simulated or estimated) that is provided.
+#' This function simulates the codiversification of a clade of parasites on a
+#' given host phylogeny (simulated or estimated) that is provided.
 #'
 #' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree.
 #' @param beta parasite host jump rate.
-#' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
-#' @param sigma a numeric value determining how successful host shift are when the new host is already infected by a parasite.
-#'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
-#'   where \eqn{n} is the number of pre-existing parasites on the new host branch.
+#' @param gamma a numeric value giving the dependency of host shift success of a
+#'   parasite on phylogenetic distance between the old and the new host.
+#' @param sigma a numeric value determining how successful host shift are when
+#'   the new host is already infected by a parasite. Specifically, the
+#'   probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is the
+#'   number of pre-existing parasites on the new host branch.
 #' @param nu parasite extinction rate.
 #' @param kappa parasite speciation rate within hosts
-#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (a matrix where rows are all the branches, this is the used format internally).
+#' @param delta probability of lineage loss during co-speciation. delta=0
+#'   specifies faithful transmission of the parasites to both new host species,
+#'   whereas delta=1 means that one of the lineages will always be lost during
+#'   cospeciation.
+#' @param prune.extinct logical. Determines whether or not to remove all extinct
+#'   branches.
+#' @param export.format either "Phylo" (exported in Ape Phylo format, the
+#'   default setting)) or "Raw" (a matrix where rows are all the branches, this
+#'   is the used format internally).
 #' @param P.startT the timepoint at which a parasite invades the host tree.
-#' @param ini.Hbranch numerical. The host branch number from which the parasite invasion is initiated. If left at the default value NA, a randomly chosen branch will be selected.
-#' @param Gdist optional: a pre-calculated distance matrix of the living host branches at time of infection.
-#'   Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.
-#' @param timestep a numeric value giving the time step by which the simulation proceeds.
-#'   Increase to make the simulation faster or decrease to make it more precise.
-#' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-#'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-#'   (These dataframes are what the function uses internally.)
+#' @param ini.Hbranch numerical. The host branch number from which the parasite
+#'   invasion is initiated. If left at the default value NA, a randomly chosen
+#'   branch will be selected.
+#' @param Gdist optional: a pre-calculated distance matrix of the living host
+#'   branches at time of infection. Providing this matrix will speed up the
+#'   calculation which may be useful when running several simulations on the
+#'   same host tree.
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
+#' @return By default, an object of class "cophylo" is returned that is a list
+#'   of phylo objects (one for the host and one for the parasite), as specified
+#'   in the R-package "ape". If the argument \code{export.format} is set to
+#'   "Raw" the function returns a list of dataframes containing information on
+#'   all the branches in the trees. (These dataframes are what the function uses
+#'   internally.)
 #' @keywords Host-Parasite phylogeny
 #' @importFrom stats rbinom
 #' @importFrom stats runif
@@ -794,36 +832,62 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0,
 
 #' Cophylogeny simulation of two parasites on an existing host tree.
 #'
-#' This function simulates the codiversification of two clades of parasites (P and Q) on a given host phylogeny (simulated or estimated) that is provided.
+#' This function simulates the codiversification of two clades of parasites (P
+#' and Q) on a given host phylogeny (simulated or estimated) that is provided.
 #' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
-#' @param gamma.P a numeric value giving the dependency of host shift success of parasite P on phylogenetic distance between the old and the new host (see Details).
-#' @param gamma.Q a numeric value giving the dependency of host shift success of parasite Q on phylogenetic distance between the old and the new host (see Details).
-#' @param sigma.self a numeric value determining how successful host shift are when the new host is already infected by the same parasite.
-#'   Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
-#'   where \eqn{n} is the number of pre-existing parasites of the same type (P or Q) on the new host branch.
-#' @param sigma.cross a numeric value determining how successful host shift are when the new host is already infected by the other parasite (see Details).
+#' @param gamma.P a numeric value giving the dependency of host shift success of
+#'   parasite P on phylogenetic distance between the old and the new host (see
+#'   Details).
+#' @param gamma.Q a numeric value giving the dependency of host shift success of
+#'   parasite Q on phylogenetic distance between the old and the new host (see
+#'   Details).
+#' @param sigma.self a numeric value determining how successful host shift are
+#'   when the new host is already infected by the same parasite. Specifically,
+#'   the probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is
+#'   the number of pre-existing parasites of the same type (P or Q) on the new
+#'   host branch.
+#' @param sigma.cross a numeric value determining how successful host shift are
+#'   when the new host is already infected by the other parasite (see Details).
 #'   Specifically, the probability of host shift success \eqn{(1-\sigma)^m},
-#'   where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.
+#'   where \eqn{m} is the number of pre-existing parasites belonging the other
+#'   type (P or Q) on the new host branch.
 #' @param nu.P a numeric value giving the extinction rate of parasites of type P
 #' @param nu.Q a numeric value giving the extinction rate of parasites of type Q
 #' @param kappa.P parasite speciation rate within hosts for parasites of type P
 #' @param kappa.Q parasite speciation rate within hosts for parasites of type Q
-#' @param delta.P probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type P.
-#' @param delta.Q probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type Q.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
-#' @param P.startT a numeric value giving the the timepoint at which a parasite invades the host-tree
-#' @param ini.Hbranch a numeric value giving the the host branch from which the parasite invasion is initiated.
-#' @param Gdist optional: a pre-calculated distance matrix of the living host branches at time of infection.
-#'   Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.
-#' @param timestep a numeric value giving the time step by which the simulation proceeds.
-#'   Increase to make the simulation faster or decrease to make it more precise.
+#' @param delta.P probability of lineage loss during co-speciation. delta=0
+#'   specifies faithful transmission of the parasites to both new host species,
+#'   whereas delta=1 means that one of the lineages will always be lost during
+#'   cospeciation for parasites of type P.
+#' @param delta.Q probability of lineage loss during co-speciation. delta=0
+#'   specifies faithful transmission of the parasites to both new host species,
+#'   whereas delta=1 means that one of the lineages will always be lost during
+#'   cospeciation for parasites of type Q.
+#' @param prune.extinct logical. Determines whether or not to remove all extinct
+#'   branches.
+#' @param export.format either "Phylo" (exported in Ape Phylo format, the
+#'   default setting)) or "Raw" (just a list of branches as used within the
+#'   function itself)
+#' @param P.startT a numeric value giving the the timepoint at which a parasite
+#'   invades the host-tree
+#' @param ini.Hbranch a numeric value giving the the host branch from which the
+#'   parasite invasion is initiated.
+#' @param Gdist optional: a pre-calculated distance matrix of the living host
+#'   branches at time of infection. Providing this matrix will speed up the
+#'   calculation which may be useful when running several simulations on the
+#'   same host tree.
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
 #' @keywords Multi-Parasite phylogeny
-#' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-#'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-#'   (These dataframes are what the function uses internally.)
+#' @return By default, an object of class "cophylo" is returned that is a list
+#'   of phylo objects (one for the host and one for the parasite), as specified
+#'   in the R-package "ape". If the argument \code{export.format} is set to
+#'   "Raw" the function returns a list of dataframes containing information on
+#'   all the branches in the trees. (These dataframes are what the function uses
+#'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
@@ -1323,34 +1387,56 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.s
 
 #' A parasite tree building function with host response to infection
 #'
-#' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+#' The following function simulates a parasite phylogenetic tree on a pre-built
+#' host phylogeny.
 #' @param tmax maximum timepoint to which to run simulation
 #' @param H.tree a pre-built host phylogenetic tree
 #' @param beta parasite host jump rate
-#' @param gamma a numeric value giving the dependency of host shift success of a parasite on phylogenetic distance between the old and the new host.
+#' @param gamma a numeric value giving the dependency of host shift success of a
+#'   parasite on phylogenetic distance between the old and the new host.
 #' @param sigma probability of successful co-infection following host jump
 #' @param nu parasite extinction rate
 #' @param kappa parasite speciation rate within hosts
-#' @param delta probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.
-#' @param epsilon.0to1 the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
-#' @param epsilon.1to0 the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
-#' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
-#' @param omega factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
-#' @param rho factor by which parasite extinction rate increases in response to host resistance
-#' @param psi factor by which parasite host-jump success decreases due to resistance of the new host
-#' @param TraitTracking an object which provides the evolutionary history of the parasite interaction trait.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param delta probability of lineage loss during co-speciation. delta=0
+#'   specifies faithful transmission of the parasites to both new host species,
+#'   whereas delta=1 means that one of the lineages will always be lost during
+#'   cospeciation.
+#' @param epsilon.0to1 the baseline rate that a host with trait value 0 will
+#'   mutate to a host with trait value 1
+#' @param epsilon.1to0 the baseline rate that a host with trait value 1 will
+#'   mutate to a host with trait value 0
+#' @param startTrait specifies the initial resistance trait of the first host
+#'   species (0 or 1). Defaults to NA (random)
+#' @param omega factor by which switching between trait values is altered
+#'   depending on the trait value of the host and presence of parasites
+#' @param rho factor by which parasite extinction rate increases in response to
+#'   host resistance
+#' @param psi factor by which parasite host-jump success decreases due to
+#'   resistance of the new host
+#' @param TraitTracking an object which provides the evolutionary history of the
+#'   parasite interaction trait.
+#' @param prune.extinct logical. Determines whether or not to remove all extinct
+#'   branches.
+#' @param export.format either "Phylo" (exported in Ape Phylo format, the
+#'   default setting)) or "Raw" (just a list of branches as used within the
+#'   function itself)
 #' @param P.startT the timepoint at which a parasite invades the host-tree
-#' @param ini.Hbranch the host branch from which the parasite invasion is initiated (defaults to NA)
-#' @param Gdist optional: a pre-calculated distance matrix of the living host branches at time of infection.
-#'   Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.
-#' @param timestep a numeric value giving the time step by which the simulation proceeds.
-#'   Increase to make the simulation faster or decrease to make it more precise.
+#' @param ini.Hbranch the host branch from which the parasite invasion is
+#'   initiated (defaults to NA)
+#' @param Gdist optional: a pre-calculated distance matrix of the living host
+#'   branches at time of infection. Providing this matrix will speed up the
+#'   calculation which may be useful when running several simulations on the
+#'   same host tree.
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
 #' @keywords Host-Parasite phylogeny
-#' @return By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-#'   If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-#'   (These dataframes are what the function uses internally.)
+#' @return By default, an object of class "cophylo" is returned that is a list
+#'   of phylo objects (one for the host and one for the parasite), as specified
+#'   in the R-package "ape". If the argument \code{export.format} is set to
+#'   "Raw" the function returns a list of dataframes containing information on
+#'   all the branches in the trees. (These dataframes are what the function uses
+#'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export

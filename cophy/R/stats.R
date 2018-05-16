@@ -68,8 +68,10 @@ get_HostShifts<-function(cophy)
 
 #' The following function counts infection levels
 #'
-#' The following function counts the number of hosts infected with a particular number of parasites from the same parasite phylogeny
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' The following function counts the number of hosts infected with a particular
+#' number of parasites from the same parasite phylogeny
+#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#'   and one parasite tree.
 #' @keywords cophylogeny, infection-counts
 #' @export
 #' @examples
@@ -139,8 +141,12 @@ get_2Pinfectionlevels<-function(cophy)
 
 #' Basic statistics describing a cophylogeny.
 #'
-#' The following function calculates the basic statistics concerning a particular simulation including: number of extant host species, number of extant parasite species, percentage of host species that are infected by at least one parasite, mean number of parasites per host
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' The following function calculates the basic statistics concerning a
+#' particular simulation including: number of extant host species, number of
+#' extant parasite species, percentage of host species that are infected by at
+#' least one parasite, mean number of parasites per host
+#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#'   and one parasite tree.
 #' @keywords cophylogeny, statistics
 #' @export
 #' @examples
@@ -231,10 +237,17 @@ get_branchNThroughTime<-function(phy,tmax,dt)
 
 #' Numbers of different events in parasite evolution.
 #'
-#' This function records parasites events through time including: Start of time interval, End of time interval, Number of living branches (at the end of time interval), cospeciation events, host shifts, extinction (with hosts surviving), co-extinction (extinction caused by host extinction), speciation events for lineages with surviving descendents
-#' @param cophy a cophylogeny (object of class "cophy") containing one host and either one or two parasite trees.
-#' @param tmin the timepoint in the simulation from which parasite events should be recorded, default = 0 (start point for the cophylogeny)
-#' @param tmax the timepoint in the simulation until which parasite events should be recorded, default = 'max' (end point for the cophylogeny)
+#' This function records parasites events through time including: Start of time
+#' interval, End of time interval, Number of living branches (at the end of time
+#' interval), cospeciation events, host shifts, extinction (with hosts
+#' surviving), co-extinction (extinction caused by host extinction), speciation
+#' events for lineages with surviving descendents
+#' @param cophy a cophylogeny (object of class "cophy") containing one host and
+#'   either one or two parasite trees.
+#' @param tmin the timepoint in the simulation from which parasite events should
+#'   be recorded, default = 0 (start point for the cophylogeny)
+#' @param tmax the timepoint in the simulation until which parasite events
+#'   should be recorded, default = 'max' (end point for the cophylogeny)
 #' @param dt step size for the time points at which calculations are made
 #' @keywords cophylogeny, events
 #' @export
@@ -437,10 +450,14 @@ get_GDist<-function(branches,t=NA)
   return(Gdist)
 }
 
-#' Calculating the distance matrix between living parasite branches, as well that of associated hosts
+#' Calculating the distance matrix between living parasite branches, as well
+#' that of associated hosts
 #'
-#' The following function returns a matrix of the patristic distances between all extant parasite species, and another matrix with the patristic distances of the associated host species.
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' The following function returns a matrix of the patristic distances between
+#' all extant parasite species, and another matrix with the patristic distances
+#' of the associated host species.
+#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#'   and one parasite tree.
 #' @keywords genetic distance
 #' @export
 #' @examples
@@ -546,9 +563,11 @@ get_PHDistSubtreeCorrelation <-function(cophy, h=NULL, k=NULL)
     return(NA)
 }
 
-#' The following function returns the fraction of infected host species within a subclade of a host tree that is specified by tips, a vector of tip labels.
+#' The following function returns the fraction of infected host species within a
+#' subclade of a host tree that is specified by tips, a vector of tip labels.
 #'
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#'   and one parasite tree.
 #' @param tips a vector of tip labels
 #' @keywords subtree, infection frequency
 #' @export

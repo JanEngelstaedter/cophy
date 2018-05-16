@@ -12,7 +12,8 @@ rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
 
-\item{nHmax}{a numeric value giving the number of host species at which the simulation is stopped.}
+\item{nHmax}{a numeric value giving the number of host species at which the
+simulation is stopped.}
 
 \item{lambda}{a numeric value giving the host speciation rate.}
 
@@ -22,33 +23,45 @@ rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}
 
-\item{gamma}{a numeric value giving the dependency of host shift success on phylogenetic distance between the old and the new host.}
+\item{gamma}{a numeric value giving the dependency of host shift success on
+phylogenetic distance between the old and the new host.}
 
-\item{sigma}{a numeric value determining how successful host shift are when the new host is already infected by a parasite.
-Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
-where \eqn{n} is the number of pre-existing parasites on the new host branch.}
+\item{sigma}{a numeric value determining how successful host shift are when
+the new host is already infected by a parasite. Specifically, the
+probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is the
+number of pre-existing parasites on the new host branch.}
 
 \item{nu}{a numeric value giving the parasite extinction rate.}
 
 \item{kappa}{parasite speciation rate within hosts}
 
-\item{delta}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation.}
+\item{delta}{probability of lineage loss during co-speciation. delta=0
+specifies faithful transmission of the parasites to both new host species,
+whereas delta=1 means that one of the lineages will always be lost during
+cospeciation.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
+\item{prune.extinct}{logical. Determines whether or not to remove all extinct
+branches.}
 
-\item{export.format}{either "Phylo" or "Raw" (see Value below) (exported as an object of ape phylo class, the default setting),
-or "Raw" (a matrix where rows are all the branches, this is the used format internally).}
+\item{export.format}{either "Phylo" or "Raw" (see Value below) (exported as
+an object of ape phylo class, the default setting), or "Raw" (a matrix
+where rows are all the branches, this is the used format internally).}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
-Increase to make the simulation faster or decrease to make it more precise.}
+\item{timestep}{a numeric value giving the time step by which the simulation
+proceeds. Increase to make the simulation faster or decrease to make it
+more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-  (These dataframes are what the function uses internally.)
+By default, an object of class "cophylo" is returned that is a list
+  of phylo objects (one for the host and one for the parasite), as specified
+  in the R-package "ape". If the argument \code{export.format} is set to
+  "Raw" the function returns a list of dataframes containing information on
+  all the branches in the trees. (These dataframes are what the function uses
+  internally.)
 }
 \description{
-This function simulates a random host tree with a random parasite tree evolving on that host tree.
+This function simulates a random host tree with a random parasite tree
+evolving on that host tree.
 }
 \examples{
 rcophylo_HP(tmax=5, k=5)

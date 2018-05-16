@@ -10,7 +10,8 @@ rphylo_H(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
 
-\item{nHmax}{a numeric value giving the number of host species at which the simulation is stopped.}
+\item{nHmax}{a numeric value giving the number of host species at which the
+simulation is stopped.}
 
 \item{lambda}{a numeric value giving the host speciation rate.}
 
@@ -18,20 +19,27 @@ rphylo_H(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 
 \item{K}{a numeric value giving the carrying capacity for the host species.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
+\item{prune.extinct}{logical. Determines whether or not to remove all extinct
+branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting) or "Raw" (just a list of branches as used within the function itself)}
+\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
+default setting) or "Raw" (just a list of branches as used within the
+function itself)}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
-Increase to make the simulation faster or decrease to make it more precise.}
+\item{timestep}{a numeric value giving the time step by which the simulation
+proceeds. Increase to make the simulation faster or decrease to make it
+more precise.}
 }
 \value{
-By default, an object of class "phylo" is returned, as specified in the R-package "ape".
-  If the argument \code{export.format} is set to "Raw" the function returns a dataframe containing information on all the branches in the tree.
-  (This dataframe are what the function uses internally.)
+By default, an object of class "phylo" is returned, as specified in
+  the R-package "ape". If the argument \code{export.format} is set to "Raw"
+  the function returns a dataframe containing information on all the branches
+  in the tree. (This dataframe are what the function uses internally.)
 }
 \description{
-This function simulates a random phylogenetic tree. This tree can then be used as a host tree on which parasites can evolve, using the \code{\link{rcophylo_PonH}} function.
+This function simulates a random phylogenetic tree. This tree can then be
+used as a host tree on which parasites can evolve, using the
+\code{\link{rcophylo_PonH}} function.
 }
 \examples{
 rphylo_H(tmax=5)

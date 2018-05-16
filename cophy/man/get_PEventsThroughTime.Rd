@@ -7,16 +7,23 @@
 get_PEventsThroughTime(cophy, tmin = 0, tmax = "max", dt = 1)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophy") containing one host and either one or two parasite trees.}
+\item{cophy}{a cophylogeny (object of class "cophy") containing one host and
+either one or two parasite trees.}
 
-\item{tmin}{the timepoint in the simulation from which parasite events should be recorded, default = 0 (start point for the cophylogeny)}
+\item{tmin}{the timepoint in the simulation from which parasite events should
+be recorded, default = 0 (start point for the cophylogeny)}
 
-\item{tmax}{the timepoint in the simulation until which parasite events should be recorded, default = 'max' (end point for the cophylogeny)}
+\item{tmax}{the timepoint in the simulation until which parasite events
+should be recorded, default = 'max' (end point for the cophylogeny)}
 
 \item{dt}{step size for the time points at which calculations are made}
 }
 \description{
-This function records parasites events through time including: Start of time interval, End of time interval, Number of living branches (at the end of time interval), cospeciation events, host shifts, extinction (with hosts surviving), co-extinction (extinction caused by host extinction), speciation events for lineages with surviving descendents
+This function records parasites events through time including: Start of time
+interval, End of time interval, Number of living branches (at the end of time
+interval), cospeciation events, host shifts, extinction (with hosts
+surviving), co-extinction (extinction caused by host extinction), speciation
+events for lineages with surviving descendents
 }
 \examples{
 HPBranches<-rcophylo_HP(tmax=5)

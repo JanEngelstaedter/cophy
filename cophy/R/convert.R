@@ -1,8 +1,8 @@
 # convert.R
 
-# This file contains several functions that convert (co-)phylogenies from a raw, dataframe format into the (co-)phylo class and back.
-# All of these functions are meant for internal use only.
-# This file is part of the R-package 'cophylo'.
+# This file contains several functions that convert (co-)phylogenies from a raw,
+# dataframe format into the (co-)phylo class and back. All of these functions
+# are meant for internal use only. This file is part of the R-package 'cophylo'.
 
 
 #' Converting raw trees to phylo format

@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils.R
 \name{get_preInvasionTraits}
 \alias{get_preInvasionTraits}
-\title{A function to calculate the initial host resistance trait values prior to host clade invasion by a parasite}
+\title{A function to calculate the initial host resistance trait values prior to
+host clade invasion by a parasite}
 \usage{
 get_preInvasionTraits(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
   startTrait = NA, timestep = 0.001)
@@ -12,16 +13,23 @@ get_preInvasionTraits(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
 
 \item{P.startT}{the timepoint at which a parasite invades the host-tree}
 
-\item{epsilon.1to0}{the basline mutation rate for a host to lose the resistance trait}
+\item{epsilon.1to0}{the basline mutation rate for a host to lose the
+resistance trait}
 
-\item{epsilon.0to1}{the basline mutation rate for a host to gain the resistance trait}
+\item{epsilon.0to1}{the basline mutation rate for a host to gain the
+resistance trait}
 
-\item{startTrait}{specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)}
+\item{startTrait}{specifies the initial resistance trait of the first host
+species (0 or 1). Defaults to NA (random)}
 
 \item{timestep}{timestep for simulations}
 }
 \description{
-This function simulates a parasite phylogenetic tree over a pre-built host-tree. While simulating parasite tree, also simulates the evolution of a host resistance trait as a result of stochastic mutation as well as in responce to the presence of a parasite. The success of the parasite being influenced by the resistance or susceptibility of the host.
+This function simulates a parasite phylogenetic tree over a pre-built
+host-tree. While simulating parasite tree, also simulates the evolution of a
+host resistance trait as a result of stochastic mutation as well as in
+responce to the presence of a parasite. The success of the parasite being
+influenced by the resistance or susceptibility of the host.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")

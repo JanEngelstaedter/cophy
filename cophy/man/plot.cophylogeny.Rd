@@ -9,15 +9,28 @@
   plotPEvolution = c(TRUE, TRUE), ...)
 }
 \arguments{
-\item{x}{a cophylogeny (object of class "cophy" built by the cophy(H.tree, P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a parasite tree. This may also contain a second parasite tree or/and parasite trait values.}
+\item{x}{a cophylogeny (object of class "cophy" built by the cophy(H.tree,
+P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a
+parasite tree. This may also contain a second parasite tree or/and parasite
+trait values.}
 
-\item{ParasiteCol}{a list of length 2 that specifies the colours to use when ploting parasite lineages. The first position indicates the colour of the first parasite lineage. If there is a second parasite lineage, its colour is specified by the second position. Defaults to red and blue.}
+\item{ParasiteCol}{a list of length 2 that specifies the colours to use when
+ploting parasite lineages. The first position indicates the colour of the
+first parasite lineage. If there is a second parasite lineage, its colour
+is specified by the second position. Defaults to red and blue.}
 
-\item{ResistanceCol}{in the case that a TraitTracking object is available, gives the option to choose the plotting colour.}
+\item{ResistanceCol}{in the case that a TraitTracking object is available,
+gives the option to choose the plotting colour.}
 
-\item{plotHResistance}{boolean parameter to specify if resistance traits are to be plotted. Default to TRUE, if no TraitTracking object is included in cophy, a warning is returned.}
+\item{plotHResistance}{boolean parameter to specify if resistance traits are
+to be plotted. Default to TRUE, if no TraitTracking object is included in
+cophy, a warning is returned.}
 
-\item{plotPEvolution}{boolean list parameter to specify if parasite evolution is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability to plot each of two parasite lineages. If only one parasite lineage if provided and is to be plotted, the default can be used. If do not want to plot any parasites, should be set simply to FALSE.}
+\item{plotPEvolution}{boolean list parameter to specify if parasite evolution
+is to be plotted. Defaults to c(TRUE, TRUE), to allow the selective ability
+to plot each of two parasite lineages. If only one parasite lineage if
+provided and is to be plotted, the default can be used. If do not want to
+plot any parasites, should be set simply to FALSE.}
 
 \item{...}{other parameters to be passed to plotting functions.}
 }

@@ -9,14 +9,20 @@ cophylogeny(H.tree, P.tree, Q.tree = NA, TraitTracking = NA)
 \arguments{
 \item{H.tree}{a pre-built host phylogenetic tree of class 'phylo' (required)}
 
-\item{P.tree}{a pre-built parasite phylogenetic tree of class 'phylo' (required)}
+\item{P.tree}{a pre-built parasite phylogenetic tree of class 'phylo'
+(required)}
 
-\item{Q.tree}{a pre-built parasite phylogenetic tree of class 'phylo' (optional)}
+\item{Q.tree}{a pre-built parasite phylogenetic tree of class 'phylo'
+(optional)}
 
-\item{TraitTracking}{an object that tracks the evolution of a parasite response trait on the host tree (optional)}
+\item{TraitTracking}{an object that tracks the evolution of a parasite
+response trait on the host tree (optional)}
 }
 \description{
-This function creates an object of class 'cophy', which can be passed to the plot.cophy() function. This object must contain at least one host and one parasite tree, but can also contain a second parasite tree and a TraitTracking object.
+This function creates an object of class 'cophy', which can be passed to the
+plot.cophy() function. This object must contain at least one host and one
+parasite tree, but can also contain a second parasite tree and a
+TraitTracking object.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")

@@ -46,7 +46,8 @@ simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 
 #' A function to simulate many random cophylogenies and calculate statistics
 #'
-#' A function to run a certain number of replicate simulations, save all the trees and output all stats.
+#' A function to run a certain number of replicate simulations, save all the
+#' trees and output all stats.
 #' @param tmax maximum time for which to simulate
 #' @param lambda host speciation rate
 #' @param K carrying capacity for host species
@@ -56,10 +57,12 @@ simulate_HostTrees<-function(tmax,lambda,mu,K,timestep,reps,filename=NA)
 #' @param sigma probability of successful co-infection following host jump
 #' @param nu parasite extinction rate
 #' @param kappa the probability that a parasite duplicates within a host species
-#' @param delta the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event
+#' @param delta the probability that a parasite is lost randomly in one of the
+#'   daughter host species during a cospeciation event
 #' @param timestep timestep for simulations
 #' @param reps number of times to simulate this set of parameters
-#' @param filename name underwhich set of simulations and statistics will be saved
+#' @param filename name underwhich set of simulations and statistics will be
+#'   saved
 #' @keywords Host-Parasite phylogeny, statistics
 #' @export
 #' @examples
@@ -93,9 +96,11 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 }
 
 
-#' A function to simulate many random coevolving parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
+#' A function to simulate many random coevolving parasite phylogenies on
+#' pre-built host-trees and calculate statistics in parallel.
 #'
-#' The following function simulates parasite phylogenetic trees on pre-built host trees using parallel computing.
+#' The following function simulates parasite phylogenetic trees on pre-built
+#' host trees using parallel computing.
 #' @param Htrees pre-built host trees on which to simulate parasite trees
 #' @param fromHtree starting host-tree
 #' @param toHtree finishing host-tree
@@ -106,12 +111,15 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 #' @param sigma probability of successful co-infection following host jump
 #' @param nu parasite extinction rate
 #' @param kappa the probability that a parasite duplicates within a host species
-#' @param delta the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event
+#' @param delta the probability that a parasite is lost randomly in one of the
+#'   daughter host species during a cospeciation event
 #' @param timestep timestep for simulations
 #' @param reps1 the number of starting points for the parasite trees
 #' @param reps2 the number of replicates per starting point
-#' @param filename name underwhich set of simulations and statistics will be saved
-#' @param ncores the number of cores that will be used to run simulations in parallel
+#' @param filename name underwhich set of simulations and statistics will be
+#'   saved
+#' @param ncores the number of cores that will be used to run simulations in
+#'   parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
@@ -222,9 +230,11 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
   stats
 }
 
-#' A function to simulate many random coevolving (dual)parasite phylogenies on pre-built host-trees and calculate statistics in parallel.
+#' A function to simulate many random coevolving (dual)parasite phylogenies on
+#' pre-built host-trees and calculate statistics in parallel.
 #'
-#' The following function simulates two competing parasite phylogenetic trees on pre-built host trees using parallel computing.
+#' The following function simulates two competing parasite phylogenetic trees on
+#' pre-built host trees using parallel computing.
 #' @param Htrees pre-built host trees on which to simulate parasite trees
 #' @param fromHtree starting host-tree
 #' @param toHtree finishing host-tree
@@ -232,19 +242,27 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @param beta parasite host jump rate
 #' @param gamma.P dependency on genetic distance for host jumps
 #' @param gamma.Q dependency on genetic distance for host jumps
-#' @param sigma.self probability of successful co-infection with related parasite following host jump
-#' @param sigma.cross probability of successful co-infection with unrelated parasite following host jump
+#' @param sigma.self probability of successful co-infection with related
+#'   parasite following host jump
+#' @param sigma.cross probability of successful co-infection with unrelated
+#'   parasite following host jump
 #' @param nu.P parasite extinction rate
 #' @param nu.Q parasite extinction rate
-#' @param kappa.P the probability that a parasite duplicates within a host species
-#' @param kappa.Q the probability that a parasite duplicates within a host species
-#' @param delta.P the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event
-#' @param delta.Q the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event
+#' @param kappa.P the probability that a parasite duplicates within a host
+#'   species
+#' @param kappa.Q the probability that a parasite duplicates within a host
+#'   species
+#' @param delta.P the probability that a parasite is lost randomly in one of the
+#'   daughter host species during a cospeciation event
+#' @param delta.Q the probability that a parasite is lost randomly in one of the
+#'   daughter host species during a cospeciation event
 #' @param timestep timestep for simulations
 #' @param reps1 the number of starting points for the parasite trees
 #' @param reps2 the number of replicates per starting point
-#' @param filename name underwhich set of simulations and statistics will be saved
-#' @param ncores the number of cores that will be used to run simulations in parallel
+#' @param filename name underwhich set of simulations and statistics will be
+#'   saved
+#' @param ncores the number of cores that will be used to run simulations in
+#'   parallel
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
@@ -342,7 +360,8 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 
 #' A parallel parasite tree building function with host response to infection
 #'
-#' The following function simulates a parasite phylogenetic tree on a pre-built host phylogeny.
+#' The following function simulates a parasite phylogenetic tree on a pre-built
+#' host phylogeny.
 #' @param Htrees a pre-built host phylogenetic tree
 #' @param HtreesPhylo list of host trees converted to phylo format
 #' @param fromHtree starting host-tree
@@ -352,24 +371,39 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @param sigma probability of successful co-infection following host jump
 #' @param nu parasite extinction rate
 #' @param kappa the probability that a parasite duplicates within a host species
-#' @param delta the probability that a parasite is lost randomly in one of the daughter host species during a cospeciation event
-#' @param epsilon.0to1 the baseline rate that a host with trait value 0 will mutate to a host with trait value 1
-#' @param epsilon.1to0 the baseline rate that a host with trait value 1 will mutate to a host with trait value 0
-#' @param startTrait specifies the initial resistance trait of the first host species (0 or 1). Defaults to NA (random)
-#' @param omega factor by which switching between trait values is altered depending on the trait value of the host and presence of parasites
-#' @param rho factor by which parasite extinction rate increases in response to host resistance
-#' @param psi factor by which parasite host-jump success decreases due to resistance of the new host
-#' @param TraitTracking an object which provides the evolutionary history of the parasite interaction trait. Needs to match host trees provided.
-#' @param prune.extinct whether to remove all extinct branches defaulting to FALSE
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)
+#' @param delta the probability that a parasite is lost randomly in one of the
+#'   daughter host species during a cospeciation event
+#' @param epsilon.0to1 the baseline rate that a host with trait value 0 will
+#'   mutate to a host with trait value 1
+#' @param epsilon.1to0 the baseline rate that a host with trait value 1 will
+#'   mutate to a host with trait value 0
+#' @param startTrait specifies the initial resistance trait of the first host
+#'   species (0 or 1). Defaults to NA (random)
+#' @param omega factor by which switching between trait values is altered
+#'   depending on the trait value of the host and presence of parasites
+#' @param rho factor by which parasite extinction rate increases in response to
+#'   host resistance
+#' @param psi factor by which parasite host-jump success decreases due to
+#'   resistance of the new host
+#' @param TraitTracking an object which provides the evolutionary history of the
+#'   parasite interaction trait. Needs to match host trees provided.
+#' @param prune.extinct whether to remove all extinct branches defaulting to
+#'   FALSE
+#' @param export.format either "Phylo" (exported in Ape Phylo format, the
+#'   default setting)) or "Raw" (just a list of branches as used within the
+#'   function itself)
 #' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param reps1 the number of starting points for the parasite trees
 #' @param reps2 the number of replicates per starting point
-#' @param ini.Hbranch the host branch from which the parasite invasion is initiated (defaults to NA)
-#' @param Gdist can input a pre-calculated distance matrix of the living host branches at time of infection (defaults to NA)
+#' @param ini.Hbranch the host branch from which the parasite invasion is
+#'   initiated (defaults to NA)
+#' @param Gdist can input a pre-calculated distance matrix of the living host
+#'   branches at time of infection (defaults to NA)
 #' @param timestep timestep for simulations
-#' @param filename name underwhich set of simulations and statistics will be saved
-#' @param ncores the number of cores that will be used to run simulations in parallel
+#' @param filename name underwhich set of simulations and statistics will be
+#'   saved
+#' @param ncores the number of cores that will be used to run simulations in
+#'   parallel
 #' @keywords Host-Parasite phylogeny
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%

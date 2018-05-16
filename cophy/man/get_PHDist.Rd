@@ -2,15 +2,19 @@
 % Please edit documentation in R/stats.R
 \name{get_PHDist}
 \alias{get_PHDist}
-\title{Calculating the distance matrix between living parasite branches, as well that of associated hosts}
+\title{Calculating the distance matrix between living parasite branches, as well
+that of associated hosts}
 \usage{
 get_PHDist(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylo") containing one host
+and one parasite tree.}
 }
 \description{
-The following function returns a matrix of the patristic distances between all extant parasite species, and another matrix with the patristic distances of the associated host species.
+The following function returns a matrix of the patristic distances between
+all extant parasite species, and another matrix with the patristic distances
+of the associated host species.
 }
 \examples{
 HPBranches<-rcophylo_HP(tmax=5)

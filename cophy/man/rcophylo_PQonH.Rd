@@ -17,17 +17,25 @@ rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
 
 \item{beta}{parasite host jump rate}
 
-\item{gamma.P}{a numeric value giving the dependency of host shift success of parasite P on phylogenetic distance between the old and the new host (see Details).}
+\item{gamma.P}{a numeric value giving the dependency of host shift success of
+parasite P on phylogenetic distance between the old and the new host (see
+Details).}
 
-\item{gamma.Q}{a numeric value giving the dependency of host shift success of parasite Q on phylogenetic distance between the old and the new host (see Details).}
+\item{gamma.Q}{a numeric value giving the dependency of host shift success of
+parasite Q on phylogenetic distance between the old and the new host (see
+Details).}
 
-\item{sigma.self}{a numeric value determining how successful host shift are when the new host is already infected by the same parasite.
-Specifically, the probability of host shift success \eqn{(1-\sigma)^n},
-where \eqn{n} is the number of pre-existing parasites of the same type (P or Q) on the new host branch.}
+\item{sigma.self}{a numeric value determining how successful host shift are
+when the new host is already infected by the same parasite. Specifically,
+the probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is
+the number of pre-existing parasites of the same type (P or Q) on the new
+host branch.}
 
-\item{sigma.cross}{a numeric value determining how successful host shift are when the new host is already infected by the other parasite (see Details).
+\item{sigma.cross}{a numeric value determining how successful host shift are
+when the new host is already infected by the other parasite (see Details).
 Specifically, the probability of host shift success \eqn{(1-\sigma)^m},
-where \eqn{m} is the number of pre-existing parasites belonging the other type (P or Q) on the new host branch.}
+where \eqn{m} is the number of pre-existing parasites belonging the other
+type (P or Q) on the new host branch.}
 
 \item{nu.P}{a numeric value giving the extinction rate of parasites of type P}
 
@@ -37,31 +45,49 @@ where \eqn{m} is the number of pre-existing parasites belonging the other type (
 
 \item{kappa.Q}{parasite speciation rate within hosts for parasites of type Q}
 
-\item{delta.P}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type P.}
+\item{delta.P}{probability of lineage loss during co-speciation. delta=0
+specifies faithful transmission of the parasites to both new host species,
+whereas delta=1 means that one of the lineages will always be lost during
+cospeciation for parasites of type P.}
 
-\item{delta.Q}{probability of lineage loss during co-speciation. delta=0 specifies faithful transmission of the parasites to both new host species, whereas delta=1 means that one of the lineages will always be lost during cospeciation for parasites of type Q.}
+\item{delta.Q}{probability of lineage loss during co-speciation. delta=0
+specifies faithful transmission of the parasites to both new host species,
+whereas delta=1 means that one of the lineages will always be lost during
+cospeciation for parasites of type Q.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct branches.}
+\item{prune.extinct}{logical. Determines whether or not to remove all extinct
+branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the default setting)) or "Raw" (just a list of branches as used within the function itself)}
+\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
+default setting)) or "Raw" (just a list of branches as used within the
+function itself)}
 
-\item{P.startT}{a numeric value giving the the timepoint at which a parasite invades the host-tree}
+\item{P.startT}{a numeric value giving the the timepoint at which a parasite
+invades the host-tree}
 
-\item{ini.Hbranch}{a numeric value giving the the host branch from which the parasite invasion is initiated.}
+\item{ini.Hbranch}{a numeric value giving the the host branch from which the
+parasite invasion is initiated.}
 
-\item{Gdist}{optional: a pre-calculated distance matrix of the living host branches at time of infection.
-Providing this matrix will speed up the calculation which may be useful when running several simulations on the same host tree.}
+\item{Gdist}{optional: a pre-calculated distance matrix of the living host
+branches at time of infection. Providing this matrix will speed up the
+calculation which may be useful when running several simulations on the
+same host tree.}
 
-\item{timestep}{a numeric value giving the time step by which the simulation proceeds.
-Increase to make the simulation faster or decrease to make it more precise.}
+\item{timestep}{a numeric value giving the time step by which the simulation
+proceeds. Increase to make the simulation faster or decrease to make it
+more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list of phylo objects (one for the host and one for the parasite), as specified in the R-package "ape".
-  If the argument \code{export.format} is set to "Raw" the function returns a list of dataframes containing information on all the branches in the trees.
-  (These dataframes are what the function uses internally.)
+By default, an object of class "cophylo" is returned that is a list
+  of phylo objects (one for the host and one for the parasite), as specified
+  in the R-package "ape". If the argument \code{export.format} is set to
+  "Raw" the function returns a list of dataframes containing information on
+  all the branches in the trees. (These dataframes are what the function uses
+  internally.)
 }
 \description{
-This function simulates the codiversification of two clades of parasites (P and Q) on a given host phylogeny (simulated or estimated) that is provided.
+This function simulates the codiversification of two clades of parasites (P
+and Q) on a given host phylogeny (simulated or estimated) that is provided.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")
