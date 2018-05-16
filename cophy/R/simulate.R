@@ -123,12 +123,15 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
 #' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
 #' simulate_cophys_PonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
-#' kappa=0, delta=0, timestep=0.001, filename="file")
+#' 	kappa=0, delta=0, timestep=0.001, filename="file")
 
 simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
 {
@@ -266,6 +269,9 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @keywords multiple Host-Parasite phylogeny, statistics, parallel
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
@@ -407,6 +413,9 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @keywords Host-Parasite phylogeny
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
 #' @importFrom bigmemory describe
 #' @importFrom bigmemory attach.big.matrix
 #' @export
