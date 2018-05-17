@@ -129,11 +129,12 @@ simulate_cophys_HP<-function(tmax,lambda,mu,beta,gamma,sigma,nu,kappa,delta,K,ti
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
-#' simulate_cophys_PonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
-#' 	kappa=0, delta=0, timestep=0.001, filename="file")
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' simulate_cophys_PonH(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02, sigma=0,
+#'  nu=0.5, kappa=0, delta=0, timestep=0.001,reps1=1,reps2=2, filename="file")
 
-simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,P.startT,beta,gamma,sigma,nu,kappa,delta,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
+simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,P.startT, beta, gamma, sigma, nu, kappa, delta, timestep, reps1=1, reps2=1, filename=NA, ncores=1)
 {
   print(paste("Simulations for ",filename," started.",sep=""))
 
@@ -275,10 +276,12 @@ simulate_cophys_PonH<-function(Htrees,fromHtree=NA, toHtree=NA, HtreesPhylo=NA ,
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
-#' simulate_cophys_PQonH(Htrees=Htree, P.startT=2.5, beta=0.1, gamma.P=0.02, gamma.Q=0.02,
-#'  sigma.self=0, sigma.cross=0, nu.P=0.5, nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0,
-#'  timestep=0.001, filename="PQonHtrees")
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' simulate_cophys_PQonH(Htrees=Htree, P.startT=5, beta=0.1, gamma.P=0.02,
+#'  gamma.Q=0.02, sigma.self=0, sigma.cross=0, nu.P=0.5, nu.Q=0.5, kappa.P=0,
+#'  kappa.Q=0, delta.P=0, delta.Q=0, timestep=0.001,reps1=1,reps2=2,
+#'  filename="PQonHtrees")
 
 simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,gamma.P,gamma.Q,sigma.self,sigma.cross,nu.P,nu.Q,kappa.P,kappa.Q,delta.P,delta.Q,timestep,reps1=1,reps2=1,filename=NA,ncores=1)
 {
@@ -420,10 +423,12 @@ simulate_cophys_PQonH <-function(Htrees,fromHtree=NA, toHtree=NA, P.startT,beta,
 #' @importFrom bigmemory attach.big.matrix
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=5, export.format="Raw"), rphylo_H(tmax=5, export.format="Raw"))
-#' simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=2.5, beta=0.1, gamma=0.02, sigma=0, nu=0.5,
-#' kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001, startTrait=0, omega=10, rho=0.75,
-#' psi=0.75, timestep=0.001, filename="file")
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02,
+#'  sigma=0, nu=0.5, kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001,
+#'  startTrait=0, omega=10, rho=0.75, psi=0.75, timestep=0.001,reps1=1,reps2=2,
+#'  filename="file")
 
 simulate_cophys_PonH_Htrait <-function(Htrees, HtreesPhylo=NA, fromHtree=NA, toHtree=NA, beta=0.1,gamma=0.2,sigma=0,nu=0.5,kappa,delta,epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, reps1=1, reps2=1, ini.Hbranch=NA, Gdist=NA, timestep=0.001, filename=NA, ncores=1)
 {
