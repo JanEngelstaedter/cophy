@@ -48,316 +48,329 @@ DBINC<-100
 #' @examples
 #' rcophylo_HP(tmax=5, k=5)
 
-rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=0.02, sigma=0, nu=0.5, kappa=0, delta=0, prune.extinct=FALSE, export.format="Phylo", timestep=0.001) {
+rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
+                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
+                        prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
-  lambda <- lambda*timestep
-  mu    <- mu*timestep
-  nu    <- nu*timestep
-  beta   <- beta*timestep
-  kappa <- kappa*timestep
+  lambda <- lambda * timestep
+  mu     <- mu * timestep
+  nu     <- nu * timestep
+  beta   <- beta * timestep
+  kappa  <- kappa * timestep
 
-  nHAlive <-0
-  while (nHAlive==0) { # simulate until surviving tree is built
-    t <-0
-    HBranches<-data.frame(alive=TRUE,nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=1)
+  nHAlive <- 0
+  while (nHAlive == 0) { # simulate until surviving tree is built
+    t <- 0
+    HBranches    <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 1)
 
     nHBranches <- 1		  	# total number of branches that have been constructed
     nHAlive    <- 1			  # number of branches that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
-    HDeadBranches<-data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0)
+    HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0,
+                                tDeath = 0, branchNo = 0)
 
     nHDeadBranches <- 0	  # number of dead host branches
 
-    PBranches<-data.frame(alive=TRUE,nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=1,branchNo=1)
+    PBranches     <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
+                            Hassoc = 1, branchNo = 1)
 
     nPBranches <- 1		    # total number of branches that have been constructed
     nPAlive    <- 1			  # number of branches that extent until the current timestep
     nextPNode  <- 1       # number of the next node to be produced
 
-    PDeadBranches<-data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
+    PDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
 
     nPDeadBranches <- 0	  # number of dead parasite branches
 
-    Gdist<-matrix(0,nrow=1,ncol=1) # initiating the Gdist matrix (genetic distance between all living hosts)
+    Gdist <- matrix(0, nrow = 1, ncol = 1) # initiating the Gdist matrix (genetic distance between all living hosts)
 
-    continue<-TRUE
-    while (continue==TRUE) { # continue simulation until specified time
-      t<-t+timestep
-      lambda.adj<-lambda*(1-(nHAlive/K)) # lambda adjusted for carrying capacity
-      if (lambda.adj<0) { # make sure lambda doesn't drop below 0
-        lambda.adj<-0
+    continue <- TRUE
+    while (continue == TRUE) { # continue simulation until specified time
+      t <- t + timestep
+      lambda.adj <- lambda * (1 - (nHAlive / K)) # lambda adjusted for carrying capacity
+      if (lambda.adj < 0) { # make sure lambda doesn't drop below 0
+        lambda.adj <- 0
       }
 
       # update Gdist matrix:
-      Gdist<-Gdist+2*timestep
-      diag(Gdist)<-0  # cleaning up so that distance between branch to itself is always 0
+      Gdist <- Gdist + 2 * timestep
+      diag(Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
       # host extinction events:
-      nHToDie<-rbinom(1,nHAlive,mu)  # how many host species go extinct?
-      if (nHToDie>0) {
-        HToDie<-sample.int(nHAlive,nHToDie) # selecting which hosts will become extinct
+      nHToDie <- rbinom(1, nHAlive, mu)  # how many host species go extinct?
+      if (nHToDie > 0) {
+        HToDie <- sample.int(nHAlive, nHToDie) # selecting which hosts will become extinct
         for (i in HToDie) {
-          timepoint			         <-t-runif(1,max=timestep) # random timepoint for extinction event
-          HBranches$alive[i]	   <-FALSE
-          HBranches$nodeDeath[i] <-nextHNode
-          HBranches$tDeath[i]    <-timepoint
+          timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+          HBranches$alive[i]	   <- FALSE
+          HBranches$nodeDeath[i] <- nextHNode
+          HBranches$tDeath[i]    <- timepoint
 
-          nHDeadBranches		     <-nHDeadBranches+1
-          nextHNode              <-nextHNode+1
-          nHAlive			           <-nHAlive-1
+          nHDeadBranches		     <- nHDeadBranches+1
+          nextHNode              <- nextHNode+1
+          nHAlive			           <- nHAlive-1
 
-          HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info to dead tree
-          if (length(HDeadBranches[,1])==nHDeadBranches) { # if dataframe containing dead branches is full
-            HDeadBranches<-rbind(HDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0))
+          HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
+          if (length(HDeadBranches[,1]) == nHDeadBranches) { # if dataframe containing dead branches is full
+            HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
           }
 
-          assocP<-which(PBranches$Hassoc==HBranches$branchNo[i]) # retrieve associated parasites
-          if (length(assocP)>0) {
+          assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
+          if (length(assocP) > 0) {
             for(j in assocP) {
-              PBranches$alive[j]	   <-FALSE
-              PBranches$nodeDeath[j] <-nextPNode
-              PBranches$tDeath[j]    <-timepoint
-              nPDeadBranches		     <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0,branchNo=0))
-              nextPNode               <-nextPNode+1
-              nPAlive			        <-nPAlive-1
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches,] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[,1]) == nPDeadBranches) # if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+              nextPNode              <- nextPNode + 1
+              nPAlive			           <- nPAlive - 1
             }
 
-            PBranches<-PBranches[-assocP,] # delete all branches associated with extinct host from living tree
+            PBranches <- PBranches[-assocP, ] # delete all branches associated with extinct host from living tree
           }
         }
 
-        HBranches<-HBranches[-HToDie,] # delete all extinct hosts from living tree
-        if (nHAlive>0) { # update Gdist
-          Gdist<-Gdist[-HToDie,,drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
-          Gdist<-Gdist[,-HToDie,drop=FALSE]
+        HBranches <- HBranches[-HToDie, ] # delete all extinct hosts from living tree
+        if (nHAlive > 0) { # update Gdist
+          Gdist <- Gdist[-HToDie, , drop = FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+          Gdist <- Gdist[, -HToDie, drop=FALSE]
         }
       }
 
       # host speciation events:
-      nHToSpeciate<-rbinom(1,nHAlive,lambda.adj) # no. speciating hosts
-      if (nHToSpeciate>0) {
-        HToSpeciate<-sample.int(nHAlive,nHToSpeciate) # which hosts to speciate
+      nHToSpeciate <- rbinom(1, nHAlive, lambda.adj) # no. speciating hosts
+      if (nHToSpeciate > 0) {
+        HToSpeciate <- sample.int(nHAlive, nHToSpeciate) # which hosts to speciate
 
         for (i in HToSpeciate) {
-          timepoint			   <-t-runif(1,max=timestep) # random timepoint for speciation event
-          HBranches$nodeDeath[i] <-nextHNode
-          HBranches$tDeath[i]    <-timepoint
+          timepoint              <- t - runif(1, max = timestep) # random timepoint for speciation event
+          HBranches$nodeDeath[i] <- nextHNode
+          HBranches$tDeath[i]    <- timepoint
 
-          nHDeadBranches		   <-nHDeadBranches+1
-          HBranches$alive[i]	   <-FALSE
-          HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info to dead tree
-          if (length(HDeadBranches[,1])==nHDeadBranches) # if dataframe containing dead branches is full
-            HDeadBranches<-rbind(HDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0))
+          nHDeadBranches		     <- nHDeadBranches + 1
+          HBranches$alive[i]	   <- FALSE
+          HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
+          if (length(HDeadBranches[, 1]) == nHDeadBranches) # if dataframe containing dead branches is full
+            HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE , DBINC), nodeBirth = 0,
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
 
-          HBranches              <-rbind(HBranches,c(TRUE,nextHNode,timepoint,0,0,nHBranches+1))
-          HBranches              <-rbind(HBranches,c(TRUE,nextHNode,timepoint,0,0,nHBranches+2))
-          nextHNode              <-nextHNode+1
-          nHAlive               <-nHAlive+1
-          nHBranches            <-nHBranches+2
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 1))
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 2))
+          nextHNode  <- nextHNode + 1
+          nHAlive    <- nHAlive + 1
+          nHBranches <- nHBranches + 2
 
           # update Gdist matrix:
           # adding new rows and columns
 
-          Gdist<-rbind(Gdist,NA)
-          Gdist<-rbind(Gdist,NA)
-          Gdist<-cbind(Gdist,NA)
-          Gdist<-cbind(Gdist,NA)
+          Gdist <- rbind(Gdist, NA)
+          Gdist <- rbind(Gdist, NA)
+          Gdist <- cbind(Gdist, NA)
+          Gdist <- cbind(Gdist, NA)
 
           # filling in values
 
-          len<-length(Gdist[1,])
+          len <- length(Gdist[1, ])
 
-          Gdist[len-1,len-1]<-0
-          Gdist[len,len]<-0
-          Gdist[len-1,len]<-2*(t-timepoint)
-          Gdist[len,len-1]<-2*(t-timepoint)
+          Gdist[len-1, len-1] <- 0
+          Gdist[len, len]     <- 0
+          Gdist[len-1, len]   <- 2 * (t - timepoint)
+          Gdist[len, len-1]   <- 2 * (t - timepoint)
 
-          Gdist[1:(len-2),len-1]<-Gdist[1:(len-2),i]
-          Gdist[1:(len-2),len]<-Gdist[1:(len-2),i]
-          Gdist[len-1,1:(len-2)]<-Gdist[i,1:(len-2)]
-          Gdist[len,1:(len-2)]<-Gdist[i,1:(len-2)]
+          Gdist[1:(len-2), len-1] <-Gdist[1:(len-2), i]
+          Gdist[1:(len-2), len]   <-Gdist[1:(len-2), i]
+          Gdist[len-1, 1:(len-2)] <-Gdist[i, 1:(len-2)]
+          Gdist[len, 1:(len-2)]   <-Gdist[i, 1:(len-2)]
 
           # cospeciation of parasites:
-          assocP<-which(PBranches$Hassoc==HBranches$branchNo[i]) # retrieve associated parasites
-          if (length(assocP)>0) { # make sure argument greater then length 0
+          assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
+          if (length(assocP) > 0) { # make sure argument greater then length 0
             for(j in assocP) {
-              PBranches$alive[j]	   <-FALSE
-              PBranches$nodeDeath[j] <-nextPNode
-              PBranches$tDeath[j]    <-timepoint
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
 
-              nPDeadBranches		   <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0,branchNo=0))
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches, ] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[, 1]) == nPDeadBranches) # if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
 
-              PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,nHBranches-1, nPBranches+1))
-              PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,nHBranches, nPBranches+2))
-              nextPNode              <-nextPNode+1
-              nPAlive               <-nPAlive+1
-              nPBranches            <-nPBranches+2
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, nHBranches - 1, nPBranches + 1))
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, nHBranches, nPBranches + 2))
+              nextPNode  <- nextPNode + 1
+              nPAlive    <- nPAlive + 1
+              nPBranches <- nPBranches + 2
             }
-            PBranches<-PBranches[-assocP,]  # removing all mother parasite branches that have co-speciated
+            PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1)<delta) {
-                whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
+            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1) < delta) {
+                whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
 
-                PBranches$alive[whichBranch]	   <-FALSE
-                PBranches$nodeDeath[whichBranch] <-nextPNode
-                PBranches$tDeath[whichBranch]    <-timepoint
+                PBranches$alive[whichBranch]	   <- FALSE
+                PBranches$nodeDeath[whichBranch] <- nextPNode
+                PBranches$tDeath[whichBranch]    <- timepoint
 
-                nPDeadBranches		   <-nPDeadBranches+1
-                PDeadBranches[nPDeadBranches,]<-PBranches[whichBranch,] # copy branches updated with death info to dead tree
-                if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                  PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-                nextPNode          <-nextPNode+1
-                nPAlive			       <-nPAlive-1
-                PBranches<-PBranches[-whichBranch,] # removing dead parasite branche
+                nPDeadBranches <- nPDeadBranches + 1
+                PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                if (length(PDeadBranches[, 1]) == nPDeadBranches) # if dataframe containing dead branches is full
+                  PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC),
+                                                                   nodeBirth = 0, tBirth = 0, nodeDeath = 0,
+                                                                   tDeath = 0, Hassoc = 0, branchNo = 0))
+                nextPNode <- nextPNode + 1
+                nPAlive		<- nPAlive - 1
+                PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
           }
         }
-        HBranches<-HBranches[-HToSpeciate,]   # removing all host mother branches that have speciated
-        Gdist<-Gdist[-HToSpeciate,]
-        Gdist<-Gdist[,-HToSpeciate]
+        HBranches <- HBranches[-HToSpeciate, ]   # removing all host mother branches that have speciated
+        Gdist     <- Gdist[-HToSpeciate, ]
+        Gdist     <- Gdist[, -HToSpeciate]
       }
 
       # parasite speciation (independent of hosts)
-		if (kappa>0) {
-			nPToSpeciate	<-rbinom(1,nPAlive,kappa) # how many parasite species go extinct?
-		} else {
-			nPToSpeciate<-0
-    		}
+      if (kappa > 0) {
+			  nPToSpeciate <- rbinom(1, nPAlive, kappa) # how many parasite species go extinct?
+	  	} else {
+		  	nPToSpeciate <- 0
+      }
 
-	    if (nPToSpeciate>0) {
-			PToSpeciate<-sample.int(nPAlive,nPToSpeciate) # which parasites?
-			PToSpeciate<-PToSpeciate[PBranches$tBirth[PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+	    if (nPToSpeciate > 0) {
+			PToSpeciate <- sample.int(nPAlive, nPToSpeciate) # which parasites?
+			PToSpeciate <- PToSpeciate[PBranches$tBirth[PToSpeciate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 			for (i in PToSpeciate) {
-				timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-				PBranches$alive[i]	   <-FALSE
-				PBranches$nodeDeath[i] <-nextPNode
-				PBranches$tDeath[i]    <-timepoint
+				timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+				PBranches$alive[i]	   <- FALSE
+				PBranches$nodeDeath[i] <- nextPNode
+				PBranches$tDeath[i]    <- timepoint
 
-				nPDeadBranches		     <-nPDeadBranches+1
-				PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-				if (length(PDeadBranches[,1])==nPDeadBranches) {# if dataframe containing dead branches is full
-					PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+				nPDeadBranches		     <- nPDeadBranches + 1
+				PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+				if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+					PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+					                                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
 				}
 
-				PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+1))
-				PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+2))
-				nextPNode               <-nextPNode+1
-				nPAlive                 <-nPAlive+1
-				nPBranches              <-nPBranches+2
+				PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 1))
+				PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 2))
+				nextPNode  <- nextPNode + 1
+				nPAlive    <- nPAlive + 1
+				nPBranches <- nPBranches + 2
 			}
-			if (length(PToSpeciate)>0) {
-				PBranches<-PBranches[-PToSpeciate,] # removing all dead parasite branches
+			if (length(PToSpeciate) > 0) {
+				PBranches <- PBranches[-PToSpeciate, ] # removing all dead parasite branches
 			}
 		}
 
       # parasite extinction:
 
-      nPToDie<-rbinom(1,nPAlive,nu)  # how many parasite species go extinct?
-      if (nPToDie>0) {
-        PToDie<-sample.int(nPAlive,nPToDie) # which parasites?
+      nPToDie <- rbinom(1, nPAlive, nu)  # how many parasite species go extinct?
+      if (nPToDie > 0) {
+        PToDie <- sample.int(nPAlive, nPToDie) # which parasites?
         for (i in PToDie) {
-          timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-          PBranches$alive[i]	   <-FALSE
-          PBranches$nodeDeath[i] <-nextPNode
-          PBranches$tDeath[i]    <-timepoint
+          timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+          PBranches$alive[i]	   <- FALSE
+          PBranches$nodeDeath[i] <- nextPNode
+          PBranches$tDeath[i]    <- timepoint
 
-          nPDeadBranches		   <-nPDeadBranches+1
-          PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-          if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-            PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+          nPDeadBranches		     <- nPDeadBranches + 1
+          PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+          if (length(PDeadBranches[, 1]) == nPDeadBranches) # if dataframe containing dead branches is full
+            PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                             nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
 
-
-          	nextPNode              <-nextPNode+1
-          	nPAlive			       <-nPAlive-1
+          	nextPNode <-nextPNode + 1
+          	nPAlive		<-nPAlive - 1
         }
-        PBranches<-PBranches[-PToDie,] # removing all mother parasite branches that have co-speciated
+        PBranches <- PBranches[-PToDie, ] # removing all mother parasite branches that have co-speciated
       }
 
       # parasite host jumps:
 
-      hostJumpProb<-beta*(nHAlive-1)
-      if (hostJumpProb>1) {
+      hostJumpProb <- beta * (nHAlive - 1)
+      if (hostJumpProb > 1) {
         print("Warning: host jump probability > 1!")
-        hostJumpProb<-1
+        hostJumpProb <- 1
       }
 
-      noParasitesToJump<-rbinom(1,nPAlive,beta*nHAlive)
-      if (noParasitesToJump>0) {
-        parasitesToJump<-sample.int(nPAlive,noParasitesToJump) # which parasites
+      noParasitesToJump <- rbinom(1, nPAlive, beta * nHAlive)
+      if (noParasitesToJump > 0) {
+        parasitesToJump <- sample.int(nPAlive, noParasitesToJump) # which parasites
 
-        parasitesToDelete<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+        parasitesToDelete <- numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
 
         for (i in parasitesToJump) {
-          oldHost<-which(HBranches$branchNo==PBranches$Hassoc[i])   # row number of old host
-          otherHosts<-(1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
-          if(length(otherHosts)>0) {
-            newHost<-otherHosts[sample.int(length(otherHosts),1)]  # randomly choose branch number of new host
-            probEstablish<-(exp(-gamma*Gdist[oldHost,newHost])) # determine if Parasite switch to new host is successful, depending on genetic distance
-            estabInfections<-length(which((PBranches$Hassoc==HBranches$branchNo[newHost])))  # no of parasites already infecting the potential new host
-            probEstablish<-probEstablish*sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
+          oldHost <- which(HBranches$branchNo == PBranches$Hassoc[i])   # row number of old host
+          otherHosts <- (1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
+          if(length(otherHosts) > 0) {
+            newHost         <- otherHosts[sample.int(length(otherHosts), 1)]  # randomly choose branch number of new host
+            probEstablish   <- (exp(-gamma * Gdist[oldHost, newHost])) # determine if Parasite switch to new host is successful, depending on genetic distance
+            estabInfections <- length(which((PBranches$Hassoc == HBranches$branchNo[newHost])))  # no of parasites already infecting the potential new host
+            probEstablish   <- probEstablish * sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
 
-            if(runif(1)<probEstablish) { # if host jump was successful
-              timepoint			   <-t-runif(1,max=timestep) # random timepoint for jump
-              PBranches$nodeDeath[i] <-nextPNode
-              PBranches$tDeath[i]    <-timepoint
-              PBranches$alive[i]	   <-FALSE
+            if(runif(1) < probEstablish) { # if host jump was successful
+              timepoint			         <- t - runif(1, max = timestep) # random timepoint for jump
+              PBranches$nodeDeath[i] <- nextPNode
+              PBranches$tDeath[i]    <- timepoint
+              PBranches$alive[i]	   <- FALSE
 
-              nPDeadBranches		   <-nPDeadBranches+1
+              nPDeadBranches		     <- nPDeadBranches + 1
               PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+              if (length(PDeadBranches[ ,1]) == nPDeadBranches) # if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
 
-              PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[oldHost], nPBranches+1))
-              PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[newHost], nPBranches+2))
-              parasitesToDelete	   <-c(parasitesToDelete,i)
-              nextPNode              <-nextPNode+1
-              nPAlive               <-nPAlive+1
-              nPBranches            <-nPBranches+2
+              PBranches              <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, HBranches$branchNo[oldHost], nPBranches + 1))
+              PBranches              <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], nPBranches + 2))
+              parasitesToDelete	     <- c(parasitesToDelete, i)
+              nextPNode              <- nextPNode + 1
+              nPAlive                <- nPAlive + 1
+              nPBranches             <- nPBranches + 2
             }
           }
         }
-        if (length(parasitesToDelete)>0)
-          PBranches<-PBranches[-parasitesToDelete,] # removing all mother parasite branches that have host jumped
+        if (length(parasitesToDelete) > 0) {
+          PBranches <- PBranches[-parasitesToDelete, ] # removing all mother parasite branches that have host jumped
+        }
       }
 
-      if (((round(t/timestep)*timestep)>=tmax)||(nHAlive>nHmax)) continue<-FALSE   # simulate either for a certain specified time or until there are more than nHmax host branches
-      if (nHAlive==0) continue<-FALSE
+      if (((round(t / timestep) * timestep) >= tmax) || (nHAlive > nHmax)) continue <- FALSE   # simulate either for a certain specified time or until there are more than nHmax host branches
+      if (nHAlive == 0) continue <- FALSE
     }
   }
 
   # setting final times and nodes:
 
-  HBranches$tDeath<-t
-  HBranches$nodeDeath<-nextHNode:(nextHNode+nHAlive-1)
+  HBranches$tDeath <- t
+  HBranches$nodeDeath <- nextHNode:(nextHNode + nHAlive - 1)
 
-  if (nPAlive>0){
-    PBranches$tDeath<-t
-    PBranches$nodeDeath<-nextPNode:(nextPNode+nPAlive-1)
+  if (nPAlive > 0){
+    PBranches$tDeath <- t
+    PBranches$nodeDeath <- nextPNode:(nextPNode + nPAlive - 1)
   }
 
   # merging two H matricies together:
 
-  HBranches<-rbind(HBranches,HDeadBranches[1:nHDeadBranches,])
-  HBranches<-HBranches[order(HBranches[,"branchNo"]),]
+  HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
+  HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
 
   # merging two P matricies together:
 
-  PBranches<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
-  PBranches<-PBranches[order(PBranches[,"branchNo"]),]
-  if (export.format=="Phylo") # return cophylogeny as an APE Phylo class
+  PBranches <- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
+  PBranches <- PBranches[order(PBranches[, "branchNo"]), ]
+  if (export.format == "Phylo") # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
-  else if (export.format=="Raw") # return the HBranches and PBranches lists as they are
-    return(list(HBranches,PBranches))
+  else if (export.format == "Raw") # return the HBranches and PBranches lists as they are
+    return(list(HBranches, PBranches))
 }
 
 
@@ -392,96 +405,103 @@ rcophylo_HP<-function(tmax, nHmax=Inf, lambda=1, mu=0.5, K=Inf, beta=0.1, gamma=
 #' @examples
 #' rphylo_H(tmax=5)
 
-rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,export.format="Phylo",timestep=0.001) {
+rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
+                     prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001) {
   # adjusting the evolutionary rates to timesteps:
-  lambda <- lambda*timestep
-  mu     <- mu*timestep
+  lambda  <- lambda * timestep
+  mu      <- mu * timestep
 
-  nHAlive <-0
-  while (nHAlive==0) { # simulate until surviving tree is built
-    t <-0
-    HBranches<-data.frame(alive=TRUE,nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=1)
+  nHAlive <- 0
+  while (nHAlive == 0) { # simulate until surviving tree is built
+    t <- 0
+    HBranches <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0,
+                            tDeath = 0, branchNo = 1)
 
     nHBranches <- 1		  	  # total number of branches that have been constructed
     nHAlive    <- 1			  # number of branches that extent until the current timestep
-    nextHNode   <- 1    	  # number of the next node to be produced
+    nextHNode  <- 1    	  # number of the next node to be produced
 
-    HDeadBranches<-data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0)
+    HDeadBranches<-data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                              nodeDeath = 0, tDeath = 0, branchNo = 0)
 
-    nHDeadBranches   <- 0	  # number of dead host branches
+    nHDeadBranches <- 0	  # number of dead host branches
 
-    continue<-TRUE
-    while (continue==TRUE) { # continue simulation until specified time
-      t<-t+timestep
-      lambda.adj<-lambda*(1-(nHAlive/K)) # lambda adjusted for carrying capacity
-      if (lambda.adj<0) { # make sure lambda doesn't drop below 0
-        lambda.adj<-0
+    continue <- TRUE
+    while (continue == TRUE) { # continue simulation until specified time
+      t <- t + timestep
+      lambda.adj <- lambda * (1 - (nHAlive / K)) # lambda adjusted for carrying capacity
+      if (lambda.adj < 0) { # make sure lambda doesn't drop below 0
+        lambda.adj <- 0
       }
 
       # host extinction events:
-      nHToDie<-rbinom(1,nHAlive,mu)  # how many host species go extinct?
-      if (nHToDie>0) {
-        HToDie<-sample.int(nHAlive,nHToDie) # selecting which hosts will become extinct
+      nHToDie <- rbinom(1, nHAlive, mu)  # how many host species go extinct?
+      if (nHToDie > 0) {
+        HToDie <- sample.int(nHAlive, nHToDie) # selecting which hosts will become extinct
         for (i in HToDie) {
-          timepoint			  <-t-runif(1,max=timestep) # random timepoint for extinction event
-          HBranches$alive[i]	  <-FALSE
-          HBranches$nodeDeath[i] <-nextHNode
-          HBranches$tDeath[i]    <-timepoint
+          timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+          HBranches$alive[i]	   <- FALSE
+          HBranches$nodeDeath[i] <- nextHNode
+          HBranches$tDeath[i]    <- timepoint
 
-          nHDeadBranches		   <-nHDeadBranches+1
-          nextHNode              <-nextHNode+1
-          nHAlive			       <-nHAlive-1
+          nHDeadBranches <- nHDeadBranches + 1
+          nextHNode      <- nextHNode + 1
+          nHAlive			   <- nHAlive - 1
 
-          HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info to dead tree
-          if (length(HDeadBranches[,1])==nHDeadBranches) # if dataframe containing dead branches is full
-            HDeadBranches<-rbind(HDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0))
+          HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
+          if (length(HDeadBranches[, 1]) == nHDeadBranches) {# if dataframe containing dead branches is full
+            HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
+          }
         }
 
-        HBranches<-HBranches[-HToDie,] # delete all extinct hosts from living tree
+        HBranches <- HBranches[-HToDie, ] # delete all extinct hosts from living tree
       }
 
       # host speciation events:
-      nHToSpeciate<-rbinom(1,nHAlive,lambda.adj) # no. speciating hosts
-      if (nHToSpeciate>0) {
-        HToSpeciate<-sample.int(nHAlive,nHToSpeciate) # which hosts to speciate
+      nHToSpeciate <- rbinom(1, nHAlive, lambda.adj) # no. speciating hosts
+      if (nHToSpeciate > 0) {
+        HToSpeciate <- sample.int(nHAlive, nHToSpeciate) # which hosts to speciate
 
         for (i in HToSpeciate) {
-          timepoint			   <-t-runif(1,max=timestep) # random timepoint for speciation event
-          HBranches$nodeDeath[i] <-nextHNode
-          HBranches$tDeath[i]    <-timepoint
-          HBranches$alive[i]	   <-FALSE
-          nHDeadBranches		   <-nHDeadBranches+1
-          HDeadBranches[nHDeadBranches,]<-HBranches[i,] # copy branches updated with death info of the original speciating branch to dead tree
-          if (length(HDeadBranches[,1])==nHDeadBranches) # if dataframe containing dead branches is full
-            HDeadBranches<-rbind(HDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,branchNo=0))
+          timepoint			         <- t - runif(1, max = timestep) # random timepoint for speciation event
+          HBranches$nodeDeath[i] <- nextHNode
+          HBranches$tDeath[i]    <- timepoint
+          HBranches$alive[i]	   <- FALSE
+          nHDeadBranches		     <- nHDeadBranches + 1
+          HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info of the original speciating branch to dead tree
+          if (length(HDeadBranches[ ,1]) == nHDeadBranches) {# if dataframe containing dead branches is full
+            HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
+          }
 
-          HBranches              <-rbind(HBranches,c(TRUE,nextHNode,timepoint,0,0,nHBranches+1))
-          HBranches              <-rbind(HBranches,c(TRUE,nextHNode,timepoint,0,0,nHBranches+2))
-          nextHNode              <-nextHNode+1
-          nHAlive                <-nHAlive+1
-          nHBranches             <-nHBranches+2
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 1))
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 2))
+          nextHNode  <- nextHNode + 1
+          nHAlive    <- nHAlive + 1
+          nHBranches <- nHBranches + 2
         }
-        HBranches<-HBranches[-HToSpeciate,]   # removing all host mother branches that have speciated
+        HBranches <- HBranches[-HToSpeciate, ]   # removing all host mother branches that have speciated
       }
 
-      if (((round(t/timestep)*timestep)>=tmax)||(nHAlive>nHmax)) continue<-FALSE        # simulate either for a certain specified time or until there are more than nHmax
-      if (nHAlive==0) continue<-FALSE
+      if (((round(t / timestep) * timestep) >= tmax) || (nHAlive > nHmax)) continue <- FALSE        # simulate either for a certain specified time or until there are more than nHmax
+      if (nHAlive == 0) continue <- FALSE
     }
   }
 
   # setting final times and nodes:
 
-  HBranches$tDeath<-t
-  HBranches$nodeDeath<-nextHNode:(nextHNode+nHAlive-1)
+  HBranches$tDeath <- t
+  HBranches$nodeDeath <- nextHNode:(nextHNode + nHAlive - 1)
 
   # merging the two H matrices together:
 
-  HBranches<-rbind(HBranches,HDeadBranches[1:nHDeadBranches,])
-  HBranches<-HBranches[order(HBranches[,"branchNo"]),]
+  HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
+  HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
 
-  if (export.format=="Phylo") # return phylogeny as an APE Phylo class
-    return(convert_HBranchesToPhylo(HBranches,prune.extinct))
-  else if (export.format=="Raw") # return the HBranches as they are
+  if (export.format == "Phylo") # return phylogeny as an APE Phylo class
+    return(convert_HBranchesToPhylo(HBranches, prune.extinct))
+  else if (export.format == "Raw") # return the HBranches as they are
     return(HBranches)
 }
 
@@ -535,160 +555,171 @@ rphylo_H<-function(tmax,nHmax=Inf,lambda=1,mu=0.5,K=Inf,prune.extinct=FALSE,expo
 #' Htree<-rphylo_H(tmax=5, export.format="Raw")
 #' rcophylo_PonH(H.tree=Htree, tmax=5)
 
-rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0, delta=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {
+rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
+                          delta = 0, prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+                          ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
-  nu    <- nu*timestep
-  beta  <- beta*timestep
-  kappa <- kappa*timestep
+  nu    <- nu * timestep
+  beta  <- beta * timestep
+  kappa <- kappa * timestep
 
   # Set beginning for P simulation
 
-  HBranches<-H.tree[which(H.tree[,5]>=P.startT & H.tree[,3]<=P.startT),]  # which host branches are alive at invasion time T?
+  HBranches <- H.tree[which(H.tree[, 5] >= P.startT & H.tree[, 3] <= P.startT), ]  # which host branches are alive at invasion time T?
 
-  if (is.na(ini.Hbranch))  # no initial host branch specified --> choose random branch
-  {
-    P.startHassoc<-sample(HBranches$branchNo, 1) # HBranch that invasion will start from
-  }else
-  {
-    P.startHassoc<-ini.Hbranch # HBranch that invasion will start from
+  if (is.na(ini.Hbranch)) { # no initial host branch specified --> choose random branch
+    P.startHassoc <- sample(HBranches$branchNo, 1) # HBranch that invasion will start from
+  } else {
+    P.startHassoc <- ini.Hbranch # HBranch that invasion will start from
   }
-  PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=P.startHassoc, branchNo=1)
 
-  nPBranches    <- 1	# total number of branches that have been constructed
-  nPAlive       <- 1	# number of branches that extend until the current timestep
-  nextPNode     <- 1  # number of the next node to be produced
+  PBranches <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = P.startT, nodeDeath = 0,
+                          tDeath = 0, Hassoc = P.startHassoc, branchNo = 1)
 
-  PDeadBranches<-data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-  nPDeadBranches        <- 0		  	    # number of dead parasite branches
+  nPBranches <- 1	# total number of branches that have been constructed
+  nPAlive    <- 1	# number of branches that extend until the current timestep
+  nextPNode  <- 1  # number of the next node to be produced
+
+  PDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                              nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
+  nPDeadBranches <- 0		  	    # number of dead parasite branches
 
   if (any(is.na(Gdist))) { # calculate the Gdist matrix in the case that one is not provided
-    Gdist	<-get_GDist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
+    Gdist	<- get_GDist(H.tree, t = P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
   }
 
-  HBranchDeathTimes<-sort(H.tree$tDeath[H.tree$tDeath>=P.startT & H.tree$alive==FALSE])
-  HDeathIndex<-1
+  HBranchDeathTimes <- sort(H.tree$tDeath[H.tree$tDeath >= P.startT & H.tree$alive == FALSE])
+  HDeathIndex <- 1
 
-  continue<-TRUE
-  t<-P.startT
-  while (continue==TRUE) # continue simulation until continue is set to FALSE
+  continue <- TRUE
+  t <- P.startT
+  while (continue == TRUE) # continue simulation until continue is set to FALSE
   {  # main simulation loop through time
-    t<-t+timestep
+    t <- t + timestep
     # update Gdist
-    Gdist <-Gdist + 2 * timestep # add increased distance btw branches
-    diag (Gdist) <-0  # cleaning up so that distance between branch to itself is always 0
+    Gdist <- Gdist + 2 * timestep # add increased distance btw branches
+    diag (Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
     # Host events:
-    if ((HDeathIndex<=length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex]>=(t-timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) # if any host dies w/in interval
+    if ((HDeathIndex <= length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex] >=
+                                                      (t - timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) # if any host dies w/in interval
     {
-      H.Death <-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive==FALSE) # Any host branch that dies w/in timestep interval leading up to time t
-      HDeathIndex<-HDeathIndex+length(H.Death)
+      H.Death <- which(HBranches$tDeath >= (t - timestep) & HBranches$tDeath < t & HBranches$alive == FALSE) # Any host branch that dies w/in timestep interval leading up to time t
+      HDeathIndex <- HDeathIndex + length(H.Death)
 
       for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
       {
         # Cospeciation events:
         if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
         {
-          H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-          daughterBranches		<-which(H.tree$nodeBirth == i)
-          HBranches              	<-rbind(HBranches, H.tree[daughterBranches[1], ])
-          HBranches              	<-rbind(HBranches, H.tree[daughterBranches[2], ])
+          H.Speciations    <-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
+          daughterBranches <-which(H.tree$nodeBirth == i)
+          HBranches        <-rbind(HBranches, H.tree[daughterBranches[1], ])
+          HBranches        <-rbind(HBranches, H.tree[daughterBranches[2], ])
 
-          timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
+          timepoint        <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
           # update Gdist matrix:
           # filling in values
 
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
 
           len 	<-length(Gdist[1, ])
 
-          Gdist[len-1,len]	<-2*(t-timepoint)
-          Gdist[len,len-1]	<-2*(t-timepoint)
+          Gdist[len-1, len]	<- 2 * (t - timepoint)
+          Gdist[len, len-1]	<- 2 * (t - timepoint)
 
-          Gdist[1:(len-2), len-1]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[1:(len-2), len]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
-          Gdist[len, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
+          Gdist[1:(len-2), len-1]	<-Gdist[1:(len - 2), H.Speciations]
+          Gdist[1:(len-2), len]	  <-Gdist[1:(len - 2), H.Speciations]
+          Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations, 1:(len - 2)]
+          Gdist[len, 1:(len-2)]	  <-Gdist[H.Speciations, 1:(len - 2)]
 
-          P.Speciations <-which(PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
+          P.Speciations <- which(PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
 
           if (length(P.Speciations) > 0) # make sure argument greater then length 0
           {
             for(j in P.Speciations)	{
-              PBranches$alive[j]	    <-FALSE
-              PBranches$nodeDeath[j]  <-nextPNode
-              PBranches$tDeath[j]    	<-timepoint
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
 
-              nPDeadBranches		   <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches, ] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC),
+                                                                 nodeBirth = 0, tBirth = 0, nodeDeath = 0,
+                                                                 tDeath = 0, Hassoc = 0, branchNo = 0))
+              }
 
-              PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,H.tree$branchNo[daughterBranches[1]], nPBranches+1))
-              PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,H.tree$branchNo[daughterBranches[2]], nPBranches+2))
-              nextPNode               <-nextPNode+1
-              nPAlive                 <-nPAlive+1
-              nPBranches              <-nPBranches+2
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], nPBranches + 1))
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], nPBranches + 2))
+              nextPNode  <- nextPNode + 1
+              nPAlive    <- nPAlive + 1
+              nPBranches <- nPBranches + 2
             }
-            PBranches <-PBranches[-P.Speciations,]  # removing all mother parasite branches that have co-speciated
+            PBranches <- PBranches[-P.Speciations, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1)<delta) {
-                whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
+            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1) < delta) {
+                whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
 
                 PBranches$alive[whichBranch]	   <-FALSE
                 PBranches$nodeDeath[whichBranch] <-nextPNode
                 PBranches$tDeath[whichBranch]    <-timepoint
 
-                nPDeadBranches		   <-nPDeadBranches+1
-                PDeadBranches[nPDeadBranches,]<-PBranches[whichBranch,] # copy branches updated with death info to dead tree
-                if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                  PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-                nextPNode          <-nextPNode+1
-                nPAlive			       <-nPAlive-1
-                PBranches<-PBranches[-whichBranch,] # removing dead parasite branche
+                nPDeadBranches <-nPDeadBranches+1
+                PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+                  PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                   tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                   Hassoc = 0, branchNo = 0))
+                }
+                nextPNode <- nextPNode + 1
+                nPAlive   <- nPAlive - 1
+                PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
           }
 
           # delete all extinct hosts from living tree
-          HBranches	<-HBranches[-H.Speciations,]
+          HBranches	<- HBranches[-H.Speciations, ]
 
-          Gdist	<-Gdist[-H.Speciations,]  # removing all host mother branches that have speciated
-          Gdist	<-Gdist[,-H.Speciations]
+          Gdist	<- Gdist[-H.Speciations, ]  # removing all host mother branches that have speciated
+          Gdist	<- Gdist[, -H.Speciations]
         }
         else # is an extinction event
         {
-          H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
-          P.Extinctions	<-which(PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+          H.Extinctions	<- which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
+          P.Extinctions	<- which(PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
           if (length(P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
 
             for (j in P.Extinctions) {
-              timepoint			   <-HBranches$tDeath[H.Extinctions]
+              timepoint	             <- HBranches$tDeath[H.Extinctions]
 
-              PBranches$alive[j]	   <-FALSE
-              PBranches$nodeDeath[j] <-nextPNode
-              PBranches$tDeath[j]    <-timepoint
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
 
-              nPDeadBranches		   <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches, ] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+              }
 
-
-              nextPNode              <-nextPNode+1
-              nPAlive			       <-nPAlive-1
+              nextPNode              <- nextPNode + 1
+              nPAlive			           <- nPAlive - 1
             }
-            PBranches<-PBranches[-P.Extinctions,] # delete all branches associated with extinct host from living tree
+            PBranches <- PBranches[-P.Extinctions, ] # delete all branches associated with extinct host from living tree
           }
           # removing all host mother branches that have died
-          HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
+          HBranches	<- HBranches[-H.Extinctions, ] # delete all extinct hosts from living tree
 
-          Gdist	<-Gdist[-H.Extinctions, ,drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
-          Gdist	<-Gdist[,-H.Extinctions,drop=FALSE]
+          Gdist	<- Gdist[-H.Extinctions, , drop = FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+          Gdist	<- Gdist[, -H.Extinctions, drop = FALSE]
 
         } # completed speciation/extinction loops
 
@@ -697,135 +728,145 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0,
     } # finished checking if any H deaths occured
 
     # parasite speciation (independent of hosts)
-    if (kappa>0) {
-      nPToSpeciate	<-rbinom(1,nPAlive,kappa) # how many parasite species go extinct?
+    if (kappa > 0) {
+      nPToSpeciate <- rbinom(1, nPAlive, kappa) # how many parasite species go extinct?
     } else {
-      nPToSpeciate<-0
+      nPToSpeciate <- 0
     }
 
-    if (nPToSpeciate>0) {
-      PToSpeciate<-sample.int(nPAlive,nPToSpeciate) # which parasites?
-      PToSpeciate<-PToSpeciate[PBranches$tBirth[PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (nPToSpeciate > 0) {
+      PToSpeciate <- sample.int(nPAlive, nPToSpeciate) # which parasites?
+      PToSpeciate <- PToSpeciate[PBranches$tBirth[PToSpeciate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in PToSpeciate) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        PBranches$alive[i]	   <-FALSE
-        PBranches$nodeDeath[i] <-nextPNode
-        PBranches$tDeath[i]    <-timepoint
+        timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+        PBranches$alive[i]	   <- FALSE
+        PBranches$nodeDeath[i] <- nextPNode
+        PBranches$tDeath[i]    <- timepoint
 
-        nPDeadBranches		     <-nPDeadBranches+1
-        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        nPDeadBranches		     <- nPDeadBranches + 1
+        PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+          PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                           nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+        }
 
-        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+1))
-        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+2))
-        nextPNode               <-nextPNode+1
-        nPAlive                 <-nPAlive+1
-        nPBranches              <-nPBranches+2
+        PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 1))
+        PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 2))
+        nextPNode  <- nextPNode + 1
+        nPAlive    <- nPAlive + 1
+        nPBranches <- nPBranches + 2
       }
-      if (length(PToSpeciate)>0)
-        PBranches<-PBranches[-PToSpeciate,] # removing all dead parasite branches
+      if (length(PToSpeciate) > 0) {
+        PBranches <- PBranches[-PToSpeciate, ] # removing all dead parasite branches
+      }
     }
 
     # parasite extinction:
-    nPToDie	<-rbinom(1,nPAlive,nu) # how many parasite species go extinct?
+    nPToDie <- rbinom(1, nPAlive, nu) # how many parasite species go extinct?
 
-    if (nPToDie>0) {
-      PToDie<-sample.int(nPAlive,nPToDie) # which parasites?
-      PToDie<-PToDie[PBranches$tBirth[PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (nPToDie > 0) {
+      PToDie <- sample.int(nPAlive, nPToDie) # which parasites?
+      PToDie <- PToDie[PBranches$tBirth[PToDie] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in PToDie) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        PBranches$alive[i]	   <-FALSE
-        PBranches$nodeDeath[i] <-nextPNode
-        PBranches$tDeath[i]    <-timepoint
+        timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
+        PBranches$alive[i]	   <- FALSE
+        PBranches$nodeDeath[i] <- nextPNode
+        PBranches$tDeath[i]    <- timepoint
 
-        nPDeadBranches		   <-nPDeadBranches+1
-        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-        nextPNode              <-nextPNode+1
-        nPAlive			       <-nPAlive-1
+        nPDeadBranches		     <- nPDeadBranches + 1
+        PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+          PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                           nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+        }
+        nextPNode <- nextPNode + 1
+        nPAlive		<- nPAlive - 1
       }
-      if (length(PToDie)>0)
-        PBranches<-PBranches[-PToDie,] # removing all dead parasite branches
+      if (length(PToDie) > 0) {
+        PBranches <- PBranches[-PToDie, ] # removing all dead parasite branches
+      }
     }
 
     # parasite host jumps:
-    nHAlive		<-length(HBranches[,1])
-    hostJumpProb<-beta*(nHAlive-1)
+    nHAlive <- length(HBranches[, 1])
+    hostJumpProb <- beta * (nHAlive - 1)
 
-    if (hostJumpProb>1) {
+    if (hostJumpProb > 1) {
       print("Warning: host jump probability > 1!")
-      hostJumpProb<-1
+      hostJumpProb <- 1
     }
 
-    noParasitesToJump	<-rbinom(1,nPAlive,hostJumpProb)
+    noParasitesToJump	<- rbinom(1, nPAlive, hostJumpProb)
 
-    if (noParasitesToJump>0) {
-      parasitesToJump		<-sample.int(nPAlive,noParasitesToJump) # which parasites
-      parasitesToJump		<-parasitesToJump[PBranches$tBirth[parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-      parasitesToDelete	<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+    if (noParasitesToJump > 0) {
+      parasitesToJump		<- sample.int(nPAlive, noParasitesToJump) # which parasites
+      parasitesToJump		<- parasitesToJump[PBranches$tBirth[parasitesToJump] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      parasitesToDelete	<- numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
 
       for (i in parasitesToJump) {
-        oldHost<-which(HBranches$branchNo==PBranches$Hassoc[i])   # row number of old host
-        otherHosts<-(1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
+        oldHost <- which(HBranches$branchNo == PBranches$Hassoc[i])   # row number of old host
+        otherHosts <- (1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
 
-        if(length(otherHosts)>0) {
-          newHost<-otherHosts[sample.int(length(otherHosts),1)]  # randomly choose branch number of new host
-          probEstablish<-(exp(-gamma*Gdist[oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-          estabInfections<-length(which(PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          probEstablish<-probEstablish*sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
+        if(length(otherHosts) > 0) {
+          newHost         <-otherHosts[sample.int(length(otherHosts), 1)]  # randomly choose branch number of new host
+          probEstablish   <-(exp(-gamma * Gdist[oldHost, newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+          estabInfections <-length(which(PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          probEstablish   <-probEstablish * sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
 
-          if(runif(1)<probEstablish) {# if host jump was successful
-            timepoint			   <-t-runif(1,max=timestep) # random timepoint for jump
-            PBranches$nodeDeath[i] <-nextPNode
-            PBranches$tDeath[i]    <-timepoint
-            PBranches$alive[i]	   <-FALSE
+          if(runif(1) < probEstablish) {# if host jump was successful
+            timepoint              <- t - runif(1, max = timestep) # random timepoint for jump
+            PBranches$nodeDeath[i] <- nextPNode
+            PBranches$tDeath[i]    <- timepoint
+            PBranches$alive[i]	   <- FALSE
 
-            nPDeadBranches		   <-nPDeadBranches+1
-            PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-            if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-              PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+            nPDeadBranches		     <- nPDeadBranches + 1
+            PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+            if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+              PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+            }
 
-            PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[oldHost],nPBranches+1))
-            PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[newHost],nPBranches+2))
-            parasitesToDelete	   <-c(parasitesToDelete,i)
-            nextPNode              <-nextPNode+1
-            nPAlive                <-nPAlive+1
-            nPBranches             <-nPBranches+2
+            PBranches         <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0,
+                                                    HBranches$branchNo[oldHost], nPBranches + 1))
+            PBranches         <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0,
+                                                    HBranches$branchNo[newHost], nPBranches + 2))
+            parasitesToDelete <- c(parasitesToDelete, i)
+            nextPNode         <- nextPNode + 1
+            nPAlive           <- nPAlive + 1
+            nPBranches        <- nPBranches + 2
           }
         }
       }
       if (length(parasitesToDelete) > 0) {
-        PBranches <-PBranches[-parasitesToDelete,] # removing all mother parasite branches that have host jumped
+        PBranches <- PBranches[-parasitesToDelete, ] # removing all mother parasite branches that have host jumped
       }
     }
-    if (((round(t/timestep)*timestep)>=tmax)||(nPAlive==0)) continue<-FALSE
+    if (((round(t / timestep) * timestep) >= tmax) || (nPAlive == 0)) continue <- FALSE
   } # loop back up to next t
 
   # setting final times and nodes:
   if (nPAlive > 0)
   {
-    PBranches$tDeath	<-t
-    PBranches$nodeDeath	<-nextPNode:(nextPNode+nPAlive-1)
+    PBranches$tDeath	  <- t
+    PBranches$nodeDeath	<- nextPNode:(nextPNode + nPAlive - 1)
   }
 
   # recovering the original host tree:
 
-  HBranches	<-H.tree
+  HBranches	<- H.tree
 
   # merging two P matricies together:
 
-  PBranches	<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
-  PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
+  PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
+  PBranches	<- PBranches[order(PBranches[, "branchNo"]), ]
 
-  if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
+  if (export.format == "Phylo"){ # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
-  } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
-    return(list(HBranches,PBranches))
-  } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
+  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
+    return(list(HBranches, PBranches))
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
     return(convert_PBranchesToPhylo(PBranches))
   }
 }
@@ -895,233 +936,255 @@ rcophylo_PonH<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5,kappa=0,
 #' Htree<-rphylo_H(tmax=5, export.format="Raw")
 #' rcophylo_PQonH(tmax=5, H.tree=Htree)
 
-rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.self=0,sigma.cross=0,nu.P=0.5,nu.Q=0.5, kappa.P=0, kappa.Q=0, delta.P=0, delta.Q=0, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001) {
+rcophylo_PQonH <- function(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
+                           sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
+                           kappa.P = 0, kappa.Q = 0, delta.P = 0, delta.Q = 0,
+                           prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+                           ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
 
   # adjusting the evolutionary rates to timesteps:
-  nu.P		<- nu.P*timestep
-  nu.Q		<- nu.Q*timestep
-  beta		<- beta*timestep
-  kappa.P	<- kappa.P*timestep
-  kappa.Q	<- kappa.Q*timestep
+  nu.P		<- nu.P * timestep
+  nu.Q		<- nu.Q * timestep
+  beta		<- beta * timestep
+  kappa.P	<- kappa.P * timestep
+  kappa.Q	<- kappa.Q * timestep
 
   # Set beginning for P simulation
 
-  HBranches<-H.tree[which(H.tree$tDeath>=P.startT & H.tree$tBirth<=P.startT),]  # which host branches are alive at invasion time T?
+  HBranches <- H.tree[which(H.tree$tDeath >= P.startT & H.tree$tBirth <= P.startT), ]  # which host branches are alive at invasion time T?
 
   if (is.na(ini.Hbranch))  { # no initial host branch specified --> choose random branch
-    P.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that P invasion will start from
-    Q.PstartHassoc<-sample(HBranches$branchNo, 1) # HBranch that Q invasion will start from
+    P.PstartHassoc <- sample(HBranches$branchNo, 1) # HBranch that P invasion will start from
+    Q.PstartHassoc <- sample(HBranches$branchNo, 1) # HBranch that Q invasion will start from
   } else {
-    P.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
-    Q.PstartHassoc<-ini.Hbranch # HBranch that invasion will start from
+    P.PstartHassoc <- ini.Hbranch # HBranch that invasion will start from
+    Q.PstartHassoc <- ini.Hbranch # HBranch that invasion will start from
   }
-  P.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=P.PstartHassoc, branchNo=1)
+  P.PBranches <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = P.startT, nodeDeath = 0,
+                            tDeath = 0, Hassoc = P.PstartHassoc, branchNo = 1)
 
-  P.nPBranches    	<- 1	 # total number of branches that have been constructed
-  P.nPAlive       	<- 1	 # number of branches that extend until the current timestep
-  P.nextPNode     	<- 1 # number of the next node to be produced
+  P.nPBranches <- 1	 # total number of branches that have been constructed
+  P.nPAlive    <- 1	 # number of branches that extend until the current timestep
+  P.nextPNode  <- 1 # number of the next node to be produced
 
-  P.PDeadBranches	<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-  P.nPDeadBranches	<- 0 # number of dead parasite branches
+  P.PDeadBranches	 <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
+  P.nPDeadBranches <- 0 # number of dead parasite branches
 
-  Q.PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=Q.PstartHassoc, branchNo=1)
+  Q.PBranches      <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = P.startT, nodeDeath = 0,
+                            tDeath = 0, Hassoc = Q.PstartHassoc, branchNo = 1)
 
-  Q.nPBranches    	<- 1	 # total number of branches that have been constructed
-  Q.nPAlive       	<- 1	 # number of branches that extend until the current timestep
-  Q.nextPNode     	<- 1 # number of the next node to be produced
+  Q.nPBranches <- 1 # total number of branches that have been constructed
+  Q.nPAlive    <- 1 # number of branches that extend until the current timestep
+  Q.nextPNode  <- 1 # number of the next node to be produced
 
-  Q.PDeadBranches		<- data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-  Q.nPDeadBranches	<- 0 # number of dead parasite branches
+  Q.PDeadBranches	 <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                 nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
+  Q.nPDeadBranches <- 0 # number of dead parasite branches
 
   if (any(is.na(Gdist))) {
-    Gdist<-get_GDist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
+    Gdist <- get_GDist(H.tree, t = P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
   }
 
-  HBranchDeathTimes<-sort(H.tree$tDeath[H.tree$tDeath>=P.startT & H.tree$alive==FALSE])
-  HDeathIndex<-1
+  HBranchDeathTimes <- sort(H.tree$tDeath[H.tree$tDeath >= P.startT & H.tree$alive == FALSE])
+  HDeathIndex <- 1
 
-  continue<-TRUE
-  t<-P.startT
-  while (continue==TRUE) { # continue simulation until continue is set to FALSE
+  continue <- TRUE
+  t <- P.startT
+  while (continue == TRUE) { # continue simulation until continue is set to FALSE
     # main simulation loop through time
-    t<-t+timestep
+    t <- t + timestep
     # update Gdist
-    Gdist <-Gdist + 2 * timestep # add increased distance btw branches
-    diag (Gdist) <-0  # cleaning up so that distance between branch to itself is always 0
+    Gdist <- Gdist + 2 * timestep # add increased distance btw branches
+    diag (Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
     # Host events:
-    if ((HDeathIndex<=length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex]>=(t-timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) { # if any host dies w/in interval
-      H.Death	<-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive==FALSE) # Any host branch that dies w/in timestep interval leading up to time t
-      HDeathIndex	<-HDeathIndex+length(H.Death)
+    if ((HDeathIndex <= length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex] >=
+                                                      (t - timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) { # if any host dies w/in interval
+      H.Death	<- which(HBranches$tDeath >= (t - timestep) & HBranches$tDeath < t & HBranches$alive == FALSE) # Any host branch that dies w/in timestep interval leading up to time t
+      HDeathIndex	<- HDeathIndex + length(H.Death)
 
       for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) { # for each node where a host died
         # Cospeciation events:
         if (i %in% H.tree$nodeBirth) {  # Check if host death is due to speciation
-          H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-          daughterBranches		<-which(H.tree$nodeBirth == i)
-          HBranches              	<-rbind(HBranches, H.tree[daughterBranches[1], ])
-          HBranches              	<-rbind(HBranches, H.tree[daughterBranches[2], ])
+          H.Speciations		 <- which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
+          daughterBranches <- which(H.tree$nodeBirth == i)
+          HBranches        <- rbind(HBranches, H.tree[daughterBranches[1], ])
+          HBranches        <- rbind(HBranches, H.tree[daughterBranches[2], ])
 
-          timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
+          timepoint        <- HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
           # update Gdist matrix:
           # filling in values
 
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
 
           len 	<-length(Gdist[1, ])
 
-          Gdist[len-1,len]	<-2*(t-timepoint)
-          Gdist[len,len-1]	<-2*(t-timepoint)
+          Gdist[len - 1, len]	<- 2 * (t - timepoint)
+          Gdist[len, len - 1]	<- 2 * (t - timepoint)
 
-          Gdist[1:(len-2), len-1]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[1:(len-2), len]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
-          Gdist[len, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
+          Gdist[1:(len - 2), len - 1] <- Gdist[1:(len - 2), H.Speciations]
+          Gdist[1:(len - 2), len]	    <- Gdist[1:(len - 2), H.Speciations]
+          Gdist[len - 1, 1:(len - 2)]	<- Gdist[H.Speciations, 1:(len - 2)]
+          Gdist[len, 1:(len - 2)]	    <- Gdist[H.Speciations, 1:(len - 2)]
 
           # P cospeciations
-          P.P.Speciations <-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
+          P.P.Speciations <- which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
 
           if (length(P.P.Speciations) > 0) { # make sure argument greater then length 0
             for(j in P.P.Speciations) {
-              P.PBranches$alive[j]		<-FALSE
-              P.PBranches$nodeDeath[j]	<-P.nextPNode
-              P.PBranches$tDeath[j]		<-timepoint
+              P.PBranches$alive[j]     <-FALSE
+              P.PBranches$nodeDeath[j] <-P.nextPNode
+              P.PBranches$tDeath[j]    <-timepoint
 
-              P.nPDeadBranches			<-P.nPDeadBranches+1
-              P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-                P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+              P.nPDeadBranches <- P.nPDeadBranches + 1
+              P.PDeadBranches[P.nPDeadBranches, ] <- P.PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+                P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                     tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                     Hassoc = 0, branchNo = 0))
               }
 
-              P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], P.nPBranches+1))
-              P.PBranches    <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], P.nPBranches+2))
-              P.nextPNode    <-P.nextPNode+1
-              P.nPAlive      <-P.nPAlive+1
-              P.nPBranches   <-P.nPBranches+2
+              P.PBranches  <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0,
+                                                   H.tree$branchNo[daughterBranches[1]], P.nPBranches + 1))
+              P.PBranches  <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0,
+                                                   H.tree$branchNo[daughterBranches[2]], P.nPBranches + 2))
+              P.nextPNode  <- P.nextPNode + 1
+              P.nPAlive    <- P.nPAlive + 1
+              P.nPBranches <- P.nPBranches + 2
             }
-            P.PBranches	<-P.PBranches[-P.P.Speciations,]  # removing all mother parasite branches that have co-speciated
-            if (delta.P>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1)<delta.P) {
-                whichBranch<-sample(c(P.nPAlive-1, P.nPAlive),1)  # which of the two daughter branches dies?
+            P.PBranches	<- P.PBranches[-P.P.Speciations, ]  # removing all mother parasite branches that have co-speciated
+            if (delta.P > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1) < delta.P) {
+                whichBranch <- sample(c(P.nPAlive - 1, P.nPAlive), 1)  # which of the two daughter branches dies?
 
-                P.PBranches$alive[whichBranch]	   <-FALSE
-                P.PBranches$nodeDeath[whichBranch] <-P.nextPNode
-                P.PBranches$tDeath[whichBranch]    <-timepoint
+                P.PBranches$alive[whichBranch]	   <- FALSE
+                P.PBranches$nodeDeath[whichBranch] <- P.nextPNode
+                P.PBranches$tDeath[whichBranch]    <- timepoint
 
-                P.nPDeadBranches		   			<-P.nPDeadBranches+1
-                P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[whichBranch,] # copy branches updated with death info to dead tree
-                if (length(P.PDeadBranches[,1])==P.nPDeadBranches) # if dataframe containing dead branches is full
-                  P.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-                P.nextPNode         <-P.nextPNode+1
-                P.nPAlive			<-P.nPAlive-1
-                P.PBranches			<-P.PBranches[-whichBranch,] # removing dead parasite branche
+                P.nPDeadBranches <- P.nPDeadBranches + 1
+                P.PDeadBranches[P.nPDeadBranches, ]	<- P.PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+                  P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                       nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+                }
+                P.nextPNode <- P.nextPNode + 1
+                P.nPAlive		<- P.nPAlive - 1
+                P.PBranches	<- P.PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
           }
 
           # Q cospeciations
-          Q.P.Speciations <-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
+          Q.P.Speciations <- which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
 
           if (length(Q.P.Speciations) > 0) { # make sure argument greater then length 0
             for(j in Q.P.Speciations)	{
-              Q.PBranches$alive[j]				<-FALSE
-              Q.PBranches$nodeDeath[j]			<-Q.nextPNode
-              Q.PBranches$tDeath[j]				<-timepoint
+              Q.PBranches$alive[j]			<- FALSE
+              Q.PBranches$nodeDeath[j]	<- Q.nextPNode
+              Q.PBranches$tDeath[j]			<- timepoint
 
-              Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
-              Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-                Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+              Q.nPDeadBranches		   		<- Q.nPDeadBranches + 1
+              Q.PDeadBranches[Q.nPDeadBranches, ]	<- Q.PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+                Q.PDeadBranches <- rbind(Q.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                   nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
               }
 
-              Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], Q.nPBranches+1))
-              Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], Q.nPBranches+2))
-              Q.nextPNode    <-Q.nextPNode+1
-              Q.nPAlive      <-Q.nPAlive+1
-              Q.nPBranches   <-Q.nPBranches+2
+              Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0,
+                                                    H.tree$branchNo[daughterBranches[1]], Q.nPBranches + 1))
+              Q.PBranches    <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0,
+                                                    H.tree$branchNo[daughterBranches[2]], Q.nPBranches + 2))
+              Q.nextPNode    <- Q.nextPNode + 1
+              Q.nPAlive      <- Q.nPAlive + 1
+              Q.nPBranches   <- Q.nPBranches + 2
             }
-            Q.PBranches	<-Q.PBranches[-Q.P.Speciations,]  # removing all mother parasite branches that have co-speciated
-            if (delta.Q>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1)<delta.Q) {
-                whichBranch<-sample(c(Q.nPAlive-1, Q.nPAlive),1)  # which of the two daughter branches dies?
+            Q.PBranches	<- Q.PBranches[-Q.P.Speciations, ]  # removing all mother parasite branches that have co-speciated
+            if (delta.Q > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1) < delta.Q) {
+                whichBranch <- sample(c(Q.nPAlive - 1, Q.nPAlive), 1)  # which of the two daughter branches dies?
 
-                Q.PBranches$alive[whichBranch]	   <-FALSE
-                Q.PBranches$nodeDeath[whichBranch] <-Q.nextPNode
-                Q.PBranches$tDeath[whichBranch]    <-timepoint
+                Q.PBranches$alive[whichBranch]	   <- FALSE
+                Q.PBranches$nodeDeath[whichBranch] <- Q.nextPNode
+                Q.PBranches$tDeath[whichBranch]    <- timepoint
 
-                Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
-                Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[whichBranch,] # copy branches updated with death info to dead tree
-                if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) # if dataframe containing dead branches is full
-                  Q.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-                Q.nextPNode         <-Q.nextPNode+1
-                Q.nPAlive			<-Q.nPAlive-1
-                Q.PBranches			<-Q.PBranches[-whichBranch,] # removing dead parasite branche
+                Q.nPDeadBranches <- Q.nPDeadBranches + 1
+                Q.PDeadBranches[Q.nPDeadBranches, ] <-Q.PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+                  Q.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                       nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+                }
+                Q.nextPNode <- Q.nextPNode + 1
+                Q.nPAlive		<- Q.nPAlive - 1
+                Q.PBranches	<- Q.PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
           }
 
           # delete all extinct hosts from living tree
-          HBranches	<-HBranches[-H.Speciations,]
+          HBranches	<- HBranches[-H.Speciations, ]
 
-          Gdist	<-Gdist[-H.Speciations,]  # removing all host mother branches that have speciated
-          Gdist	<-Gdist[,-H.Speciations]
+          Gdist	<- Gdist[-H.Speciations, ]  # removing all host mother branches that have speciated
+          Gdist	<- Gdist[, -H.Speciations]
         } else { # is an extinction event
-          H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
+          H.Extinctions	<- which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
 
           # P coextinctions
-          P.P.Extinctions	<-which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+          P.P.Extinctions	<- which(P.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
           if (length(P.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
 
             for (j in P.P.Extinctions) {
-              timepoint			   				<-HBranches$tDeath[H.Extinctions]
+              timepoint			   				 <- HBranches$tDeath[H.Extinctions]
 
-              P.PBranches$alive[j]	   			<-FALSE
-              P.PBranches$nodeDeath[j] 			<-P.nextPNode
-              P.PBranches$tDeath[j]    			<-timepoint
+              P.PBranches$alive[j]	   <- FALSE
+              P.PBranches$nodeDeath[j] <- P.nextPNode
+              P.PBranches$tDeath[j]    <- timepoint
 
-              P.nPDeadBranches		   			<-P.nPDeadBranches+1
-              P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-                P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+              P.nPDeadBranches		   	 <- P.nPDeadBranches + 1
+              P.PDeadBranches[P.nPDeadBranches,] <-P.PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+                P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                     nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
               }
 
-              P.nextPNode				<-P.nextPNode+1
-              P.nPAlive				<-P.nPAlive-1
+              P.nextPNode <- P.nextPNode + 1
+              P.nPAlive		<- P.nPAlive - 1
             }
-            P.PBranches<-P.PBranches[-P.P.Extinctions,] # delete all branches associated with extinct host from living tree
+            P.PBranches <- P.PBranches[-P.P.Extinctions, ] # delete all branches associated with extinct host from living tree
           }
 
           # Q coextinctions
-          Q.P.Extinctions	<-which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+          Q.P.Extinctions	<- which(Q.PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
           if (length(Q.P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
 
             for (j in Q.P.Extinctions) {
-              timepoint							<-HBranches$tDeath[H.Extinctions]
+              timepoint                <- HBranches$tDeath[H.Extinctions]
 
-              Q.PBranches$alive[j]	   			<-FALSE
-              Q.PBranches$nodeDeath[j] 			<-Q.nextPNode
-              Q.PBranches$tDeath[j]    			<-timepoint
+              Q.PBranches$alive[j]	   <- FALSE
+              Q.PBranches$nodeDeath[j] <- Q.nextPNode
+              Q.PBranches$tDeath[j]    <- timepoint
 
-              Q.nPDeadBranches		   			<-Q.nPDeadBranches+1
-              Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-                Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+              Q.nPDeadBranches		   	 <- Q.nPDeadBranches + 1
+              Q.PDeadBranches[Q.nPDeadBranches, ] <-Q.PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+                Q.PDeadBranches <- rbind(Q.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                     nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
               }
 
-              Q.nextPNode				<-Q.nextPNode+1
-              Q.nPAlive				<-Q.nPAlive-1
+              Q.nextPNode	<- Q.nextPNode + 1
+              Q.nPAlive		<- Q.nPAlive - 1
             }
-            Q.PBranches<-Q.PBranches[-Q.P.Extinctions,] # delete all branches associated with extinct host from living tree
+            Q.PBranches <- Q.PBranches[-Q.P.Extinctions, ] # delete all branches associated with extinct host from living tree
           }
 
           # removing all host mother branches that have died
-          HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
+          HBranches	<- HBranches[-H.Extinctions, ] # delete all extinct hosts from living tree
 
-          Gdist	<-Gdist[-H.Extinctions, , drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
-          Gdist	<-Gdist[ , -H.Extinctions, drop=FALSE]
+          Gdist	<- Gdist[-H.Extinctions, , drop = FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+          Gdist	<- Gdist[, -H.Extinctions, drop = FALSE]
 
         } # completed speciation/extinction loops
 
@@ -1130,257 +1193,270 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.s
     } # finished checking if any H deaths occured
 
     # parasite speciation (independent of hosts)
-    if (kappa.P>0) {
-      P.nPToSpeciate	<-rbinom(1,P.nPAlive,kappa.P) # how many parasite species go extinct?
+    if (kappa.P > 0) {
+      P.nPToSpeciate <- rbinom(1, P.nPAlive, kappa.P) # how many parasite species go extinct?
     } else {
-      P.nPToSpeciate<-0
+      P.nPToSpeciate <- 0
     }
 
-    if (P.nPToSpeciate>0) {
-      P.PToSpeciate<-sample.int(P.nPAlive,P.nPToSpeciate) # which parasites?
-      P.PToSpeciate<-P.PToSpeciate[P.PBranches$tBirth[P.PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (P.nPToSpeciate > 0) {
+      P.PToSpeciate <- sample.int(P.nPAlive, P.nPToSpeciate) # which parasites?
+      P.PToSpeciate <- P.PToSpeciate[P.PBranches$tBirth[P.PToSpeciate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in P.PToSpeciate) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        P.PBranches$alive[i]	   <-FALSE
-        P.PBranches$nodeDeath[i] <-P.nextPNode
-        P.PBranches$tDeath[i]    <-timepoint
+        timepoint	               <- t - runif(1, max = timestep) # random timepoint for extinction event
+        P.PBranches$alive[i]	   <- FALSE
+        P.PBranches$nodeDeath[i] <- P.nextPNode
+        P.PBranches$tDeath[i]    <- timepoint
 
-        P.nPDeadBranches		     <-P.nPDeadBranches+1
-        P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(P.PDeadBranches[,1])==P.nPDeadBranches) # if dataframe containing dead branches is full
-          P.PDeadBranches<-rbind(P.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        P.nPDeadBranches		     <- P.nPDeadBranches + 1
+        P.PDeadBranches[P.nPDeadBranches, ] <- P.PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+          P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+        }
 
-        P.PBranches               <-rbind(P.PBranches,c(TRUE,P.nextPNode,timepoint,0,0,P.PBranches$Hassoc[i], P.nPBranches+1))
-        P.PBranches               <-rbind(P.PBranches,c(TRUE,P.nextPNode,timepoint,0,0,P.PBranches$Hassoc[i], P.nPBranches+2))
-        P.nextPNode               <-P.nextPNode+1
-        P.nPAlive                 <-P.nPAlive+1
-        P.nPBranches              <-P.nPBranches+2
+        P.PBranches  <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, P.PBranches$Hassoc[i], P.nPBranches + 1))
+        P.PBranches  <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, P.PBranches$Hassoc[i], P.nPBranches + 2))
+        P.nextPNode  <- P.nextPNode + 1
+        P.nPAlive    <- P.nPAlive + 1
+        P.nPBranches <- P.nPBranches + 2
       }
-      if (length(P.PToSpeciate)>0)
-        P.PBranches<-P.PBranches[-P.PToSpeciate,] # removing all dead parasite branches
+      if (length(P.PToSpeciate) > 0)
+        P.PBranches <- P.PBranches[-P.PToSpeciate, ] # removing all dead parasite branches
     }
 
     # P parasite extinction:
-    P.nPToDie	<-rbinom(1,P.nPAlive,nu.P) # how many parasite species go extinct?
+    P.nPToDie	<- rbinom(1, P.nPAlive, nu.P) # how many parasite species go extinct?
 
-    if (P.nPToDie>0) {
-      P.PToDie<-sample.int(P.nPAlive,P.nPToDie) # which parasites?
-      P.PToDie<-P.PToDie[P.PBranches$tBirth[P.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (P.nPToDie > 0) {
+      P.PToDie <- sample.int(P.nPAlive, P.nPToDie) # which parasites?
+      P.PToDie <- P.PToDie[P.PBranches$tBirth[P.PToDie] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in P.PToDie) {
-        timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
-        P.PBranches$alive[i]		<-FALSE
-        P.PBranches$nodeDeath[i]	<-P.nextPNode
-        P.PBranches$tDeath[i]		<-timepoint
+        timepoint	               <- t - runif(1, max = timestep) # random timepoint for extinction event
+        P.PBranches$alive[i]		 <- FALSE
+        P.PBranches$nodeDeath[i] <- P.nextPNode
+        P.PBranches$tDeath[i]		 <- timepoint
 
-        P.nPDeadBranches			<-P.nPDeadBranches+1
-        P.PDeadBranches[P.nPDeadBranches,]<-P.PBranches[i, ] # copy branches updated with death info to dead tree
-        if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-          P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+        P.nPDeadBranches			   <- P.nPDeadBranches + 1
+        P.PDeadBranches[P.nPDeadBranches, ] <- P.PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+          P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
         }
-        P.nextPNode					<-P.nextPNode+1
-        P.nPAlive					<-P.nPAlive-1
+        P.nextPNode	<- P.nextPNode + 1
+        P.nPAlive		<- P.nPAlive - 1
       }
-      if (length(P.PToDie)>0) {
-        P.PBranches<-P.PBranches[-P.PToDie, ] # removing all dead parasite branches
+      if (length(P.PToDie) > 0) {
+        P.PBranches <- P.PBranches[-P.PToDie, ] # removing all dead parasite branches
       }
     }
 
     # parasite speciation (independent of hosts)
-    if (kappa.Q>0) {
-      Q.nPToSpeciate	<-rbinom(1,Q.nPAlive,kappa.Q) # how many parasite species go extinct?
+    if (kappa.Q > 0) {
+      Q.nPToSpeciate <- rbinom(1, Q.nPAlive, kappa.Q) # how many parasite species go extinct?
     } else {
-      Q.nPToSpeciate<-0
+      Q.nPToSpeciate <- 0
     }
 
-    if (Q.nPToSpeciate>0) {
-      Q.PToSpeciate<-sample.int(Q.nPAlive,Q.nPToSpeciate) # which parasites?
-      Q.PToSpeciate<-Q.PToSpeciate[Q.PBranches$tBirth[Q.PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Q.nPToSpeciate > 0) {
+      Q.PToSpeciate <- sample.int(Q.nPAlive, Q.nPToSpeciate) # which parasites?
+      Q.PToSpeciate <- Q.PToSpeciate[Q.PBranches$tBirth[Q.PToSpeciate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in Q.PToSpeciate) {
-        timepoint			   		<-t-runif(1,max=timestep) # random timepoint for extinction event
-        Q.PBranches$alive[i]	   	<-FALSE
-        Q.PBranches$nodeDeath[i] 	<-Q.nextPNode
-        Q.PBranches$tDeath[i]    	<-timepoint
+        timepoint                <- t - runif(1, max = timestep) # random timepoint for extinction event
+        Q.PBranches$alive[i]	   <- FALSE
+        Q.PBranches$nodeDeath[i] <- Q.nextPNode
+        Q.PBranches$tDeath[i]    <- timepoint
 
-        Q.nPDeadBranches		     <-Q.nPDeadBranches+1
-        Q.PDeadBranches[Q.nPDeadBranches,]<-Q.PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) # if dataframe containing dead branches is full
-          Q.PDeadBranches<-rbind(Q.PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        Q.nPDeadBranches		     <- Q.nPDeadBranches + 1
+        Q.PDeadBranches[Q.nPDeadBranches, ] <- Q.PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+          Q.PDeadBranches <- rbind(Q.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
+        }
 
-        Q.PBranches               <-rbind(Q.PBranches,c(TRUE,Q.nextPNode,timepoint,0,0,Q.PBranches$Hassoc[i], Q.nPBranches+1))
-        Q.PBranches               <-rbind(Q.PBranches,c(TRUE,Q.nextPNode,timepoint,0,0,Q.PBranches$Hassoc[i], Q.nPBranches+2))
-        Q.nextPNode               <-Q.nextPNode+1
-        Q.nPAlive                 <-Q.nPAlive+1
-        Q.nPBranches              <-Q.nPBranches+2
+        Q.PBranches  <- rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, Q.PBranches$Hassoc[i], Q.nPBranches + 1))
+        Q.PBranches  <- rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, Q.PBranches$Hassoc[i], Q.nPBranches + 2))
+        Q.nextPNode  <- Q.nextPNode + 1
+        Q.nPAlive    <- Q.nPAlive + 1
+        Q.nPBranches <- Q.nPBranches + 2
       }
-      if (length(Q.PToSpeciate)>0)
-        Q.PBranches<-Q.PBranches[-Q.PToSpeciate,] # removing all dead parasite branches
+      if (length(Q.PToSpeciate) > 0) {
+        Q.PBranches <- Q.PBranches[-Q.PToSpeciate, ] # removing all dead parasite branches
+      }
     }
 
     # Q parasite extinction:
-    Q.nPToDie	<-rbinom(1, Q.nPAlive, nu.Q) # how many parasite species go extinct?
+    Q.nPToDie	<- rbinom(1, Q.nPAlive, nu.Q) # how many parasite species go extinct?
 
-    if (Q.nPToDie>0) {
-      Q.PToDie<-sample.int(Q.nPAlive, Q.nPToDie) # which parasites?
-      Q.PToDie<-Q.PToDie[Q.PBranches$tBirth[Q.PToDie]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Q.nPToDie > 0) {
+      Q.PToDie <- sample.int(Q.nPAlive, Q.nPToDie) # which parasites?
+      Q.PToDie <- Q.PToDie[Q.PBranches$tBirth[Q.PToDie] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in Q.PToDie) {
-        timepoint					<-t-runif(1, max=timestep) # random timepoint for extinction event
-        Q.PBranches$alive[i]		<-FALSE
-        Q.PBranches$nodeDeath[i]	<-Q.nextPNode
-        Q.PBranches$tDeath[i]		<-timepoint
+        timepoint                <- t - runif(1, max = timestep) # random timepoint for extinction event
+        Q.PBranches$alive[i]		 <- FALSE
+        Q.PBranches$nodeDeath[i] <- Q.nextPNode
+        Q.PBranches$tDeath[i]		 <- timepoint
 
-        Q.nPDeadBranches			<-Q.nPDeadBranches+1
-        Q.PDeadBranches[Q.nPDeadBranches,]<-Q.PBranches[i, ] # copy branches updated with death info to dead tree
-        if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-          Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE,DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+        Q.nPDeadBranches			   <- Q.nPDeadBranches + 1
+        Q.PDeadBranches[Q.nPDeadBranches, ] <- Q.PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+          Q.PDeadBranches <- rbind(Q.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
         }
 
-        Q.nextPNode					<-Q.nextPNode+1
-        Q.nPAlive					<-Q.nPAlive-1
+        Q.nextPNode	<- Q.nextPNode + 1
+        Q.nPAlive		<- Q.nPAlive - 1
       }
-      if (length(Q.PToDie)>0) {
-        Q.PBranches<-Q.PBranches[-Q.PToDie,] # removing all dead parasite branches
+      if (length(Q.PToDie) > 0) {
+        Q.PBranches <- Q.PBranches[-Q.PToDie, ] # removing all dead parasite branches
       }
     }
 
     # parasite host jumps:
-    nHAlive			<-length(HBranches[,1])
-    hostJumpProb	<-beta*(nHAlive-1)
+    nHAlive			 <- length(HBranches[, 1])
+    hostJumpProb <- beta * (nHAlive - 1)
 
-    if (hostJumpProb>1) {
+    if (hostJumpProb > 1) {
       print("Warning: host jump probability > 1!")
-      hostJumpProb<-1
+      hostJumpProb <- 1
     }
 
     # P parasite host-jumps
-    P.noParasitesToJump	<-rbinom(1,P.nPAlive,beta*nHAlive)
+    P.noParasitesToJump	<- rbinom(1, P.nPAlive, beta * nHAlive)
 
-    if (P.noParasitesToJump>0) {
-      P.parasitesToJump		<-sample.int(P.nPAlive,P.noParasitesToJump) # which parasites
-      P.parasitesToJump		<-P.parasitesToJump[P.PBranches$tBirth[P.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-      P.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+    if (P.noParasitesToJump > 0) {
+      P.parasitesToJump		<- sample.int(P.nPAlive, P.noParasitesToJump) # which parasites
+      P.parasitesToJump		<- P.parasitesToJump[P.PBranches$tBirth[P.parasitesToJump] < (t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      P.parasitesToDelete <- numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
 
       for (i in P.parasitesToJump) {
-        P.oldHost<-which(HBranches$branchNo==P.PBranches$Hassoc[i])   # row number of old host
-        P.otherHosts<-(1:nHAlive)[-P.oldHost]  # row numbers of all living hosts except the original one
+        P.oldHost <- which(HBranches$branchNo == P.PBranches$Hassoc[i])   # row number of old host
+        P.otherHosts <- (1:nHAlive)[-P.oldHost]  # row numbers of all living hosts except the original one
 
-        if(length(P.otherHosts)>0) {
-          newHost<-P.otherHosts[sample.int(length(P.otherHosts),1)]  # randomly choose branch number of new host
-          P.probEstablish<-(exp(-gamma.P*Gdist[P.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-          P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          P.probEstablish<-P.probEstablish*(sigma.self^P.estabInfections)*(sigma.cross^Q.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
+        if(length(P.otherHosts) > 0) {
+          newHost           <- P.otherHosts[sample.int(length(P.otherHosts), 1)]  # randomly choose branch number of new host
+          P.probEstablish   <- (exp(-gamma.P * Gdist[P.oldHost, newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+          P.estabInfections <- length(which(P.PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          Q.estabInfections <- length(which(Q.PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          P.probEstablish   <- P.probEstablish * (sigma.self^P.estabInfections) * (sigma.cross^Q.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
 
-          if(runif(1)<P.probEstablish) {# if host jump was successful
-            timepoint						<-t-runif(1,max=timestep) # random timepoint for jump
-            P.PBranches$nodeDeath[i]			<-P.nextPNode
-            P.PBranches$tDeath[i]			<-timepoint
-            P.PBranches$alive[i]			<-FALSE
+          if(runif(1) < P.probEstablish) {# if host jump was successful
+            timepoint                <- t - runif(1, max = timestep) # random timepoint for jump
+            P.PBranches$nodeDeath[i] <- P.nextPNode
+            P.PBranches$tDeath[i]    <- timepoint
+            P.PBranches$alive[i]     <- FALSE
 
-            P.nPDeadBranches				<-P.nPDeadBranches+1
-            P.PDeadBranches[P.nPDeadBranches,]	<-P.PBranches[i,] # copy branches updated with death info to dead tree
-            if (length(P.PDeadBranches[,1])==P.nPDeadBranches) {# if dataframe containing dead branches is full
-              P.PDeadBranches<-rbind(P.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+            P.nPDeadBranches				 <- P.nPDeadBranches + 1
+            P.PDeadBranches[P.nPDeadBranches, ] <- P.PBranches[i, ] # copy branches updated with death info to dead tree
+            if (length(P.PDeadBranches[, 1]) == P.nPDeadBranches) {# if dataframe containing dead branches is full
+              P.PDeadBranches <- rbind(P.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                   nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
             }
 
-            P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[P.oldHost], P.nPBranches+1))
-            P.PBranches              <-rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], P.nPBranches+2))
-            P.parasitesToDelete	   <-c(P.parasitesToDelete,i)
-            P.nextPNode              <-P.nextPNode+1
-            P.nPAlive                <-P.nPAlive+1
-            P.nPBranches             <-P.nPBranches+2
+            P.PBranches         <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0,
+                                                        HBranches$branchNo[P.oldHost], P.nPBranches + 1))
+            P.PBranches         <- rbind(P.PBranches, c(TRUE, P.nextPNode, timepoint, 0, 0,
+                                                        HBranches$branchNo[newHost], P.nPBranches + 2))
+            P.parasitesToDelete <- c(P.parasitesToDelete, i)
+            P.nextPNode         <- P.nextPNode + 1
+            P.nPAlive           <- P.nPAlive + 1
+            P.nPBranches        <- P.nPBranches + 2
           }
         }
       }
       if (length(P.parasitesToDelete) > 0) {
-        P.PBranches <-P.PBranches[-P.parasitesToDelete,] # removing all mother parasite branches that have host jumped
+        P.PBranches <- P.PBranches[-P.parasitesToDelete, ] # removing all mother parasite branches that have host jumped
       }
     }
 
     # Q parasite host-jumps
-    Q.noParasitesToJump	<-rbinom(1, Q.nPAlive, beta*nHAlive)
+    Q.noParasitesToJump	<- rbinom(1, Q.nPAlive, beta * nHAlive)
 
-    if (Q.noParasitesToJump>0) {
-      Q.parasitesToJump		<-sample.int(Q.nPAlive,Q.noParasitesToJump) # which parasites
-      Q.parasitesToJump		<-Q.parasitesToJump[Q.PBranches$tBirth[Q.parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-      Q.parasitesToDelete		<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+    if (Q.noParasitesToJump > 0) {
+      Q.parasitesToJump		<- sample.int(Q.nPAlive, Q.noParasitesToJump) # which parasites
+      Q.parasitesToJump		<- Q.parasitesToJump[Q.PBranches$tBirth[Q.parasitesToJump] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      Q.parasitesToDelete <- numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
 
       for (i in Q.parasitesToJump) {
-        Q.oldHost<-which(HBranches$branchNo==Q.PBranches$Hassoc[i])   # row number of old host
-        Q.otherHosts<-(1:nHAlive)[-Q.oldHost]  # row numbers of all living hosts except the original one
+        Q.oldHost    <- which(HBranches$branchNo == Q.PBranches$Hassoc[i])   # row number of old host
+        Q.otherHosts <- (1:nHAlive)[-Q.oldHost]  # row numbers of all living hosts except the original one
 
-        if(length(Q.otherHosts)>0) {
-          newHost<-Q.otherHosts[sample.int(length(Q.otherHosts),1)]  # randomly choose branch number of new host
-          Q.probEstablish<-(exp(-gamma.Q*Gdist[Q.oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-          P.estabInfections<-length(which(P.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          Q.estabInfections<-length(which(Q.PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          Q.probEstablish<-Q.probEstablish*(sigma.self^Q.estabInfections)*(sigma.cross^P.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
+        if(length(Q.otherHosts) > 0) {
+          newHost           <- Q.otherHosts[sample.int(length(Q.otherHosts), 1)]  # randomly choose branch number of new host
+          Q.probEstablish   <- (exp(-gamma.Q * Gdist[Q.oldHost, newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+          P.estabInfections <- length(which(P.PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          Q.estabInfections <- length(which(Q.PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          Q.probEstablish   <- Q.probEstablish * (sigma.self^Q.estabInfections) * (sigma.cross^P.estabInfections) # determine if parasite switch to new host is successful, depending on genetic distance and new host infection status
 
-          if(runif(1)<Q.probEstablish) {# if host jump was successful
-            timepoint							<-t-runif(1,max=timestep) # random timepoint for jump
-            Q.PBranches$nodeDeath[i]				<-Q.nextPNode
-            Q.PBranches$tDeath[i]				<-timepoint
-            Q.PBranches$alive[i]				<-FALSE
+          if (runif(1) < Q.probEstablish) {# if host jump was successful
+            timepoint							   <- t - runif(1, max = timestep) # random timepoint for jump
+            Q.PBranches$nodeDeath[i] <- Q.nextPNode
+            Q.PBranches$tDeath[i]    <- timepoint
+            Q.PBranches$alive[i]     <- FALSE
 
-            Q.nPDeadBranches					<-Q.nPDeadBranches+1
-            Q.PDeadBranches[Q.nPDeadBranches,]	<-Q.PBranches[i,] # copy branches updated with death info to dead tree
-            if (length(Q.PDeadBranches[,1])==Q.nPDeadBranches) {# if dataframe containing dead branches is full
-              Q.PDeadBranches<-rbind(Q.PDeadBranches, data.frame(alive=rep(FALSE, DBINC), nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+            Q.nPDeadBranches				 <- Q.nPDeadBranches + 1
+            Q.PDeadBranches[Q.nPDeadBranches, ] <- Q.PBranches[i, ] # copy branches updated with death info to dead tree
+            if (length(Q.PDeadBranches[, 1]) == Q.nPDeadBranches) {# if dataframe containing dead branches is full
+              Q.PDeadBranches <- rbind(Q.PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                                                                   nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0))
             }
 
-            Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[Q.oldHost], Q.nPBranches+1))
-            Q.PBranches              <-rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0, HBranches$branchNo[newHost], Q.nPBranches+2))
-            Q.parasitesToDelete	   <-c(Q.parasitesToDelete,i)
-            Q.nextPNode              <-Q.nextPNode+1
-            Q.nPAlive                <-Q.nPAlive+1
-            Q.nPBranches             <-Q.nPBranches+2
+            Q.PBranches         <- rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0,
+                                                        HBranches$branchNo[Q.oldHost], Q.nPBranches + 1))
+            Q.PBranches         <- rbind(Q.PBranches, c(TRUE, Q.nextPNode, timepoint, 0, 0,
+                                                        HBranches$branchNo[newHost], Q.nPBranches + 2))
+            Q.parasitesToDelete <- c(Q.parasitesToDelete, i)
+            Q.nextPNode         <- Q.nextPNode + 1
+            Q.nPAlive           <- Q.nPAlive + 1
+            Q.nPBranches        <- Q.nPBranches + 2
           }
         }
       }
       if (length(Q.parasitesToDelete) > 0) {
-        Q.PBranches <-Q.PBranches[-Q.parasitesToDelete,] # removing all mother parasite branches that have host jumped
+        Q.PBranches <- Q.PBranches[-Q.parasitesToDelete, ] # removing all mother parasite branches that have host jumped
       }
     }
 
-    if (((round(t/timestep)*timestep)>=tmax)||((P.nPAlive==0)&&(Q.nPAlive==0))) {
-      continue<-FALSE
+    if (((round(t / timestep) * timestep) >= tmax) || ((P.nPAlive == 0) && (Q.nPAlive == 0))) {
+      continue <- FALSE
     }
   } # loop back up to next t
 
   # setting final times and nodes:
   if (P.nPAlive > 0) {
-    P.PBranches$tDeath		<-t
-    P.PBranches$nodeDeath	<-P.nextPNode:(P.nextPNode+P.nPAlive-1)
+    P.PBranches$tDeath		<- t
+    P.PBranches$nodeDeath	<- P.nextPNode:(P.nextPNode + P.nPAlive - 1)
   }
   if (Q.nPAlive > 0) {
     Q.PBranches$tDeath		<-t
-    Q.PBranches$nodeDeath	<-Q.nextPNode:(Q.nextPNode+Q.nPAlive-1)
+    Q.PBranches$nodeDeath	<-Q.nextPNode:(Q.nextPNode + Q.nPAlive - 1)
   }
 
   # recovering the original host tree:
 
-  HBranches	<-H.tree
+  HBranches	<- H.tree
 
   # merging two P matricies together:
 
-  P.PBranches		<-rbind(P.PBranches, P.PDeadBranches[1:P.nPDeadBranches,])
-  P.PBranches		<-P.PBranches[order(P.PBranches[,"branchNo"]), ]
+  P.PBranches	<- rbind(P.PBranches, P.PDeadBranches[1:P.nPDeadBranches, ])
+  P.PBranches	<- P.PBranches[order(P.PBranches[, "branchNo"]), ]
 
-  Q.PBranches		<-rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches,])
-  Q.PBranches		<-Q.PBranches[order(Q.PBranches[,"branchNo"]), ]
+  Q.PBranches	<- rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches, ])
+  Q.PBranches	<- Q.PBranches[order(Q.PBranches[, "branchNo"]), ]
 
-  if (export.format=="Phylo") { # return cophylogeny as an APE Phylo class
-    H.phylo<-convert_HBranchesToPhylo(HBranches)
-    PandQ.phylo<-convert_PQBranchesToPhylo(P.PBranches,Q.PBranches)
-    return(list(H.phylo,PandQ.phylo[[1]],PandQ.phylo[[2]]))
-  } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
-    return(list(HBranches,P.PBranches,Q.PBranches))
-  } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
-    PandQ.phylo<-convert_PQBranchesToPhylo(P.PBranches,Q.PBranches)
-    return(list(PandQ.phylo[[1]],PandQ.phylo[[2]]))
+  if (export.format == "Phylo") { # return cophylogeny as an APE Phylo class
+    H.phylo     <- convert_HBranchesToPhylo(HBranches)
+    PandQ.phylo <- convert_PQBranchesToPhylo(P.PBranches, Q.PBranches)
+    return(list(H.phylo, PandQ.phylo[[1]], PandQ.phylo[[2]]))
+  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
+    return(list(HBranches, P.PBranches, Q.PBranches))
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
+    PandQ.phylo <- convert_PQBranchesToPhylo(P.PBranches, Q.PBranches)
+    return(list(PandQ.phylo[[1]], PandQ.phylo[[2]]))
   }
 }
 
@@ -1444,333 +1520,360 @@ rcophylo_PQonH<-function(tmax, H.tree,beta=0.1,gamma.P=0.02,gamma.Q=0.02,sigma.s
 #' Htree<-rphylo_H(tmax=5, export.format="Raw")
 #' rcophylo_PonH_Htrait(H.tree=Htree, tmax=5)
 
-rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5, kappa=0, delta=0, epsilon.1to0=0.01, epsilon.0to1=0.001, startTrait=NA, omega=10, rho=0.5, psi=0.5, TraitTracking=NA, prune.extinct=FALSE,export.format="Phylo",P.startT=0, ini.Hbranch=NA, Gdist=NA, timestep=0.001)
-{
+rcophylo_PonH_Htrait <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
+                                 epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, startTrait = NA, omega = 10, rho = 0.5,
+                                 psi = 0.5, TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
+                                 P.startT = 0, ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
   #organising inputs
-  if (class(TraitTracking)=="logical") { # need to calculate preinvasion trait information
-    Get.preinvasionTraits	<-get_preInvasionTraits(H.tree=H.tree, P.startT=P.startT, epsilon.1to0=epsilon.1to0, epsilon.0to1=epsilon.0to1, startTrait=startTrait, timestep= timestep)
-    HBranches<-Get.preinvasionTraits[[1]]
-    TraitTracking<-Get.preinvasionTraits[[2]]
+  if (class(TraitTracking) == "logical") { # need to calculate preinvasion trait information
+    Get.preinvasionTraits	<- get_preInvasionTraits(H.tree = H.tree, P.startT = P.startT, epsilon.1to0 = epsilon.1to0,
+                                                   epsilon.0to1 = epsilon.0to1, startTrait = startTrait, timestep = timestep)
+    HBranches     <- Get.preinvasionTraits[[1]]
+    TraitTracking <- Get.preinvasionTraits[[2]]
   } else { # If have already calculated preinvasion traits
-    HBranches		<-TraitTracking[[1]]
-    TraitTracking	<-TraitTracking[[2]]
+    HBranches		  <- TraitTracking[[1]]
+    TraitTracking	<- TraitTracking[[2]]
   }
 
   # adjusting the evolutionary rates to timesteps:
-  nu     		<- nu*timestep
-  beta    		<- beta*timestep
-  epsilon.1to0	<- epsilon.1to0*timestep
-  epsilon.0to1	<- epsilon.0to1*timestep
-  kappa			<- kappa*timestep
+  nu           <- nu * timestep
+  beta    		 <- beta * timestep
+  epsilon.1to0 <- epsilon.1to0 * timestep
+  epsilon.0to1 <- epsilon.0to1 * timestep
+  kappa        <- kappa * timestep
 
   # Set beginning for P simulation
 
-  if (is.na(ini.Hbranch))  # no initial host branch specified --> choose random branch
-  {
-    P.startHassoc<-sample(HBranches$branchNo, 1) # HBranch that invasion will start from
-  }else{
-    P.startHassoc<-ini.Hbranch # HBranch that invasion will start from
+  if (is.na(ini.Hbranch)) { # no initial host branch specified --> choose random branch
+    P.startHassoc <- sample(HBranches$branchNo, 1) # HBranch that invasion will start from
+  } else {
+    P.startHassoc <- ini.Hbranch # HBranch that invasion will start from
   }
 
-  PBranches <-data.frame(alive=TRUE, nodeBirth=0, tBirth=P.startT, nodeDeath=0, tDeath=0, Hassoc=P.startHassoc, branchNo=1)
+  PBranches     <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = P.startT, nodeDeath = 0,
+                          tDeath = 0, Hassoc = P.startHassoc, branchNo = 1)
 
-  nPBranches    <- 1	# total number of branches that have been constructed
-  nPAlive       <- 1	# number of branches that extend until the current timestep
-  nextPNode     <- 1  # number of the next node to be produced
+  nPBranches <- 1	# total number of branches that have been constructed
+  nPAlive    <- 1	# number of branches that extend until the current timestep
+  nextPNode  <- 1  # number of the next node to be produced
 
-  PDeadBranches<-data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0)
-  nPDeadBranches        <- 0		  	    # number of dead parasite branches
+  PDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0,
+                              nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
+  nPDeadBranches <- 0		  	    # number of dead parasite branches
 
   if (any(is.na(Gdist))) { # calculate the Gdist matrix in the case that one is not provided
-    Gdist	<-get_GDist(H.tree,t=P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
+    Gdist	<- get_GDist(H.tree, t = P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
   }
 
-  HBranchDeathTimes<-sort(H.tree[,5][H.tree[,5]>=P.startT & H.tree[,1]==FALSE])
-  HDeathIndex<-1
+  HBranchDeathTimes <- sort(H.tree[, 5][H.tree[, 5] >= P.startT & H.tree[, 1] == FALSE])
+  HDeathIndex <-1
 
-  continue<-TRUE
-  t<-P.startT
-  while (continue==TRUE) # continue simulation until continue is set to FALSE
-  {  # main simulation loop through time
-    t<-t+timestep
+  continue <- TRUE
+  t <- P.startT
+  while (continue == TRUE) {# continue simulation until continue is set to FALSE
+    # main simulation loop through time
+    t <- t + timestep
     # update Gdist
-    Gdist <-Gdist + 2 * timestep # add increased distance btw branches
-    diag (Gdist) <-0  # cleaning up so that distance between branch to itself is always 0
+    Gdist <- Gdist + 2 * timestep # add increased distance btw branches
+    diag (Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
     # Host events:
-    if ((HDeathIndex<=length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex]>=(t-timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) # if any host dies w/in interval
-    {
-      H.Death <-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive==FALSE) # Any host branch that dies w/in timestep interval leading up to time t
-      HDeathIndex<-HDeathIndex+length(H.Death)
+    if ((HDeathIndex <= length(HBranchDeathTimes)) & (HBranchDeathTimes[HDeathIndex] >=
+                                                      (t - timestep)) & (HBranchDeathTimes[HDeathIndex] < t)) { # if any host dies w/in interval
+      H.Death <- which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t & HBranches$alive == FALSE) # Any host branch that dies w/in timestep interval leading up to time t
+      HDeathIndex <- HDeathIndex + length(H.Death)
 
-      for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
-      {
+      for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) { # for each node where a host died
         # Cospeciation events:
-        if (i %in% H.tree[,2])   # Check if host death is due to speciation
-        {
-          H.Speciations			<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-          TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
+        if (i %in% H.tree[, 2]) {  # Check if host death is due to speciation
+          H.Speciations <- which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
+          TraitTracking[[HBranches$branchNo[H.Speciations]]] <- rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]],
+                                                                      c(HBranches$tDeath[H.Speciations],
+                                                                        HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
 
-          daughterBranches			<-which(H.tree[,2] == i)
-          HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
-          HBranches              	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
+          daughterBranches <-which(H.tree[, 2] == i)
+          HBranches        <-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6],
+                                                Resistance=HBranches$Resistance[H.Speciations]))
+          HBranches        <-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6],
+                                                Resistance=HBranches$Resistance[H.Speciations]))
 
-          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,3][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
-          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree[,3][daughterBranches[2]], 																HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[1]]][1, ] <- c(H.tree[, 3][daughterBranches[1]],
+                                                         HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[2]]][1, ] <- c(H.tree[, 3][daughterBranches[2]],
+                                                         HBranches$Resistance[H.Speciations])
 
-
-          timepoint               <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
+          timepoint <- HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
           # update Gdist matrix:
           # filling in values
 
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-rbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
-          Gdist	<-cbind(Gdist,NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- rbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
+          Gdist	<- cbind(Gdist, NA)
 
-          len 	<-length(Gdist[1, ])
+          len 	<- length(Gdist[1, ])
 
-          Gdist[len-1,len]	<-2*(t-timepoint)
-          Gdist[len,len-1]	<-2*(t-timepoint)
+          Gdist[len - 1, len]	<- 2 * (t - timepoint)
+          Gdist[len, len - 1]	<- 2 * (t - timepoint)
 
-          Gdist[1:(len-2), len-1]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[1:(len-2), len]	<-Gdist[1:(len-2),H.Speciations]
-          Gdist[len-1, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
-          Gdist[len, 1:(len-2)]	<-Gdist[H.Speciations,1:(len-2)]
+          Gdist[1:(len - 2), len - 1]	<- Gdist[1:(len - 2), H.Speciations]
+          Gdist[1:(len - 2), len]	    <- Gdist[1:(len - 2), H.Speciations]
+          Gdist[len - 1, 1:(len - 2)]	<- Gdist[H.Speciations, 1:(len - 2)]
+          Gdist[len, 1:(len - 2)]	    <- Gdist[H.Speciations, 1:(len - 2)]
 
-          P.Speciations <-which(PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
+          P.Speciations <- which(PBranches$Hassoc %in% HBranches$branchNo[H.Speciations]) # P branches cospeciate at time
 
-          if (length(P.Speciations) > 0) # make sure argument greater then length 0
-          {
+          if (length(P.Speciations) > 0) { # make sure argument greater then length 0
             for(j in P.Speciations)	{
-              PBranches$alive[j]	    <-FALSE
-              PBranches$nodeDeath[j]  <-nextPNode
-              PBranches$tDeath[j]    	<-timepoint
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
 
-              nPDeadBranches		   <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j, ] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches, data.frame(alive=rep(FALSE,DBINC) ,nodeBirth=0, tBirth=0, nodeDeath=0, tDeath=0, Hassoc=0, branchNo=0))
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches, ] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[, 1]) == nPDeadBranches) { # if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                 tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                 Hassoc = 0, branchNo = 0))
+              }
 
 
-              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree[,6][daughterBranches[1]], nPBranches+1))
-              PBranches               <-rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0, H.tree[,6][daughterBranches[2]], nPBranches+2))
-              nextPNode               <-nextPNode+1
-              nPAlive                 <-nPAlive+1
-              nPBranches              <-nPBranches+2
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0,
+                                               H.tree[, 6][daughterBranches[1]], nPBranches + 1))
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint,0, 0,
+                                               H.tree[, 6][daughterBranches[2]], nPBranches + 2))
+              nextPNode  <- nextPNode + 1
+              nPAlive    <- nPAlive + 1
+              nPBranches <- nPBranches + 2
             }
-            PBranches <-PBranches[-P.Speciations,]  # removing all mother parasite branches that have co-speciated
-            if (delta>0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1)<delta) {
-                whichBranch<-sample(c(nPAlive-1, nPAlive),1)  # which of the two daughter branches dies?
+            PBranches <- PBranches[-P.Speciations, ]  # removing all mother parasite branches that have co-speciated
+            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+              if(runif(1) < delta) {
+                whichBranch <- sample(c(nPAlive- 1, nPAlive), 1)  # which of the two daughter branches dies?
 
-                PBranches$alive[whichBranch]	   <-FALSE
-                PBranches$nodeDeath[whichBranch] <-nextPNode
-                PBranches$tDeath[whichBranch]    <-timepoint
+                PBranches$alive[whichBranch]	   <- FALSE
+                PBranches$nodeDeath[whichBranch] <- nextPNode
+                PBranches$tDeath[whichBranch]    <- timepoint
 
-                nPDeadBranches		   <-nPDeadBranches+1
-                PDeadBranches[nPDeadBranches,]<-PBranches[whichBranch,] # copy branches updated with death info to dead tree
-                if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                  PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-                nextPNode          <-nextPNode+1
-                nPAlive			       <-nPAlive-1
-                PBranches<-PBranches[-whichBranch,] # removing dead parasite branche
+                nPDeadBranches <- nPDeadBranches + 1
+                PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                if (length(PDeadBranches[, 1]) == nPDeadBranches) { # if dataframe containing dead branches is full
+                  PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                   tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                   Hassoc = 0, branchNo = 0))
+                }
+                nextPNode <- nextPNode + 1
+                nPAlive		<- nPAlive - 1
+                PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
           }
 
           # delete all extinct hosts from living tree
-          HBranches	<-HBranches[-H.Speciations,]
+          HBranches	<- HBranches[-H.Speciations, ]
 
-          Gdist	<-Gdist[-H.Speciations,]  # removing all host mother branches that have speciated
-          Gdist	<-Gdist[,-H.Speciations]
+          Gdist	<- Gdist[-H.Speciations, ]  # removing all host mother branches that have speciated
+          Gdist	<- Gdist[, -H.Speciations]
         }
-        else # is an extinction event
-        {
-          H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
-          P.Extinctions	<-which(PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
+        else { # is an extinction event
+          H.Extinctions	<- which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
+          P.Extinctions	<- which(PBranches$Hassoc %in% HBranches$branchNo[H.Extinctions]) # P branches coextinct at time t
           if (length(P.Extinctions) > 0) {# make sure there is an associated P that goes extinct
 
             for (j in P.Extinctions) {
-              timepoint			   <-HBranches$tDeath[H.Extinctions]
+              timepoint	             <- HBranches$tDeath[H.Extinctions]
 
-              PBranches$alive[j]	   <-FALSE
-              PBranches$nodeDeath[j] <-nextPNode
-              PBranches$tDeath[j]    <-timepoint
+              PBranches$alive[j]	   <- FALSE
+              PBranches$nodeDeath[j] <- nextPNode
+              PBranches$tDeath[j]    <- timepoint
 
-              nPDeadBranches		   <-nPDeadBranches+1
-              PDeadBranches[nPDeadBranches,]<-PBranches[j,] # copy branches updated with death info to dead tree
-              if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-                PDeadBranches<-rbind(PDeadBranches, data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+              nPDeadBranches		     <- nPDeadBranches + 1
+              PDeadBranches[nPDeadBranches, ] <- PBranches[j, ] # copy branches updated with death info to dead tree
+              if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+                PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                 tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                 Hassoc = 0, branchNo = 0))
+              }
 
-
-              nextPNode              <-nextPNode+1
-              nPAlive			       <-nPAlive-1
+              nextPNode <- nextPNode + 1
+              nPAlive		<- nPAlive - 1
             }
 
-            PBranches<-PBranches[-P.Extinctions,] # delete all branches associated with extinct host from living tree
+            PBranches <- PBranches[-P.Extinctions, ] # delete all branches associated with extinct host from living tree
           }
           for (j in H.Extinctions) {
-            TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
+            TraitTracking[[HBranches$branchNo[j]]] <- rbind(TraitTracking[[HBranches$branchNo[j]]],
+                                                            c(HBranches$tDeath[j], HBranches$Resistance[j]))
           }
 
           # removing all host mother branches that have died
-          HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
+          HBranches	<- HBranches[-H.Extinctions, ] # delete all extinct hosts from living tree
 
-          Gdist	<-Gdist[-H.Extinctions, ,drop=FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
-          Gdist	<-Gdist[,-H.Extinctions,drop=FALSE]
-
+          Gdist	<- Gdist[-H.Extinctions, , drop = FALSE] # drop=FALSE is needed to avoid conversion to vector when Gdist is 2x2!
+          Gdist	<- Gdist[, -H.Extinctions, drop = FALSE]
         } # completed speciation/extinction loops
-
       } # completed loop through H.Death.Nodes
-
     } # finished checking if any H deaths occured
 
     # parasite speciation (independent of hosts)
-    if (kappa>0) {
-      nPToSpeciate	<-rbinom(1,nPAlive,kappa) # how many parasite species go extinct?
+    if (kappa > 0) {
+      nPToSpeciate <-rbinom(1, nPAlive, kappa) # how many parasite species go extinct?
     } else {
-      nPToSpeciate<-0
+      nPToSpeciate <- 0
     }
 
-    if (nPToSpeciate>0) {
-      PToSpeciate<-sample.int(nPAlive,nPToSpeciate) # which parasites?
-      PToSpeciate<-PToSpeciate[PBranches$tBirth[PToSpeciate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (nPToSpeciate > 0) {
+      PToSpeciate <- sample.int(nPAlive, nPToSpeciate) # which parasites?
+      PToSpeciate <- PToSpeciate[PBranches$tBirth[PToSpeciate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in PToSpeciate) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        PBranches$alive[i]	   <-FALSE
-        PBranches$nodeDeath[i] <-nextPNode
-        PBranches$tDeath[i]    <-timepoint
+        timepoint              <- t - runif(1, max = timestep) # random timepoint for extinction event
+        PBranches$alive[i]	   <- FALSE
+        PBranches$nodeDeath[i] <- nextPNode
+        PBranches$tDeath[i]    <- timepoint
 
-        nPDeadBranches		     <-nPDeadBranches+1
-        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+        nPDeadBranches		     <- nPDeadBranches + 1
+        PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(PDeadBranches[, 1]) == nPDeadBranches) { # if dataframe containing dead branches is full
+          PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                           tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                           Hassoc = 0, branchNo = 0))
+        }
 
-        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+1))
-        PBranches               <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,PBranches$Hassoc[i], nPBranches+2))
-        nextPNode               <-nextPNode+1
-        nPAlive                 <-nPAlive+1
-        nPBranches              <-nPBranches+2
+        PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 1))
+        PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, PBranches$Hassoc[i], nPBranches + 2))
+        nextPNode  <- nextPNode + 1
+        nPAlive    <- nPAlive + 1
+        nPBranches <- nPBranches + 2
       }
-      if (length(PToSpeciate)>0)
-        PBranches<-PBranches[-PToSpeciate,] # removing all dead parasite branches
+      if (length(PToSpeciate) > 0)
+        PBranches <- PBranches[-PToSpeciate, ] # removing all dead parasite branches
     }
 
     # parasite extinction:
-    hostTrait.0			<-which(HBranches$Resistance==0) # host branches w/ particular trait at time t
-    hostTrait.1			<-which(HBranches$Resistance==1) # host branches w/ particular trait at time t
+    hostTrait.0	<- which(HBranches$Resistance == 0) # host branches w/ particular trait at time t
+    hostTrait.1	<- which(HBranches$Resistance == 1) # host branches w/ particular trait at time t
 
-    P.HTrait.0			<-which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
-    P.HTrait.1			<-which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.1]) # parasite branches associated H w/ particular trait
+    P.HTrait.0	<- which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.0]) # parasite branches associated H w/ particular trait
+    P.HTrait.1	<- which(PBranches$Hassoc %in% HBranches$branchNo[hostTrait.1]) # parasite branches associated H w/ particular trait
 
-    nPAlive.HTrait.0	<-length(P.HTrait.0)
-    nPAlive.HTrait.1	<-length(P.HTrait.1)
+    nPAlive.HTrait.0 <- length(P.HTrait.0)
+    nPAlive.HTrait.1 <- length(P.HTrait.1)
 
-    nPToDie.HTrait.0		<-rbinom(1,nPAlive.HTrait.0,nu) # how many parasite species go extinct?
-    nPToDie.HTrait.1		<-rbinom(1,nPAlive.HTrait.1,nu*(1/(1-rho))) # how many parasite species go extinct?
+    nPToDie.HTrait.0 <- rbinom(1, nPAlive.HTrait.0, nu) # how many parasite species go extinct?
+    nPToDie.HTrait.1 <- rbinom(1, nPAlive.HTrait.1, nu * (1 / (1 - rho))) # how many parasite species go extinct?
 
-    if (nPToDie.HTrait.0>0) {
-      PToDie.HTrait.0	<-sample.int(nPAlive.HTrait.0,nPToDie.HTrait.0) # which parasites?
-      PToDie.HTrait.0	<-PToDie.HTrait.0[PBranches$tBirth[PToDie.HTrait.0]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (nPToDie.HTrait.0 > 0) {
+      PToDie.HTrait.0	<- sample.int(nPAlive.HTrait.0, nPToDie.HTrait.0) # which parasites?
+      PToDie.HTrait.0	<- PToDie.HTrait.0[PBranches$tBirth[PToDie.HTrait.0] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in PToDie.HTrait.0) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        PBranches$alive[i]	   <-FALSE
-        PBranches$nodeDeath[i] <-nextPNode
-        PBranches$tDeath[i]    <-timepoint
+        timepoint	             <- t - runif(1, max = timestep) # random timepoint for extinction event
+        PBranches$alive[i]     <- FALSE
+        PBranches$nodeDeath[i] <- nextPNode
+        PBranches$tDeath[i]    <- timepoint
 
-        nPDeadBranches		   <-nPDeadBranches+1
-        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-        nextPNode              <-nextPNode+1
-        nPAlive			       <-nPAlive-1
+        nPDeadBranches		     <- nPDeadBranches + 1
+        PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(PDeadBranches[, 1]) == nPDeadBranches) { # if dataframe containing dead branches is full
+          PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                           tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                           Hassoc = 0, branchNo = 0))
+        }
+        nextPNode <- nextPNode + 1
+        nPAlive		<- nPAlive - 1
       }
-      if (length(PToDie.HTrait.0)>0) {
-        PBranches<-PBranches[-PToDie.HTrait.0,] # removing all dead parasite branches
+      if (length(PToDie.HTrait.0) > 0) {
+        PBranches <- PBranches[-PToDie.HTrait.0, ] # removing all dead parasite branches
       }
-
     }
 
-    if (nPToDie.HTrait.1>0) {
-      PToDie.HTrait.1	<-sample.int(nPAlive.HTrait.1,nPToDie.HTrait.1) # which parasites?
-      PToDie.HTrait.1	<-PToDie.HTrait.1[PBranches$tBirth[PToDie.HTrait.1]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (nPToDie.HTrait.1 > 0) {
+      PToDie.HTrait.1	<- sample.int(nPAlive.HTrait.1, nPToDie.HTrait.1) # which parasites?
+      PToDie.HTrait.1	<- PToDie.HTrait.1[PBranches$tBirth[PToDie.HTrait.1] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
       for (i in PToDie.HTrait.1) {
-        timepoint			   <-t-runif(1,max=timestep) # random timepoint for extinction event
-        PBranches$alive[i]	   <-FALSE
-        PBranches$nodeDeath[i] <-nextPNode
-        PBranches$tDeath[i]    <-timepoint
+        timepoint              <- t - runif(1, max = timestep) # random timepoint for extinction event
+        PBranches$alive[i]	   <- FALSE
+        PBranches$nodeDeath[i] <- nextPNode
+        PBranches$tDeath[i]    <- timepoint
 
-        nPDeadBranches		   <-nPDeadBranches+1
-        PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-        if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-          PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
-        nextPNode              <-nextPNode+1
-        nPAlive			       <-nPAlive-1
+        nPDeadBranches		     <- nPDeadBranches + 1
+        PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+        if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+          PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                           tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                           Hassoc = 0, branchNo = 0))
+        }
+        nextPNode <- nextPNode + 1
+        nPAlive		<- nPAlive - 1
       }
-      if (length(PToDie.HTrait.1)>0) {
-        PBranches<-PBranches[-PToDie.HTrait.1,] # removing all dead parasite branches
+      if (length(PToDie.HTrait.1) > 0) {
+        PBranches <- PBranches[-PToDie.HTrait.1, ] # removing all dead parasite branches
       }
-
     }
 
     # parasite host jumps:
-    nHAlive		<-length(HBranches[,1])
-    hostJumpProb<-beta*(nHAlive-1)
+    nHAlive	     <- length(HBranches[, 1])
+    hostJumpProb <- beta * (nHAlive - 1)
 
-    if (hostJumpProb>1) {
+    if (hostJumpProb > 1) {
       print("Warning: host jump probability > 1!")
-      hostJumpProb<-1
+      hostJumpProb <- 1
     }
 
-    noParasitesToJump	<-rbinom(1,nPAlive,hostJumpProb)
+    noParasitesToJump	<- rbinom(1, nPAlive, hostJumpProb)
 
-    if (noParasitesToJump>0) {
-      parasitesToJump		<-sample.int(nPAlive,noParasitesToJump) # which parasites
-      parasitesToJump		<-parasitesToJump[PBranches$tBirth[parasitesToJump]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-      parasitesToDelete	<-numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
+    if (noParasitesToJump > 0) {
+      parasitesToJump		<- sample.int(nPAlive, noParasitesToJump) # which parasites
+      parasitesToJump		<- parasitesToJump[PBranches$tBirth[parasitesToJump] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      parasitesToDelete	<- numeric(0)  # this will become the vector of row numbers for rows to be deleted from PBranches afterwards
 
       for (i in parasitesToJump) {
-        oldHost<-which(HBranches$branchNo==PBranches$Hassoc[i])   # row number of old host
-        otherHosts<-(1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
+        oldHost    <- which(HBranches$branchNo == PBranches$Hassoc[i])   # row number of old host
+        otherHosts <- (1:nHAlive)[-oldHost]  # row numbers of all living hosts except the original one
 
-        if(length(otherHosts)>0) {
-          newHost<-otherHosts[sample.int(length(otherHosts),1)]  # randomly choose branch number of new host
-          probEstablish<-(exp(-gamma*Gdist[oldHost,newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
-          estabInfections<-length(which(PBranches$Hassoc==HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
-          newHost.Resistance<-HBranches$Resistance[newHost]
-          if (newHost.Resistance==1) {
-            resistanceBarrier	<- 1-psi
+        if(length(otherHosts) > 0) {
+          newHost            <- otherHosts[sample.int(length(otherHosts), 1)]  # randomly choose branch number of new host
+          probEstablish      <- (exp(-gamma * Gdist[oldHost, newHost])) # determine if Parasite switch to new host is successful,depending on genetic distance
+          estabInfections    <- length(which(PBranches$Hassoc == HBranches$branchNo[newHost]))  # no of parasites already infecting the potential new host
+          newHost.Resistance <- HBranches$Resistance[newHost]
+
+          if (newHost.Resistance == 1) {
+            resistanceBarrier	<- 1 - psi
           } else {
-            resistanceBarrier 	<- 1
+            resistanceBarrier <- 1
           }
-          probEstablish<-probEstablish*sigma^estabInfections*resistanceBarrier # determine if parasite switch to new host is successful, depending on genetic distance
 
-          if(runif(1)<probEstablish) {# if host jump was successful
-            timepoint			   <-t-runif(1,max=timestep) # random timepoint for jump
-            PBranches$nodeDeath[i] <-nextPNode
-            PBranches$tDeath[i]    <-timepoint
-            PBranches$alive[i]	   <-FALSE
+          probEstablish <- probEstablish * sigma^estabInfections * resistanceBarrier # determine if parasite switch to new host is successful, depending on genetic distance
 
-            nPDeadBranches		   <-nPDeadBranches+1
-            PDeadBranches[nPDeadBranches,]<-PBranches[i,] # copy branches updated with death info to dead tree
-            if (length(PDeadBranches[,1])==nPDeadBranches) # if dataframe containing dead branches is full
-              PDeadBranches<-rbind(PDeadBranches,data.frame(alive=rep(FALSE,DBINC),nodeBirth=0,tBirth=0,nodeDeath=0,tDeath=0,Hassoc=0, branchNo=0))
+          if(runif(1) < probEstablish) {# if host jump was successful
+            timepoint	             <- t - runif(1, max = timestep) # random timepoint for jump
+            PBranches$nodeDeath[i] <- nextPNode
+            PBranches$tDeath[i]    <- timepoint
+            PBranches$alive[i]	   <- FALSE
 
-            PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[oldHost],nPBranches+1))
-            PBranches              <-rbind(PBranches,c(TRUE,nextPNode,timepoint,0,0,HBranches$branchNo[newHost],nPBranches+2))
-            parasitesToDelete	   <-c(parasitesToDelete,i)
-            nextPNode              <-nextPNode+1
-            nPAlive                <-nPAlive+1
-            nPBranches             <-nPBranches+2
+            nPDeadBranches		     <- nPDeadBranches + 1
+            PDeadBranches[nPDeadBranches, ] <- PBranches[i, ] # copy branches updated with death info to dead tree
+            if (length(PDeadBranches[,1]) == nPDeadBranches) { # if dataframe containing dead branches is full
+              PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                               tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                               Hassoc = 0, branchNo = 0))
+            }
+
+            PBranches         <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0,
+                                                    HBranches$branchNo[oldHost], nPBranches + 1))
+            PBranches         <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0,
+                                                    HBranches$branchNo[newHost], nPBranches + 2))
+            parasitesToDelete	<- c(parasitesToDelete, i)
+            nextPNode         <- nextPNode + 1
+            nPAlive           <- nPAlive + 1
+            nPBranches        <- nPBranches + 2
           }
         }
       }
       if (length(parasitesToDelete) > 0) {
-        PBranches <-PBranches[-parasitesToDelete,] # removing all mother parasite branches that have host jumped
+        PBranches <- PBranches[-parasitesToDelete, ] # removing all mother parasite branches that have host jumped
       }
     }
 
@@ -1780,93 +1883,93 @@ rcophylo_PonH_Htrait<-function(tmax, H.tree,beta=0.1,gamma=0.02,sigma=0,nu=0.5, 
     #hostTrait.1			<-which(HBranches$Resistance==1) # host branches w/ particular trait at time t
 
     # resistance status of hosts infected with parasites
-    Htrait.0.P			<-which(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc) # which susceptible hosts harbour a parasite?
-    Htrait.1.P			<-which(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc) # which resistant hosts harbour a parasite?
+    Htrait.0.P   <- which(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc) # which susceptible hosts harbour a parasite?
+    Htrait.1.P	 <- which(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc) # which resistant hosts harbour a parasite?
 
-    Htrait.0.noP		<-which(!(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc)) # which susceptible hosts harbour a parasite?
-    Htrait.1.noP		<-which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
+    Htrait.0.noP <- which(!(HBranches$branchNo[hostTrait.0] %in% PBranches$Hassoc)) # which susceptible hosts harbour a parasite?
+    Htrait.1.noP <- which(!(HBranches$branchNo[hostTrait.1] %in% PBranches$Hassoc)) # which resistant hosts harbour a parasite?
 
     # which hosts mutate?
-    if (class(Htrait.0.P)=="numeric" | class(Htrait.0.P)=="integer") {# & length(Htrait.0.P)>0) {
-      Mutate.0to1.P		<-rbinom(1,length(Htrait.0.P),epsilon.0to1*omega) # how many susceptible hosts 										evolve resistance in presence of P?
+    if (class(Htrait.0.P) == "numeric" | class(Htrait.0.P) == "integer") { # & length(Htrait.0.P)>0) {
+      Mutate.0to1.P <- rbinom(1, length(Htrait.0.P), epsilon.0to1 * omega) # how many susceptible hosts 										evolve resistance in presence of P?
     } else {
-      Mutate.0to1.P<-0
+      Mutate.0to1.P <- 0
     }
 
-    if (class(Htrait.1.P)=="numeric" | class(Htrait.1.P)=="integer") {# & length(Htrait.1.P)>0) {
-      Mutate.1to0.P		<-rbinom(1,length(Htrait.1.P),epsilon.1to0*(1/omega)) # how many resistant hosts 									evolve susceptibility in presence of P?
+    if (class(Htrait.1.P) == "numeric" | class(Htrait.1.P) == "integer") { # & length(Htrait.1.P)>0) {
+      Mutate.1to0.P <- rbinom(1, length(Htrait.1.P), epsilon.1to0 * (1 / omega)) # how many resistant hosts 									evolve susceptibility in presence of P?
     } else {
-      Mutate.1to0.P<-0
+      Mutate.1to0.P <- 0
     }
 
-    if (class(Htrait.0.noP)=="numeric" | class(Htrait.0.noP)=="integer") {# & length(Htrait.0.noP)) {
-      Mutate.0to1.noP		<-rbinom(1,length(Htrait.0.noP),epsilon.0to1) # how many susceptible hosts evolve 									resistance in absence of P?
+    if (class(Htrait.0.noP) == "numeric" | class(Htrait.0.noP) == "integer") { # & length(Htrait.0.noP)) {
+      Mutate.0to1.noP <- rbinom(1, length(Htrait.0.noP), epsilon.0to1) # how many susceptible hosts evolve 									resistance in absence of P?
     } else {
-      Mutate.0to1.noP<-0
+      Mutate.0to1.noP <- 0
     }
 
-    if (class(Htrait.1.noP)=="numeric" | class(Htrait.1.noP)=="integer") {# & length(Htrait.1.noP)>0) {
-      Mutate.1to0.noP		<-rbinom(1,length(Htrait.1.noP),epsilon.1to0) # how many resistant hosts evolve 									susceptibility in absence of P?
+    if (class(Htrait.1.noP) == "numeric" | class(Htrait.1.noP) == "integer") { # & length(Htrait.1.noP)>0) {
+      Mutate.1to0.noP <- rbinom(1, length(Htrait.1.noP), epsilon.1to0) # how many resistant hosts evolve 									susceptibility in absence of P?
     } else {
-      Mutate.1to0.noP<-0
+      Mutate.1to0.noP <- 0
     }
 
-    if (Mutate.0to1.P>0) { # if any infected susceptible hosts mutate
-      HToMutate<-sample.int(length(Htrait.0.P),Mutate.0to1.P) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Mutate.0to1.P > 0) { # if any infected susceptible hosts mutate
+      HToMutate <- sample.int(length(Htrait.0.P), Mutate.0to1.P) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.P[HToMutate]]] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
       for (i in HBranches$branchNo[hostTrait.0[Htrait.0.P[HToMutate]]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 1
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - runif(1, max = timestep), 1))
       }
     }
-    if (Mutate.1to0.P>0) {
-      HToMutate<-sample.int(length(Htrait.1.P),Mutate.1to0.P) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.P[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Mutate.1to0.P > 0) {
+      HToMutate <- sample.int(length(Htrait.1.P), Mutate.1to0.P) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.P[HToMutate]]] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
       for (i in HBranches$branchNo[hostTrait.1[Htrait.1.P[HToMutate]]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 0
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - runif(1, max = timestep), 0))
       }
     }
-    if (Mutate.0to1.noP>0) {
-      HToMutate<-sample.int(length(Htrait.0.noP),Mutate.0to1.noP) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Mutate.0to1.noP > 0) {
+      HToMutate <- sample.int(length(Htrait.0.noP), Mutate.0to1.noP) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[hostTrait.0[Htrait.0.noP[HToMutate]]] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
       for (i in HBranches$branchNo[hostTrait.0[Htrait.0.noP[HToMutate]]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),1))
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 1
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - runif(1, max = timestep), 1))
       }
     }
-    if (Mutate.1to0.noP>0) {
-      HToMutate<-sample.int(length(Htrait.1.noP),Mutate.1to0.noP) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.noP[HToMutate]]]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Mutate.1to0.noP > 0) {
+      HToMutate <- sample.int(length(Htrait.1.noP), Mutate.1to0.noP) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[hostTrait.1[Htrait.1.noP[HToMutate]]] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
       for (i in HBranches$branchNo[hostTrait.1[Htrait.1.noP[HToMutate]]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-runif(1,max=timestep),0))
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 0
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - runif(1, max = timestep), 0))
       }
     }
 
-    if ((round(t/timestep)*timestep)>=tmax) continue<-FALSE
+    if ((round(t / timestep) * timestep) >= tmax) continue <- FALSE
   } # loop back up to next t
 
   # setting final times and nodes:
   if (nPAlive > 0)
   {
-    PBranches$tDeath	<-t
-    PBranches$nodeDeath	<-nextPNode:(nextPNode+nPAlive-1)
+    PBranches$tDeath	  <- t
+    PBranches$nodeDeath	<- nextPNode:(nextPNode + nPAlive - 1)
   }
 
   # merging two P matricies together:
 
-  PBranches	<-rbind(PBranches,PDeadBranches[1:nPDeadBranches,])
-  PBranches	<-PBranches[order(PBranches[,"branchNo"]), ]
+  PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
+  PBranches	<- PBranches[order(PBranches[, "branchNo"]), ]
 
-  for (i in which(H.tree[,1]==1)) {
-    TraitTracking[[i]]	<-rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][,1]),2]))
+  for (i in which(H.tree[, 1] == 1)) {
+    TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][, 1]), 2]))
   }
-  if (export.format=="Phylo"){ # return cophylogeny as an APE Phylo class
+  if (export.format == "Phylo") { # return cophylogeny as an APE Phylo class
     return(list(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches), TraitTracking))
-  } else if (export.format=="Raw") { # return the HBranches and PBranches lists as they are
+  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
     return(list(H.tree,PBranches,TraitTracking))
-  } else if (export.format=="PhyloPonly") {# return only the parasite tree, converted in Phylo format
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
     return(list(convert_PBranchesToPhylo(PBranches), TraitTracking))
   }
 

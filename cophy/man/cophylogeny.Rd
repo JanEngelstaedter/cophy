@@ -18,6 +18,10 @@ cophylogeny(H.tree, P.tree, Q.tree = NA, TraitTracking = NA)
 \item{TraitTracking}{an object that tracks the evolution of a parasite
 response trait on the host tree (optional)}
 }
+\value{
+this function returns an object of class 'cophylogeny' which can be
+  passed to the plot() function.
+}
 \description{
 This function creates an object of class 'cophy', which can be passed to the
 plot.cophy() function. This object must contain at least one host and one
@@ -25,7 +29,7 @@ parasite tree, but can also contain a second parasite tree and a
 TraitTracking object.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format='Raw')
 HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
 cophylogeny(HPtree[[1]], HPtree[[2]])
 }

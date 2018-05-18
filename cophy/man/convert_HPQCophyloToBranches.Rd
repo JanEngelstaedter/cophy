@@ -2,18 +2,21 @@
 % Please edit documentation in R/convert.R
 \name{convert_HPQCophyloToBranches}
 \alias{convert_HPQCophyloToBranches}
-\title{Convert cophylogenetic trees from Ape's phylo format to the internal Branches format}
+\title{Convert cophylogenetic trees from Ape's phylo format to the internal Branches
+format}
 \usage{
 convert_HPQCophyloToBranches(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (in phylo format) containing one host and two parasite trees}
+\item{cophy}{a cophylogeny (in phylo format) containing one host and two
+parasite trees. Parasite trees must have at least 1 internal node}
 }
 \description{
-The following function converts a phylo host-(dual) parasite tree into internal Branches format
+The following function converts a phylo host-(dual) parasite tree into
+internal Branches format
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")
-HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5)
+HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, sigma.cross=0.5)
 convert_HPQCophyloToBranches(cophy=HPQtree)
 }

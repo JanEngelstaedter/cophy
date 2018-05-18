@@ -9,7 +9,7 @@
   plotPEvolution = c(TRUE, TRUE), ...)
 }
 \arguments{
-\item{x}{a cophylogeny (object of class "cophy" built by the cophy(H.tree,
+\item{x}{a cophylogeny (object of class 'cophy' built by the cophy(H.tree,
 P.tree, Q.tree=NA, TraitTracking=NA) function) containing a host tree and a
 parasite tree. This may also contain a second parasite tree or/and parasite
 trait values.}
@@ -35,10 +35,10 @@ plot any parasites, should be set simply to FALSE.}
 \item{...}{other parameters to be passed to plotting functions.}
 }
 \description{
-This function plots a host-parasite cophylogenetic tree,
+This function plots a host-parasite cophylogenetic tree.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format='Raw')
 HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
 plot(cophylogeny(HPtree[[1]], HPtree[[2]]))
 }

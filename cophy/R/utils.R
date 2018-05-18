@@ -25,106 +25,108 @@
 #' Htree<-rphylo_H(tmax=5, export.format="Raw")
 #' get_preInvasionTraits(H.tree=Htree, P.startT=2.5, epsilon.1to0=0.01, epsilon.0to1=0.01)
 
-get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, startTrait=NA, timestep=0.001)
+get_preInvasionTraits <- function(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
+                                  startTrait = NA, timestep = 0.001)
 {
-  epsilon.1to0	<- epsilon.1to0*timestep
-  epsilon.0to1	<- epsilon.0to1*timestep
-  t<-0 # initiate time counter
+  epsilon.1to0	<- epsilon.1to0 * timestep
+  epsilon.0to1	<- epsilon.0to1 * timestep
+  t <- 0 # initiate time counter
 
-  if (class(H.tree)=="data.frame") {
-  	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
+  if (class(H.tree) == "data.frame") {
+  	HBranches <- H.tree[which(H.tree[, 5] >= 0 && H.tree[, 3] == 0), ] # begin from the initial branch
   	if (is.na(startTrait)) {
-  		HBranches$Resistance<-sample(c(0,1), 1, 0.5) # randomly choose start value
-  	} else if (startTrait %in% c(0,1)) {
-  		HBranches$Resistance<-startTrait
+  		HBranches$Resistance <- sample(c(0, 1), 1, 0.5) # randomly choose start value
+  	} else if (startTrait %in% c(0, 1)) {
+  		HBranches$Resistance <- startTrait
   	}
 
-  } else if (class(H.tree)=="big.matrix") { # allowing the use of bigmatrix to reduce RAM burden
-  	HBranches<-H.tree[which(H.tree[,5]>=0 && H.tree[,3]==0),] # begin from the initial branch
-  	HBranches<-t(as.data.frame(HBranches))
+  } else if (class(H.tree) == "big.matrix") { # allowing the use of bigmatrix to reduce RAM burden
+  	HBranches <- H.tree[which(H.tree[, 5] >= 0 && H.tree[, 3] == 0), ] # begin from the initial branch
+  	HBranches <- t(as.data.frame(HBranches))
   	if (is.na(startTrait)) {
-  		res<-data.frame(Resistance=sample(c(0,1), 1, 0.5)) # randomly choose start value
-  	} else if (startTrait %in% c(0,1)) {
-  		res<-data.frame(Resistance=startTrait)
+  		res <- data.frame(Resistance = sample(c(0, 1), 1, 0.5)) # randomly choose start value
+  	} else if (startTrait %in% c(0, 1)) {
+  		res <- data.frame(Resistance = startTrait)
   	}
-  	HBranches<-cbind(HBranches, res)
+  	HBranches <- cbind(HBranches, res)
   } else {
   	stop("H.tree object of incompatible data type")
   }
 
-  TraitTracking<-vector("list",length(H.tree[,1]))
-  for (i in 1:length(H.tree[,1])) {
-    TraitTracking[[i]]<-matrix(NA, ncol=2, nrow=1)
-    colnames(TraitTracking[[i]])<-c("Timepoint","Trait.value")
+  TraitTracking <- vector("list", length(H.tree[, 1]))
+  for (i in 1:length(H.tree[, 1])) {
+    TraitTracking[[i]] <- matrix(NA, ncol = 2, nrow = 1)
+    colnames(TraitTracking[[i]]) <- c("Timepoint", "Trait.value")
   }
 
-  TraitTracking[[1]][1,]<-c(0, HBranches$Resistance) # Setting initial trait value and simulation start time
+  TraitTracking[[1]][1, ] <- c(0, HBranches$Resistance) # Setting initial trait value and simulation start time
 
-  while (t<=P.startT) {
-    t<-t+timestep
-    H.Death <-which(HBranches$tDeath >= (t-timestep) & HBranches$tDeath < t) # Any host branch that dies w/in timestep interval leading up to time t
-    if (length(H.Death)>0) {# if any host dies w/in interval
-      for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
-      {
+  while (t <= P.startT) {
+    t <- t + timestep
+    H.Death <- which(HBranches$tDeath >= (t - timestep) & HBranches$tDeath < t) # Any host branch that dies w/in timestep interval leading up to time t
+    if (length(H.Death) > 0) {# if any host dies w/in interval
+      for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) { # for each node where a host died
         # Speciation events:
-        if (i %in% H.tree[,2])   # Check if host death is due to speciation
-        {
-          H.Speciations		<-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
+        if (i %in% H.tree[,2]) { # Check if host death is due to speciation
+          H.Speciations		 <- which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
 
-          TraitTracking[[HBranches$branchNo[H.Speciations]]]<-																							rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]], 															c(HBranches$tDeath[H.Speciations], HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
+          TraitTracking[[HBranches$branchNo[H.Speciations]]] <- rbind(TraitTracking[[HBranches$branchNo[H.Speciations]]],
+                                                                      c(HBranches$tDeath[H.Speciations],
+                                                                        HBranches$Resistance[H.Speciations])) 											# Recording death time and trait
 
-          daughterBranches	<-which(H.tree[,2] == i)
+          daughterBranches <- which(H.tree[, 2] == i)
 
-          HBranches           <-rbind(HBranches, c(H.tree[daughterBranches[1], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
-          HBranches          	<-rbind(HBranches, c(H.tree[daughterBranches[2], 1:6], 																	Resistance=HBranches$Resistance[H.Speciations]))
+          HBranches        <- rbind(HBranches, c(H.tree[daughterBranches[1], 1:6],
+                                                 Resistance = HBranches$Resistance[H.Speciations]))
+          HBranches        <- rbind(HBranches, c(H.tree[daughterBranches[2], 1:6],
+                                                 Resistance = HBranches$Resistance[H.Speciations]))
 
-          timepoint           <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
+          timepoint        <- HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
 
-          TraitTracking[[daughterBranches[1]]][1,]<-c(H.tree[,3][daughterBranches[1]], 																HBranches$Resistance[H.Speciations])
-          TraitTracking[[daughterBranches[2]]][1,]<-c(H.tree[,3][daughterBranches[2]], 															HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[1]]][1, ] <- c(H.tree[, 3][daughterBranches[1]],
+                                                         HBranches$Resistance[H.Speciations])
+          TraitTracking[[daughterBranches[2]]][1, ] <- c(H.tree[, 3][daughterBranches[2]],
+                                                         HBranches$Resistance[H.Speciations])
 
           # delete all extinct hosts from living tree
-          HBranches	<-HBranches[-H.Speciations,]
+          HBranches	       <- HBranches[-H.Speciations, ]
         }
-        else # is an extinction event
-        {
-          H.Extinctions	<-which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
+        else { # is an extinction event
+          H.Extinctions	<- which(HBranches$nodeDeath == i) # H branch extinct at time t at particular node
 
-          if (length(H.Extinctions)>0) {
+          if (length(H.Extinctions) > 0) {
             for (j in H.Extinctions) {
-              TraitTracking[[HBranches$branchNo[j]]]<-rbind(TraitTracking[[HBranches$branchNo[j]]], 												c(HBranches$tDeath[j], HBranches$Resistance[j]))
+              TraitTracking[[HBranches$branchNo[j]]] <- rbind(TraitTracking[[HBranches$branchNo[j]]],
+                                                              c(HBranches$tDeath[j], HBranches$Resistance[j]))
             }
             # removing all host mother branches that have died
-            HBranches	<-HBranches[-H.Extinctions,] # delete all extinct hosts from living tree
+            HBranches	<- HBranches[-H.Extinctions, ] # delete all extinct hosts from living tree
           }
-
         } # completed speciation/extinction loops
-
       } # completed loop through H.Death.Nodes
-
     }
     # See if there is any trait mutation on the living branches
 
     # host mutation:
-    Mutate.0to1			<-stats::rbinom(1,length(which(HBranches$Resistance==0)),epsilon.0to1) # how many parasite species go extinct?
-    Mutate.1to0			<-stats::rbinom(1,length(which(HBranches$Resistance==1)),epsilon.1to0) # how many parasite species go extinct?
+    Mutate.0to1 <- stats::rbinom(1, length(which(HBranches$Resistance == 0)), epsilon.0to1) # how many parasite species go extinct?
+    Mutate.1to0	<- stats::rbinom(1, length(which(HBranches$Resistance == 1)), epsilon.1to0) # how many parasite species go extinct?
 
-    if (Mutate.0to1>0) {
-      HToMutate<-sample.int(length(which(HBranches$Resistance==0)),Mutate.0to1) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+    if (Mutate.0to1 > 0) {
+      HToMutate <- sample.int(length(which(HBranches$Resistance == 0)), Mutate.0to1) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[HToMutate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
 
-      for (i in HBranches$branchNo[which(HBranches$Resistance==0)[HToMutate]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-1
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-stats::runif(1,max=timestep),1))
+      for (i in HBranches$branchNo[which(HBranches$Resistance == 0)[HToMutate]]) {
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 1
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - stats::runif(1, max = timestep), 1))
       }
     }
 
-    if (Mutate.1to0>0) {
-      HToMutate<-sample.int(length(which(HBranches$Resistance==1)),Mutate.1to0) # which parasites?
-      HToMutate<-HToMutate[HBranches$tBirth[HToMutate]<(t-timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
-      for (i in HBranches$branchNo[which(HBranches$Resistance==1)[HToMutate]]) {
-        HBranches$Resistance[which(HBranches$branchNo==i)]	<-0
-        TraitTracking[[i]]<-rbind(TraitTracking[[i]],c(t-stats::runif(1,max=timestep),0))
+    if (Mutate.1to0 > 0) {
+      HToMutate <- sample.int(length(which(HBranches$Resistance == 1)), Mutate.1to0) # which parasites?
+      HToMutate <- HToMutate[HBranches$tBirth[HToMutate] < (t - timestep)] # remove those that have just arisen in the same timestep; this is necessary to avoid problems such as negative branch lenghts
+      for (i in HBranches$branchNo[which(HBranches$Resistance == 1)[HToMutate]]) {
+        HBranches$Resistance[which(HBranches$branchNo == i)] <- 0
+        TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t - stats::runif(1, max = timestep), 0))
       }
     }
   }
@@ -141,26 +143,22 @@ get_preInvasionTraits<-function(H.tree, P.startT, epsilon.1to0, epsilon.0to1, st
 #' @param edge.length object sourced from tree in phylo format
 #' @param ancBranches the ancestral branches for the tree
 
-get_tBirth<-function(n,root.edge,edge.length,ancBranches)
-{
+get_tBirth <- function(n, root.edge, edge.length, ancBranches) {
   if (is.na(ancBranches[n])) return(root.edge)
-  else return(get_tBirth(ancBranches[n],root.edge,edge.length,ancBranches)+edge.length[ancBranches[n]])
+  else return(get_tBirth(ancBranches[n], root.edge, edge.length, ancBranches) + edge.length[ancBranches[n]])
 }
 
 #' Function to add new column to Branches dataframe indicating for each branch whether or not it leaves any extant descendents
 #'
 #' @param Branches tree in internal branch format
 
-add_branchSurvival<-function(Branches)
-{
-  Branches$surviving<-FALSE
-  for (i in which(Branches$alive))
-  {
-    j<-i
-    while ((!is.na(j)) & (Branches$surviving[j]==FALSE))
-    {
-      Branches$surviving[j]<-TRUE
-      j<-match(Branches$nodeBirth[j],Branches$nodeDeath)
+add_branchSurvival <- function(Branches) {
+  Branches$surviving <- FALSE
+  for (i in which(Branches$alive)) {
+    j <- i
+    while ((!is.na(j)) & (Branches$surviving[j] == FALSE)) {
+      Branches$surviving[j] <- TRUE
+      j <- match(Branches$nodeBirth[j], Branches$nodeDeath)
     }
   }
   return(Branches)
@@ -173,16 +171,14 @@ add_branchSurvival<-function(Branches)
 #' @param node a particular node in the tree
 #' @keywords node, root
 
-get_nodeTime<-function(phy,node)
-{
-  nnode<-node
-  t<-0
-  nedge<-match(nnode,phy$edge[,2])  # find corresponding edge
-  while (!is.na(nedge))
-  {
-    t<-t+phy$edge.length[nedge] # add edge.length to total time
-    nnode<-phy$edge[nedge,1] # set new node to ancestral node
-    nedge<-match(nnode,phy$edge[,2])  # find corresponding new edge
+get_nodeTime <- function(phy, node) {
+  nnode <- node
+  t     <- 0
+  nedge <- match(nnode, phy$edge[, 2])  # find corresponding edge
+  while (!is.na(nedge)) {
+    t     <- t + phy$edge.length[nedge] # add edge.length to total time
+    nnode <- phy$edge[nedge, 1] # set new node to ancestral node
+    nedge <- match(nnode, phy$edge[, 2])  # find corresponding new edge
   }
-  return(t+phy$root.edge)
+  return(t + phy$root.edge)
 }
