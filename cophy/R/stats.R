@@ -91,41 +91,6 @@ get_infectionFrequencies <- function(cophy) {
   else NA
 }
 
-# The following function should be incorporated into get_infection Frequencies:
-
-get_2Pinfectionlevels <- function(cophy) {
-  if (cophy[[1]]$nAlive>0) {
-    P.InfectionLevels <- rep(NA, cophy[[1]]$nAlive)  # vector giving the number of parasites infecting each host
-    Q.InfectionLevels <- rep(NA, cophy[[1]]$nAlive)  # vector giving the number of parasites infecting each host
-    Total.InfectionLevels <- rep(NA, cophy[[1]]$nAlive)
-    HBranchesAlive   <- (1:length(cophy[[1]]$edge[, 1]))[(cophy[[1]]$edge[, 2] <= cophy[[1]]$nAlive)]
-    P.PBranchesAlive <- (1:length(cophy[[2]]$edge[, 1]))[(cophy[[2]]$edge[, 2] <= cophy[[2]]$nAlive)]
-    Q.PBranchesAlive <- (1:length(cophy[[3]]$edge[, 1]))[(cophy[[3]]$edge[, 2] <= cophy[[3]]$nAlive)]
-    for(k in 1:cophy[[1]]$nAlive) {
-      P.InfectionLevels[k] <- sum(cophy[[2]]$Hassoc[P.PBranchesAlive] == HBranchesAlive[k])
-      Q.InfectionLevels[k] <- sum(cophy[[3]]$Hassoc[Q.PBranchesAlive] == HBranchesAlive[k])
-      Total.InfectionLevels[k] <- sum(P.InfectionLevels[k], Q.InfectionLevels[k])
-    }
-    PandQ.fractionInfected <- (length(which(P.InfectionLevels > 0 & Q.InfectionLevels > 0))) / length(HBranchesAlive) # Number infected with
-
-    maxInfectionLevel <- max(Total.InfectionLevels, na.rm = TRUE)
-    P.HistData     <- rep(NA, (maxInfectionLevel + 1))		# vector giving number of hosts infected by 0, 1, 2, ... parasites
-    Q.HistData     <- rep(NA, (maxInfectionLevel + 1))
-    Total.HistData <- rep(NA, (maxInfectionLevel + 1))
-    HistData       <- rbind(P.HistData, c(Q.HistData))
-    HistData       <- rbind(HistData, c(Total.HistData))
-    colnames(HistData) <- 0:maxInfectionLevel
-    rownames(HistData) <- c('P.HistData', 'Q.HistData', 'Total.HistData')
-    for(i in 0:length(HistData[1, ])) {
-      HistData[1, i] <- sum(P.InfectionLevels == (i - 1))
-      HistData[2, i] <- sum(Q.InfectionLevels == (i - 1))
-      HistData[3, i] <- sum(Total.InfectionLevels == (i - 1))
-    }
-    return(list(HistData, PandQ.fractionInfected))
-  }
-  else NA
-}
-
 #' Basic statistics describing a cophylogeny.
 #'
 #' The following function calculates the basic statistics concerning a
@@ -153,34 +118,6 @@ get_infectionStatistics <- function(cophy) {
   }
   stats <- c(NoHspecies, NoPspecies, fractionHinfected, meanInfection)
   names(stats) <- c("noHspecies", "noPspecies", "fractionInfected", "meanInfectionLevel")
-  stats
-}
-
-# This should be incorporated into get_infectionStatistics:
-
-get_2Pinfectionstats <- function(cophy) {
-  HistData     <- get_2Pinfectionlevels(cophy)
-  NoHspecies   <- cophy[[1]]$nAlive
-  P.NoPspecies <- cophy[[2]]$nAlive
-  Q.NoPspecies <- cophy[[3]]$nAlive
-  if (!is.na(HistData[[1]][1, 1]) | !is.na(HistData[[1]][2, 1])) { # if at least one parasite isn't NA
-    P.fractionHinfected     <- sum(HistData[[1]][1, -1] / NoHspecies)
-    Q.fractionHinfected     <- sum(HistData[[1]][2, -1] / NoHspecies)
-    PandQ.fractionHinfected <- HistData[[2]]
-    P.meanInfection         <- P.NoPspecies / NoHspecies
-    Q.meanInfection         <- Q.NoPspecies / NoHspecies
-    Total.meanInfection     <- (P.NoPspecies + Q.NoPspecies) / NoHspecies
-  } else {
-    P.fractionHinfected <-NA
-    Q.fractionHinfected <-NA
-    P.meanInfection     <-NA
-    Q.meanInfection     <-NA
-  }
-  stats <- c(NoHspecies, P.NoPspecies, Q.NoPspecies, P.fractionHinfected, Q.fractionHinfected,
-             PandQ.fractionHinfected, P.meanInfection, Q.meanInfection, Total.meanInfection)
-  names(stats) <- c("noHspecies", "P.NoPspecies", "Q.NoPspecies", "P.fractionInfected",
-                    "Q.fractionInfected", "PandQ.fractionHinfected", "P.meanInfectionLevel",
-                    "Q.meanInfectionLevel", "Total.meanInfection")
   stats
 }
 
@@ -276,96 +213,6 @@ get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
   }
   return(events)
 }
-
-# Needs to be incorporated into get_PEventsThroughTime function:
-
-get_2PEventsThroughTime <- function(cophy, tmin = 0, tmax = "max", dt = 1) {
-  Branches    <- convert_HPQCophyloToBranches(cophy)
-  HBranches   <- Branches[[1]]
-  P.PBranches <- add_branchSurvival(Branches[[2]])
-  Q.PBranches <- add_branchSurvival(Branches[[3]])
-  if (tmax == "max") {
-    tmax <- max(HBranches$tDeath)
-  }
-  P.events <- matrix(0, nrow = floor((tmax - tmin) / dt), ncol = 8,
-                     dimnames = list(1:((tmax - tmin) / dt), c("From", "To", "LiveBranches",
-                                    "Cospec", "HostShift", "Coextinct", "Extinct", "SpecExtant")))
-  Q.events <- matrix(0, nrow = floor((tmax - tmin) / dt), ncol = 8,
-                     dimnames = list(1:((tmax - tmin) / dt), c("From", "To", "LiveBranches",
-                                    "Cospec", "HostShift", "Coextinct", "Extinct", "SpecExtant")))
-  P.events[, "From"] <- seq(tmin, tmax - dt, by = dt)
-  P.events[, "To"]   <- seq(tmin + dt, tmax, by = dt)
-  Q.events[, "From"] <- seq(tmin, tmax - dt, by = dt)
-  Q.events[, "To"]   <- seq(tmin + dt, tmax, by = dt)
-  for(i in 1:nrow(P.events)) {
-    P.events[i, "LiveBranches"] <- nrow(P.PBranches[P.PBranches$tBirth < P.events[i, "To"]
-                                                    & P.PBranches$tDeath >= P.events[i, "To"], ])
-    if (is.null(P.events[i, "LiveBranches"])) {
-      P.events[i, "LiveBranches"] <- 0
-    }
-
-    dbranches <- P.PBranches$branchNo[P.PBranches$tDeath >= P.events[i, "From"] &
-                                      P.PBranches$tDeath < P.events[i, "To"]] # indices of branches that die off during time interval
-    if (!is.null(dbranches)) {
-      for (j in dbranches) {
-        if (P.PBranches$nodeDeath[j] %in% P.PBranches$nodeBirth) { # speciation!
-          if (P.PBranches$Hassoc[j] %in% P.PBranches$Hassoc[P.PBranches$nodeBirth == P.PBranches$nodeDeath[j]]) {
-            P.events[i, "HostShift"] <- P.events[i, "HostShift"] + 1
-          } else {
-            P.events[i, "Cospec"] <- P.events[i, "Cospec"] + 1
-          }
-          if (P.PBranches$surviving[j]) {
-            desc <- P.PBranches$branchNo[P.PBranches$nodeBirth == P.PBranches$nodeDeath[j]]
-            if (P.PBranches$surviving[desc[1]] & P.PBranches$surviving[desc[2]]) {
-              P.events[i, "SpecExtant"] <- P.events[i, "SpecExtant"] + 1
-            }
-          }
-        } else { # extinction!
-          if (P.PBranches$tDeath[j] == HBranches$tDeath[P.PBranches$Hassoc[j]]) {
-            P.events[i, "Coextinct"] <- P.events[i, "Coextinct"] + 1
-          } else {
-            P.events[i, "Extinct"] <- P.events[i, "Extinct"] + 1
-          }
-        }
-      }
-    }
-  }
-  for(i in 1:nrow(Q.events)) {
-    Q.events[i, "LiveBranches"] <- nrow(Q.PBranches[Q.PBranches$tBirth < Q.events[i, "To"] &
-                                                      Q.PBranches$tDeath >= Q.events[i, "To"],])
-    if (is.null(Q.events[i, "LiveBranches"])) {
-      Q.events[i, "LiveBranches"] <- 0
-    }
-
-    dbranches <- Q.PBranches$branchNo[Q.PBranches$tDeath >= Q.events[i, "From"]
-                                      & Q.PBranches$tDeath < Q.events[i, "To"]] # indices of branches that die off during time interval
-    if (!is.null(dbranches)) {
-      for (j in dbranches) {
-        if (Q.PBranches$nodeDeath[j] %in% Q.PBranches$nodeBirth) { # speciation!
-          if (Q.PBranches$Hassoc[j] %in% Q.PBranches$Hassoc[Q.PBranches$nodeBirth == Q.PBranches$nodeDeath[j]]) {
-            Q.events[i, "HostShift"] <- Q.events[i, "HostShift"] + 1
-          } else {
-            Q.events[i, "Cospec"] <- Q.events[i, "Cospec"] + 1
-          }
-          if (Q.PBranches$surviving[j]) {
-            desc <- Q.PBranches$branchNo[Q.PBranches$nodeBirth == Q.PBranches$nodeDeath[j]]
-            if (Q.PBranches$surviving[desc[1]] & Q.PBranches$surviving[desc[2]]) {
-              Q.events[i, "SpecExtant"] <- Q.events[i,"SpecExtant"] + 1
-            }
-          }
-        } else { # extinction!
-          if (Q.PBranches$tDeath[j] == HBranches$tDeath[Q.PBranches$Hassoc[j]]) {
-            Q.events[i, "Coextinct"] <- Q.events[i, "Coextinct"] + 1
-          } else {
-            Q.events[i, "Extinct"] <- Q.events[i, "Extinct"] + 1
-          }
-        }
-      }
-    }
-  }
-  return(list(P.events, Q.events))
-}
-
 
 # The following function returns the node corresponding to the last common ancestor of two branches.
 # Note that the function is clearly very inefficient at the present stage.
