@@ -8,7 +8,7 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "exampleFigs/README-"
 )
 ```
 
@@ -35,7 +35,5 @@ To install cophy, you first need to install and load the devtools package (avail
 Then, run the following line of code:
 
 ```{r installation}
-#install.packages("devtools")
-library(devtools)
 devtools::install_github("JanEngelstaedter/cophy")
 ```

@@ -17,47 +17,50 @@ print(cop)
 #> [1] "Cophylogeny consisting of a host tree and an associated parasite tree."
 #> 
 #> Hosts:$edge
-#>      [,1] [,2]
-#> [1,]    5    1
-#> [2,]    5    6
-#> [3,]    6    7
-#> [4,]    6    2
-#> [5,]    7    3
-#> [6,]    7    4
+#>       [,1] [,2]
+#>  [1,]    8   10
+#>  [2,]    8    9
+#>  [3,]    9    5
+#>  [4,]    9    6
+#>  [5,]   10   11
+#>  [6,]   10    7
+#>  [7,]   11   12
+#>  [8,]   11    1
+#>  [9,]   12   13
+#> [10,]   12    2
+#> [11,]   13    3
+#> [12,]   13    4
 #> 
 #> $edge.length
-#> [1] 3.20117679 2.12255299 0.03017444 0.87897515 0.94260997 0.96641175
+#>  [1] 0.9638307 0.7872681 0.3036305 0.4453768 1.0603398 0.8641982 0.5626993
+#>  [8] 1.6906307 0.1237491 1.1279314 1.0041823 1.0041823
 #> 
 #> $tip.label
-#> [1] "t1" "t2" "t3" "t4"
+#> [1] "t1" "t2" "t3" "t4" "t5" "t6" "t7"
 #> 
 #> $root.edge
-#> [1] 1.798823
+#> [1] 1.285199
 #> 
 #> $nAlive
-#> [1] 1
+#> [1] 4
 #> 
 #> $Nnode
-#> [1] 3
+#> [1] 6
 #> 
 #> attr(,"class")
 #> [1] "phylo"
 #> 
 #> Parasites:$edge
 #>      [,1] [,2]
-#> [1,]    4    5
-#> [2,]    4    1
-#> [3,]    5    3
-#> [4,]    5    2
 #> 
 #> $edge.length
-#> [1] 0.76355435 0.08846408 0.42850247 0.20373996
+#> numeric(0)
 #> 
 #> $tip.label
-#> [1] "t1" "t2" "t3"
+#> [1] "t1"
 #> 
 #> $root.edge
-#> [1] 1.798823
+#> [1] 0.2976128
 #> 
 #> $root.time
 #> [1] 0
@@ -66,25 +69,25 @@ print(cop)
 #> [1] 0
 #> 
 #> $Hassoc
-#> [1] 1 2 1 2
+#> numeric(0)
 #> 
 #> $root.Hassoc
 #> [1] 1
 #> 
 #> $Nnode
-#> [1] 2
+#> [1] 0
 #> 
 #> attr(,"class")
 #> [1] "phylo"
 get_infectionStatistics(cop)
 #>         noHspecies         noPspecies   fractionInfected 
-#>                  1                  0                  0 
+#>                  4                  0                  0 
 #> meanInfectionLevel 
 #>                  0
 plot(cop)
 ```
 
-![](README-example-1.png)
+![](exampleFigs/README-example-1.png)
 
 Installation
 ------------
@@ -92,8 +95,6 @@ Installation
 To install cophy, you first need to install and load the devtools package (available on CRAN). Then, run the following line of code:
 
 ``` r
-#install.packages("devtools")
-library(devtools)
 devtools::install_github("JanEngelstaedter/cophy")
 #> Warning in strptime(x, fmt, tz = "GMT"): unknown timezone 'zone/tz/2018c.
 #> 1.0/zoneinfo/Australia/Brisbane'
