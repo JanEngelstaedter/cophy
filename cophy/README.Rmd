@@ -1,7 +1,5 @@
 ---
-output:
-  md_document:
-    variant: markdown_github
+output: github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -24,6 +22,7 @@ By this we mean a phylogenetic tree of species ("hosts"), combined with another 
 Here is a simple example for how you can create a random cophylogeny, display some of its basic properties and plot it:
 
 ```{r example}
+library(cophy)
 cop<-rcophylo_HP(tmax=5, K=5)
 print(cop)
 get_infectionStatistics(cop)
@@ -36,5 +35,7 @@ To install cophy, you first need to install and load the devtools package (avail
 Then, run the following line of code:
 
 ```{r installation}
-install_github("JanEngelstaedter/cophy")
+#install.packages("devtools")
+library(devtools)
+devtools::install_github("JanEngelstaedter/cophy")
 ```
