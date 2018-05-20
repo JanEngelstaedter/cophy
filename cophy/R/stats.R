@@ -3,8 +3,6 @@
 # This file contains functions to obtain various statistics describing cophylogenies.
 # This file is part of the R-package 'cophy'.
 
-
-
 #' The following function counts host-jumps
 #'
 #' The following function counts the host-jumps of a host-parasite phylogeny
@@ -12,8 +10,8 @@
 #' @keywords cophylogeny, host-jumps
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_HostShifts(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_HostShifts(cophy=HPtree)
 
 get_HostShifts <- function(cophy) {
   Pphy  <- cophy[[2]]
@@ -62,14 +60,14 @@ get_HostShifts <- function(cophy) {
 #' The following function counts infection levels
 #'
 #' The following function counts the number of hosts infected with a particular
-#' number of parasites from the same parasite phylogeny
+#' number of parasites from the same parasite phylogeny.
 #' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @keywords cophylogeny, infection-counts
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_infectionFrequencies(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_infectionFrequencies(cophy=HPtree)
 
 get_infectionFrequencies <- function(cophy) {
   if (cophy[[1]]$nAlive > 0) {
@@ -102,8 +100,8 @@ get_infectionFrequencies <- function(cophy) {
 #' @keywords cophylogeny, statistics
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_infectionStatistics(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_infectionStatistics(cophy=HPtree)
 
 get_infectionStatistics <- function(cophy) {
   HistData <- get_infectionFrequencies(cophy)
@@ -121,7 +119,7 @@ get_infectionStatistics <- function(cophy) {
   stats
 }
 
-#' Branch (=species) numbers through time.
+#' Branch (species) numbers through time.
 #' @param phy a phylogeny (object of APE class "phylo").
 #' @param tmax maximum time for which to simulate; may be greater than the actual tree length.
 #' @param dt step size for performing calculations.
@@ -156,8 +154,8 @@ get_branchNThroughTime <- function(phy, tmax, dt) {
 #' interval), cospeciation events, host shifts, extinction (with hosts
 #' surviving), co-extinction (extinction caused by host extinction), speciation
 #' events for lineages with surviving descendents
-#' @param cophy a cophylogeny (object of class "cophy") containing one host and
-#'   either one or two parasite trees.
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and
+#'   one parasite tree.
 #' @param tmin the timepoint in the simulation from which parasite events should
 #'   be recorded, default = 0 (start point for the cophylogeny)
 #' @param tmax the timepoint in the simulation until which parasite events
@@ -166,8 +164,8 @@ get_branchNThroughTime <- function(phy, tmax, dt) {
 #' @keywords cophylogeny, events
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_PEventsThroughTime(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_PEventsThroughTime(cophy=HPtree)
 
 get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
   Branches  <- convert_HPCophyloToBranches(cophy)
@@ -214,22 +212,16 @@ get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
   return(events)
 }
 
-# The following function returns the node corresponding to the last common ancestor of two branches.
-# Note that the function is clearly very inefficient at the present stage.
-
-# The following function returns a matrix of genetic distances between all species present at a given time.
-# If time t is not specified, the end point of the tree is used.
-# Note: this function is considerably faster than the old version above but still rather inefficient
-# and much slower than the corresponding function (cophenetic.phylo) in the APE package.
-
 #' Calculating the distance matrix between host branches alive at a particular timepoint
+#'
+#' The following function returns a matrix of genetic distances between all species present at a given time.
+#' If time t is not specified, the end point of the tree is used.
 #' @param branches raw branches matrix of a host tree
 #' @param t timepoint in simulation at which you want distance information
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format="Raw")
 #' get_GDist(branches=Htree)
-
 
 get_GDist <- function(branches, t=NA) {
   if (is.na(t)) t <- max(branches[, 5])
@@ -281,20 +273,19 @@ get_GDist <- function(branches, t=NA) {
 #' that of associated hosts
 #'
 #' The following function returns a matrix of the patristic distances between
-#' all extant parasite species, and another matrix with the patristic distances
-#' of the associated host species.
-#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
-#'   and one parasite tree.
+#' all extant parasite species, and another matrix with the between species
+#' distances of the associated host species.
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one
+#'   host and one parasite tree.
 #' @keywords genetic distance
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_PHDist(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_PHDist(cophy=HPtree)
 
 get_PHDist <- function(cophy) {
   # first, the following code constructs a matrix of tip labels of all extant parasites (columns 1)
   # and the tip labels of the associated host species (column 2)
-
   PHtips <- matrix(c(cophy[[2]]$tip.label, rep(NA, length(cophy[[2]]$tip.label))), ncol = 2)
   colnames(PHtips) <- c("P", "H")
   hostAssocs  <- cophy[[2]]$Hassoc[match(1:length(cophy[[2]]$tip.label), cophy[[2]]$edge[, 2])]  # branch numbers associated with the parasite tip labels
@@ -317,8 +308,8 @@ get_PHDist <- function(cophy) {
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_PHDistCorrelation(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_PHDistCorrelation(cophy=HPtree)
 
 get_PHDistCorrelation <- function(cophy) {
   if (length(cophy[[2]]$tip.label) == 1) {
@@ -340,15 +331,17 @@ get_PHDistCorrelation <- function(cophy) {
     return(NA)
 }
 
-#' Calculating the correlation between the distance matrixes of parasites and their associated hosts within subtrees specified by particular height
-#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.
+#' Calculating the correlation between the distance matrixes of parasites and
+#' their associated hosts within subtrees specified by particular height
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one
+#'   host and one parasite tree.
 #' @param h numeric scalar or vector with heights where the tree should be cut.
 #' @param k an integer scalar or vector with the desired number of groups
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_PHDistSubtreeCorrelation(cophy=HPBranches, k=2)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_PHDistSubtreeCorrelation(cophy=HPtree, h=2)
 
 get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
   #Hdist<-cophenetic.phylo(cophy[[1]])[1:cophy[[1]]$nAlive,1:cophy[[1]]$nAlive]
@@ -398,7 +391,8 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
 #' @keywords subtree, infection frequency
 #' @export
 #' @examples
-#' get_infectionFrequenciesSubtrees
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_infectionFrequenciesSubtrees(cophy=HPtree, tips=HPtree[[1]]$tip.label)
 
 get_infectionFrequenciesSubtrees <- function(cophy, tips) {
   HnodeNumbers         <- which(cophy[[1]]$tip.label %in% tips)
@@ -415,8 +409,8 @@ get_infectionFrequenciesSubtrees <- function(cophy, tips) {
 #' @keywords last parasite
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' get_PextinctionTime(phy=HPBranches[[2]])
+#' HPtree<-rcophylo_HP(tmax=5)
+#' get_PextinctionTime(phy=HPtree[[2]])
 
 get_PextinctionTime <- function(phy) {
 	if (is.null(phy)) return(NA)

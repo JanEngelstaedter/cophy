@@ -7,16 +7,17 @@
 cophylogeny(HP.tree)
 }
 \arguments{
-\item{HP.tree}{a list of a pre-built host phylogenetic tree and a parasite phylogenetic tree of class 'cophylogeny' or 'data.frame}
+\item{HP.tree}{a list of a pre-built host phylogenetic tree and a parasite
+phylogenetic tree of class 'cophylogeny' or 'data.frame'}
 }
 \value{
 this function returns an object of class 'cophylogeny' which can be
   passed to plot().
 }
 \description{
-This function creates an object of class 'cophylogeny', which can be passed to the
-plot.cophylogeny() function. This object must contain at least one host and one
-parasite tree.
+This function creates an object of class 'cophylogeny', which can be passed
+to the plot.cophylogeny() function. This object must contain at least one
+host and one parasite tree.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format='raw')

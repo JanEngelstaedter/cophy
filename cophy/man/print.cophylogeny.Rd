@@ -7,7 +7,7 @@
 \method{print}{cophylogeny}(x, ...)
 }
 \arguments{
-\item{x}{object of class "cophylogeny"}
+\item{x}{object of class "cophylogeny" containing a host and parasite tree.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

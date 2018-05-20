@@ -2,7 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{get_branchNThroughTime}
 \alias{get_branchNThroughTime}
-\title{Branch (=species) numbers through time.}
+\title{Branch (species) numbers through time.}
 \usage{
 get_branchNThroughTime(phy, tmax, dt)
 }
@@ -14,5 +14,5 @@ get_branchNThroughTime(phy, tmax, dt)
 \item{dt}{step size for performing calculations.}
 }
 \description{
-Branch (=species) numbers through time.
+Branch (species) numbers through time.
 }

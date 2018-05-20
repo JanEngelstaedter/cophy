@@ -1,16 +1,18 @@
 # convert.R
 
-# This file contains several functions that convert (co-)phylogenies from a raw,
-# dataframe format into the (co-)phylo class and back. All of these functions
-# are meant for internal use only. This file is part of the R-package 'cophy'.
+# This file contains several functions that convert cphylogenies from a raw,
+# dataframe format into the 'cophylogeny' class and back. All of these functions
+# will usually be reserved for internal use. This file is part of the R-package
+# 'cophy'.
 
 
 #' Creates a cophylogeny object
 #'
-#' This function creates an object of class 'cophylogeny', which can be passed to the
-#' plot.cophylogeny() function. This object must contain at least one host and one
-#' parasite tree.
-#' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite phylogenetic tree of class 'cophylogeny' or 'data.frame
+#' This function creates an object of class 'cophylogeny', which can be passed
+#' to the plot.cophylogeny() function. This object must contain at least one
+#' host and one parasite tree.
+#' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite
+#'   phylogenetic tree of class 'cophylogeny' or 'data.frame'
 #' @return this function returns an object of class 'cophylogeny' which can be
 #'   passed to plot().
 #' @keywords cophylogeny, class
@@ -35,10 +37,10 @@ cophylogeny <- function(HP.tree) {
   return(cophy)
 }
 
-#' Convert raw host tree to phylo format
+#' Convert "raw" host tree to "phylo" format
 #'
-#' The following function converts a raw host tree matrix into phylo format
-#' @param HBranches Host-tree in raw matrix format
+#' The following function converts a "raw" host tree matrix into "phylo" format
+#' @param HBranches Host-tree in "raw" format (of class data.frame)
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @export
 #' @examples
@@ -158,10 +160,10 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
   return(Hphy)
 }
 
-#' Converting raw Parasite tree to phylo format
+#' Converting "raw" Parasite tree to "phylo" format
 #'
-#' The following function converts a raw parasite tree matrix into phylo format
-#' @param PBranches Parasite-tree in raw matrix format
+#' The following function converts a "raw" parasite tree matrix into "phylo" format
+#' @param PBranches Parasite-tree in "raw" format (of class data.frame)
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @keywords format, convert, phylo
 #' @export
@@ -283,10 +285,10 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
 }
 
 
-#' Convert phylo host tree from Ape's phylo format to the internal Branches format
+#' Convert host tree from Ape's "phylo" format to the internal Branches format
 #'
-#' The following function converts a phylo host-parasite tree into internal Branches format
-#' @param Htree a host tree in phylo format
+#' The following function converts a "phylo" host-parasite tree into internal Branches format
+#' @param Htree a host tree in "phylo" format
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5)
@@ -316,14 +318,14 @@ convert_HPhyloToBranches<-function(Htree) {
   return(HBranches)
 }
 
-#' Convert cophylogenetic trees from Ape's phylo format to the internal Branches format
+#' Convert cophylogenetic trees from Ape's "phylo" format to the "raw" internal Branches format
 #'
-#' The following function converts a phylo host-parasite tree into internal Branches format
-#' @param cophy a cophylogeny (in phylo format) containing one host and one parasite tree
+#' The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
+#' @param cophy a cophylogeny (in "phylo" format) containing one host and one parasite tree
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5)
-#' convert_HPCophyloToBranches(cophy=HPBranches)
+#' HPtree<-rcophylo_HP(tmax=5)
+#' convert_HPCophyloToBranches(cophy=HPtree)
 
 convert_HPCophyloToBranches<-function(cophy) {
   # converting host tree:

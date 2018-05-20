@@ -2,17 +2,17 @@
 % Please edit documentation in R/convert.R
 \name{convert_HPCophyloToBranches}
 \alias{convert_HPCophyloToBranches}
-\title{Convert cophylogenetic trees from Ape's phylo format to the internal Branches format}
+\title{Convert cophylogenetic trees from Ape's "phylo" format to the "raw" internal Branches format}
 \usage{
 convert_HPCophyloToBranches(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (in phylo format) containing one host and one parasite tree}
+\item{cophy}{a cophylogeny (in "phylo" format) containing one host and one parasite tree}
 }
 \description{
-The following function converts a phylo host-parasite tree into internal Branches format
+The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-convert_HPCophyloToBranches(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+convert_HPCophyloToBranches(cophy=HPtree)
 }

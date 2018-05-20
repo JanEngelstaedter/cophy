@@ -13,8 +13,8 @@ get_HostShifts(cophy)
 The following function counts the host-jumps of a host-parasite phylogeny
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-get_HostShifts(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+get_HostShifts(cophy=HPtree)
 }
 \keyword{cophylogeny,}
 \keyword{host-jumps}

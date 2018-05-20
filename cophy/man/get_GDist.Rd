@@ -12,7 +12,8 @@ get_GDist(branches, t = NA)
 \item{t}{timepoint in simulation at which you want distance information}
 }
 \description{
-Calculating the distance matrix between host branches alive at a particular timepoint
+The following function returns a matrix of genetic distances between all species present at a given time.
+If time t is not specified, the end point of the tree is used.
 }
 \examples{
 Htree<-rphylo_H(tmax=5, export.format="Raw")

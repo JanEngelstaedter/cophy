@@ -8,17 +8,17 @@ that of associated hosts}
 get_PHDist(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host
-and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one
+host and one parasite tree.}
 }
 \description{
 The following function returns a matrix of the patristic distances between
-all extant parasite species, and another matrix with the patristic distances
-of the associated host species.
+all extant parasite species, and another matrix with the between species
+distances of the associated host species.
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-get_PHDist(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+get_PHDist(cophy=HPtree)
 }
 \keyword{distance}
 \keyword{genetic}

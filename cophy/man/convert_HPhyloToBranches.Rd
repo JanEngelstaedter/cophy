@@ -2,15 +2,15 @@
 % Please edit documentation in R/convert.R
 \name{convert_HPhyloToBranches}
 \alias{convert_HPhyloToBranches}
-\title{Convert phylo host tree from Ape's phylo format to the internal Branches format}
+\title{Convert host tree from Ape's "phylo" format to the internal Branches format}
 \usage{
 convert_HPhyloToBranches(Htree)
 }
 \arguments{
-\item{Htree}{a host tree in phylo format}
+\item{Htree}{a host tree in "phylo" format}
 }
 \description{
-The following function converts a phylo host-parasite tree into internal Branches format
+The following function converts a "phylo" host-parasite tree into internal Branches format
 }
 \examples{
 Htree<-rphylo_H(tmax=5)

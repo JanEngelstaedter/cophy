@@ -7,8 +7,8 @@
 get_PEventsThroughTime(cophy, tmin = 0, tmax = "max", dt = 1)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophy") containing one host and
-either one or two parasite trees.}
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host and
+one parasite tree.}
 
 \item{tmin}{the timepoint in the simulation from which parasite events should
 be recorded, default = 0 (start point for the cophylogeny)}
@@ -26,8 +26,8 @@ surviving), co-extinction (extinction caused by host extinction), speciation
 events for lineages with surviving descendents
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-get_PEventsThroughTime(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+get_PEventsThroughTime(cophy=HPtree)
 }
 \keyword{cophylogeny,}
 \keyword{events}

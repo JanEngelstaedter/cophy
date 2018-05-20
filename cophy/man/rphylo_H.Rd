@@ -22,7 +22,7 @@ simulation is stopped.}
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "cophylogeny" (exported in Ape phylo format, the
+\item{export.format}{either "phylo" (exported in Ape phylo format, the
 default setting) or "raw" (just a list of branches as used within the
 function itself)}
 
@@ -31,7 +31,7 @@ proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "cophylogeny" is returned, as specified in
+By default, an object of class "phylo" is returned, as specified in
   the R-package "ape". If the argument \code{export.format} is set to "raw"
   the function returns a dataframe containing information on all the branches
   in the tree. (This dataframe are what the function uses internally.)

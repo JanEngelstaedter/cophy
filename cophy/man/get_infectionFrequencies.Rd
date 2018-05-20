@@ -12,11 +12,11 @@ and one parasite tree.}
 }
 \description{
 The following function counts the number of hosts infected with a particular
-number of parasites from the same parasite phylogeny
+number of parasites from the same parasite phylogeny.
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-get_infectionFrequencies(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+get_infectionFrequencies(cophy=HPtree)
 }
 \keyword{cophylogeny,}
 \keyword{infection-counts}

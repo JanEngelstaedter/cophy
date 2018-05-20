@@ -1,7 +1,7 @@
 # plot.R
 
-# This file contains functions to plot cophylogenies.  This file is part of the
-# R-package 'cophy'.
+# This file contains functions to plot cophylogenies.
+# R-package 'cophy'. This file is part of the
 
 #' Cophylogeny plot
 #'
@@ -25,7 +25,6 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
   Pphy <- x[[2]]
 
   # determining lines to be drawn for the host phylogeny:
-
   HBranchLines <- matrix(NA, ncol = 3, nrow = 0)
   colnames(HBranchLines) <- c("x1", "x2", "y")
 

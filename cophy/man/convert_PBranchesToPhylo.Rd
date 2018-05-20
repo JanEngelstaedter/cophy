@@ -2,17 +2,17 @@
 % Please edit documentation in R/convert.R
 \name{convert_PBranchesToPhylo}
 \alias{convert_PBranchesToPhylo}
-\title{Converting raw Parasite tree to phylo format}
+\title{Converting "raw" Parasite tree to "phylo" format}
 \usage{
 convert_PBranchesToPhylo(PBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{PBranches}{Parasite-tree in raw matrix format}
+\item{PBranches}{Parasite-tree in "raw" format (of class data.frame)}
 
 \item{prune.extinct}{whether to remove all extinct branches (defaulting to FALSE)}
 }
 \description{
-The following function converts a raw parasite tree matrix into phylo format
+The following function converts a "raw" parasite tree matrix into "phylo" format
 }
 \examples{
 HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")

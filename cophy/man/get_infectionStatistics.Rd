@@ -17,8 +17,8 @@ extant parasite species, percentage of host species that are infected by at
 least one parasite, mean number of parasites per host
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5)
-get_infectionStatistics(cophy=HPBranches)
+HPtree<-rcophylo_HP(tmax=5)
+get_infectionStatistics(cophy=HPtree)
 }
 \keyword{cophylogeny,}
 \keyword{statistics}

@@ -33,38 +33,40 @@ number of pre-existing parasites on the new host branch.}
 
 \item{nu}{a numeric value giving the parasite extinction rate.}
 
-\item{kappa}{parasite speciation rate within hosts}
+\item{kappa}{a numeric value giving the parasite speciation rate within
+hosts.}
 
-\item{delta}{probability of lineage loss during co-speciation. delta=0
-specifies faithful transmission of the parasites to both new host species,
-whereas delta=1 means that one of the lineages will always be lost during
-cospeciation.}
+\item{delta}{a numeric value giving the probability of lineage loss during
+co-speciation. delta=0 specifies faithful transmission of the parasites to
+both new host species, whereas delta=1 specifies that parasites will only
+be inherited by one daughter host species.}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "phylo" or "raw" (see Value below) (exported as
-an object of ape phylo class, the default setting), or "raw" (a matrix
-where rows are all the branches, this is the used format internally).}
+\item{export.format}{a string specifying either "cophylogeny" or "raw". Where
+"cophylogeny" specifies that the output will be exported as class
+"cophylogeny" (the default). "raw" exports the output as two objects of
+class "data.frame".}
 
 \item{timestep}{a numeric value giving the time step by which the simulation
 proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "cophylogeny" is returned that is a list
-  of phylo objects (one for the host and one for the parasite), as specified
-  in the R-package "ape". If the argument \code{export.format} is set to
-  "raw" the function returns a list of dataframes containing information on
-  all the branches in the trees. (These dataframes are what the function uses
-  internally.)
+By default, an object of class "cophylogeny" is returned that is a
+  list of phylo objects (one for the host and one for the parasite), as
+  specified in the R-package "ape". If the argument \code{export.format} is
+  set to "raw" the function returns a list of dataframes containing
+  information on all the branches in the trees. (These dataframes are what
+  the function uses internally.)
 }
 \description{
-This function simulates a random host tree with a random parasite tree
-evolving on that host tree.
+This function simulates the evolution of a random host tree with a coevolving
+random parasite tree.
 }
 \examples{
-cop<-rcophylo_HP(tmax=5, K=5)
-print(cop)
-plot(cop)
+HPtree<-rcophylo_HP(tmax=5, K=5)
+print(HPtree)
+plot(HPtree)
 }
