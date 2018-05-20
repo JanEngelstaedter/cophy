@@ -332,7 +332,8 @@ get_PHDistCorrelation <- function(cophy) {
 }
 
 #' Calculating the correlation between the distance matrixes of parasites and
-#' their associated hosts within subtrees specified by particular height
+#' their associated hosts within subtrees specified by particular height.
+#' Requires at least three living parasites.
 #' @param cophy a cophylogeny (object of class "cophylogeny") containing one
 #'   host and one parasite tree.
 #' @param h numeric scalar or vector with heights where the tree should be cut.
@@ -340,7 +341,7 @@ get_PHDistCorrelation <- function(cophy) {
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
+#' HPtree<-rcophylo_HP(tmax=10, K=10)
 #' get_PHDistSubtreeCorrelation(cophy=HPtree, h=2)
 
 get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
@@ -348,7 +349,7 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
   #subtreeclustering<-cutree(hclust(as.dist(Hdist)),h=h, k=k)
   #nsubtrees<-max(subtreeclustering)
   if (length(cophy[[2]]$tip.label) == 1) {
-    return(NA)
+    stop("Not enough parasites alive to perform correlation")
   }
   cophy <- convert_HPCophyloToBranches(cophy)
   if (sum(cophy[[2]][, 1] == TRUE) > 2) { # need to be at least three surviving parasites
@@ -379,7 +380,7 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
     return(SubtreeCorrelations)
   }
   else
-    return(NA)
+    stop("Not enough parasites alive to perform correlation")
 }
 
 #' The following function returns the fraction of infected host species within a
