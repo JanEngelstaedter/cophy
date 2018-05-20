@@ -68,7 +68,7 @@ This function simulates the codiversification of a clade of parasites on a
 given host phylogeny (simulated or estimated) that is provided.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="raw")
+Htree<-rphylo_H(tmax=5)
 rcophylo_PonH(H.tree=Htree, tmax=5)
 }
 \keyword{Host-Parasite}

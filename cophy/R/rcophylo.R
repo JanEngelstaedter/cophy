@@ -554,12 +554,15 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="raw")
+#' Htree<-rphylo_H(tmax=5)
 #' rcophylo_PonH(H.tree=Htree, tmax=5)
 
 rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
                           delta = 0, prune.extinct = FALSE, export.format = "cophylogeny", P.startT = 0,
                           ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
+  if (class(H.tree) == "phylo") {
+    H.tree <- convert_HPhyloToBranches(Htree = H.tree) # Make sure is internal data.frame structure
+  }
 
   # adjusting the evolutionary rates to probabilities per time step:
   nu    <- nu * timestep

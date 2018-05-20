@@ -282,6 +282,40 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   return(Pphy)
 }
 
+
+#' Convert phylo host tree from Ape's phylo format to the internal Branches format
+#'
+#' The following function converts a phylo host-parasite tree into internal Branches format
+#' @param Htree a host tree in phylo format
+#' @export
+#' @examples
+#' Htree<-rphylo_H(tmax=5)
+#' convert_HPhyloToBranches(Htree=Htree)
+
+convert_HPhyloToBranches<-function(Htree) {
+  # converting host tree:
+  HBranches <- data.frame(alive = rep(NA, nrow(Htree$edge)), nodeBirth = Htree$edge[, 1],
+                          tBirth = NA, nodeDeath = Htree$edge[, 2], tDeath = NA,
+                          branchNo = 2:(nrow(Htree$edge) + 1))
+  ancBranches <- match(HBranches$nodeBirth, HBranches$nodeDeath)
+
+  HBranches$tBirth <- sapply(1:length(HBranches$nodeBirth), get_tBirth, Htree$root.edge,
+                             Htree$edge.length, ancBranches = ancBranches)
+  HBranches$tDeath <- HBranches$tBirth + Htree$edge.length
+  rootNode  <- Htree$edge[match(NA, ancBranches), 1]
+  HBranches <- rbind(data.frame(alive = NA, nodeBirth = 0, tBirth = 0, nodeDeath = rootNode,
+                                tDeath = Htree$root.edge, branchNo = 1), HBranches) # adding the root
+
+  if (!is.null(Htree$nAlive)) { # if the phylo object contains information about how many species are alive
+    HBranches$alive <- FALSE
+    if (Htree$nAlive > 0) {
+      HBranches$alive[HBranches$tDeath == max(HBranches$tDeath)] <- TRUE
+    }
+  }
+
+  return(HBranches)
+}
+
 #' Convert cophylogenetic trees from Ape's phylo format to the internal Branches format
 #'
 #' The following function converts a phylo host-parasite tree into internal Branches format
