@@ -8,7 +8,7 @@ that of associated hosts}
 get_PHDist(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host
 and one parasite tree.}
 }
 \description{

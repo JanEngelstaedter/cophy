@@ -52,7 +52,7 @@ DBINC<-100   # constant that is used internally; only affects the speed of simul
 
 rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
                         gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
-                        prune.extinct = FALSE, export.format = "phylo", timestep = 0.001) {
+                        prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda * timestep
@@ -369,8 +369,8 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 
   PBranches <- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches <- PBranches[order(PBranches[, "branchNo"]), ]
-  if (export.format == "phylo") # return cophylogeny as an ape phylo class
-    return(cophylogeny(HBranches, PBranches))
+  if (export.format == "cophylogeny") # return cophylogeny as an ape phylo class
+    return(cophylogeny(list(HBranches, PBranches)))
   else if (export.format == "raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
 }
@@ -390,14 +390,14 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #' @param mu a numeric value giving the host extinction rate.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "phylo" (exported in Ape phylo format, the
+#' @param export.format either "cophylogeny" (exported in Ape phylo format, the
 #'   default setting) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param timestep a numeric value giving the time step by which the simulation
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
 #' @keywords Host phylogeny
-#' @return By default, an object of class "phylo" is returned, as specified in
+#' @return By default, an object of class "cophylogeny" is returned, as specified in
 #'   the R-package "ape". If the argument \code{export.format} is set to "raw"
 #'   the function returns a dataframe containing information on all the branches
 #'   in the tree. (This dataframe are what the function uses internally.)
@@ -529,7 +529,7 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #'   cospeciation.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "phylo" (exported in Ape phylo format, the
+#' @param export.format either "cophylogeny" (exported in Ape phylo format, the
 #'   default setting)) or "raw" (a matrix where rows are all the branches, this
 #'   is the used format internally).
 #' @param P.startT the timepoint at which a parasite invades the host tree.
@@ -558,7 +558,7 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #' rcophylo_PonH(H.tree=Htree, tmax=5)
 
 rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-                          delta = 0, prune.extinct = FALSE, export.format = "phylo", P.startT = 0,
+                          delta = 0, prune.extinct = FALSE, export.format = "cophylogeny", P.startT = 0,
                           ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
@@ -864,8 +864,8 @@ rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu 
   PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches	<- PBranches[order(PBranches[, "branchNo"]), ]
 
-  if (export.format == "phylo"){ # return cophylogeny as an APE phylo class
-    return(cophylogeny(HBranches, PBranches))
+  if (export.format == "cophylogeny"){ # return cophylogeny as an APE phylo class
+    return(cophylogeny(list(HBranches, PBranches)))
   } else if (export.format == "raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
   } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in phylo format

@@ -17,7 +17,7 @@ convert_PQBranchesToPhylo(P.PBranches, Q.PBranches, prune.extinct = FALSE)
 The following function converts raw dual parasite tree dataframes into phylo format
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
-HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format="raw")
+HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, export.format="raw")
 convert_PQBranchesToPhylo(P.PBranches=HPQtree[[2]],Q.PBranches=HPQtree[[2]])
 }

@@ -8,7 +8,7 @@ subclade of a host tree that is specified by tips, a vector of tip labels.}
 get_infectionFrequenciesSubtrees(cophy, tips)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host
 and one parasite tree.}
 
 \item{tips}{a vector of tip labels}

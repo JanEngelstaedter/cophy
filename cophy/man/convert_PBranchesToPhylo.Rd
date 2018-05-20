@@ -15,7 +15,7 @@ convert_PBranchesToPhylo(PBranches, prune.extinct = FALSE)
 The following function converts a raw parasite tree matrix into phylo format
 }
 \examples{
-HPBranches<-rcophylo_HP(tmax=5, export.format = "Raw")
+HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
 convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
 }
 \keyword{convert,}

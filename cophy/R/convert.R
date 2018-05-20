@@ -5,51 +5,32 @@
 # are meant for internal use only. This file is part of the R-package 'cophy'.
 
 
-#' Creates a cophy object
+#' Creates a cophylogeny object
 #'
-#' This function creates an object of class 'cophy', which can be passed to the
-#' plot.cophy() function. This object must contain at least one host and one
-#' parasite tree, but can also contain a second parasite tree and a
-#' TraitTracking object.
-#' @param H.tree a pre-built host phylogenetic tree of class 'phylo' (required)
-#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo'
-#'   (required)
-#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo'
-#'   (optional)
-#' @param TraitTracking an object that tracks the evolution of a parasite
-#'   response trait on the host tree (optional)
+#' This function creates an object of class 'cophylogeny', which can be passed to the
+#' plot.cophylogeny() function. This object must contain at least one host and one
+#' parasite tree.
+#' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite phylogenetic tree of class 'cophylogeny' or 'data.frame
 #' @return this function returns an object of class 'cophylogeny' which can be
-#'   passed to the plot() function.
-#' @keywords cophy, object
+#'   passed to plot().
+#' @keywords cophylogeny, class
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format='raw')
 #' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
-#' cophylogeny(HPtree[[1]], HPtree[[2]])
+#' cophylogeny(HPtree)
 
-cophylogeny <- function(H.tree, P.tree, Q.tree = NA, TraitTracking = NA) {
-  if (class(H.tree) == "data.frame") {
-    H.tree <- convert_HBranchesToPhylo(Hbranches = H.tree)
+cophylogeny <- function(HP.tree) {
+  if (class(HP.tree[[1]]) == "data.frame") {
+    HP.tree[[1]] <- convert_HBranchesToPhylo(Hbranches = HP.tree[[1]])
   }
-  
-  if (class(P.tree) == "data.frame") {
-    P.tree <- convert_PBranchesToPhylo(PBranches = P.tree)
+
+  if (class(HP.tree[[2]]) == "data.frame") {
+    HP.tree[[2]] <- convert_PBranchesToPhylo(PBranches = HP.tree[[2]])
   }
-  
-  if (class(Q.tree) == "data.frame") {
-    Q.tree <- convert_PBranchesToPhylo(PBranches = Q.tree)
-  }
-  
-  if (is.na(Q.tree) & is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree)
-  } else if (!is.na(Q.tree) & is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree, TraitTracking)
-  } else if (is.na(Q.tree) & !is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree, Q.tree)
-  } else {
-    cophy <- list(H.tree, P.tree, Q.tree, TraitTracking)
-  }
-  
+
+  cophy <- HP.tree
+
   class(cophy) <- "cophylogeny"
   return(cophy)
 }

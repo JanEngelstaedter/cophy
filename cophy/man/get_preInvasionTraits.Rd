@@ -32,6 +32,6 @@ responce to the presence of a parasite. The success of the parasite being
 influenced by the resistance or susceptibility of the host.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format="raw")
 get_preInvasionTraits(H.tree=Htree, P.startT=2.5, epsilon.1to0=0.01, epsilon.0to1=0.01)
 }

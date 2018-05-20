@@ -7,7 +7,7 @@
 get_PHDistSubtreeCorrelation(cophy, h = NULL, k = NULL)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylo") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.}
 
 \item{h}{numeric scalar or vector with heights where the tree should be cut.}
 

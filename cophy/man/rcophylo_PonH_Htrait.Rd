@@ -8,7 +8,7 @@ rcophylo_PonH_Htrait(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
   nu = 0.5, kappa = 0, delta = 0, epsilon.1to0 = 0.01,
   epsilon.0to1 = 0.001, startTrait = NA, omega = 10, rho = 0.5,
   psi = 0.5, TraitTracking = NA, prune.extinct = FALSE,
-  export.format = "Phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
+  export.format = "phylo", P.startT = 0, ini.Hbranch = NA, Gdist = NA,
   timestep = 0.001)
 }
 \arguments{
@@ -56,8 +56,8 @@ parasite interaction trait.}
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
-default setting)) or "Raw" (just a list of branches as used within the
+\item{export.format}{either "phylo" (exported in Ape phylo format, the
+default setting)) or "raw" (just a list of branches as used within the
 function itself)}
 
 \item{P.startT}{the timepoint at which a parasite invades the host-tree}
@@ -75,10 +75,10 @@ proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list
+By default, an object of class "cophylogeny" is returned that is a list
   of phylo objects (one for the host and one for the parasite), as specified
   in the R-package "ape". If the argument \code{export.format} is set to
-  "Raw" the function returns a list of dataframes containing information on
+  "raw" the function returns a list of dataframes containing information on
   all the branches in the trees. (These dataframes are what the function uses
   internally.)
 }
@@ -87,7 +87,7 @@ The following function simulates a parasite phylogenetic tree on a pre-built
 host phylogeny.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format="raw")
 rcophylo_PonH_Htrait(H.tree=Htree, tmax=5)
 }
 \keyword{Host-Parasite}

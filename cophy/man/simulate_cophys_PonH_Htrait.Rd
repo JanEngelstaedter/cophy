@@ -7,7 +7,7 @@
 simulate_cophys_PonH_Htrait(Htrees, HtreesPhylo = NA, fromHtree = NA,
   toHtree = NA, beta = 0.1, gamma = 0.2, sigma = 0, nu = 0.5, kappa,
   delta, epsilon.1to0, epsilon.0to1, startTrait, omega, rho, psi,
-  TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
+  TraitTracking = NA, prune.extinct = FALSE, export.format = "phylo",
   P.startT = 0, reps1 = 1, reps2 = 1, ini.Hbranch = NA, Gdist = NA,
   timestep = 0.001, filename = NA, ncores = 1)
 }
@@ -57,8 +57,8 @@ parasite interaction trait. Needs to match host trees provided.}
 \item{prune.extinct}{whether to remove all extinct branches defaulting to
 FALSE}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
-default setting)) or "Raw" (just a list of branches as used within the
+\item{export.format}{either "phylo" (exported in Ape phylo format, the
+default setting)) or "raw" (just a list of branches as used within the
 function itself)}
 
 \item{P.startT}{the timepoint at which a parasite invades the host-tree}
@@ -86,8 +86,8 @@ The following function simulates a parasite phylogenetic tree on a pre-built
 host phylogeny.
 }
 \examples{
-Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
- rphylo_H(tmax=10, K=10, export.format="Raw"))
+Htree<-list(rphylo_H(tmax=10, K=10, export.format="raw"),
+ rphylo_H(tmax=10, K=10, export.format="raw"))
 simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02,
  sigma=0, nu=0.5, kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001,
  startTrait=0, omega=10, rho=0.75, psi=0.75, timestep=0.001,reps1=1,reps2=2,

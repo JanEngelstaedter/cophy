@@ -50,8 +50,8 @@ The following function simulates parasite phylogenetic trees on pre-built
 host trees using parallel computing.
 }
 \examples{
-Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
- rphylo_H(tmax=10, K=10, export.format="Raw"))
+Htree<-list(rphylo_H(tmax=10, K=10, export.format="raw"),
+ rphylo_H(tmax=10, K=10, export.format="raw"))
 simulate_cophys_PonH(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02, sigma=0,
  nu=0.5, kappa=0, delta=0, timestep=0.001,reps1=1,reps2=2, filename="file")
 }

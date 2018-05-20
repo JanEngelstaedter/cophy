@@ -185,21 +185,22 @@ get_nodeTime <- function(phy, node) {
 
 
 #' Printing a cophylogeny
-#' 
-#' This functions prints information about a cophylogeny, 
+#'
+#' This functions prints information about a cophylogeny,
 #' listing the general structure of the cophylogeny
 #' along with properties of the host and parasite trees it consists of.
 #'
-#' @param cophy object of class "cophylogeny"
+#' @param x object of class "cophylogeny"
+#' @param ... further arguments passed to or from other methods.
 #' @export
 #' @examples
 #' cop<-rcophylo_HP(tmax=5, K=5)
 #' print(cop)
 
-print.cophylogeny<-function(cophy) {
+print.cophylogeny<-function(x, ...) {
   print("Cophylogeny consisting of a host tree and an associated parasite tree.")
   cat("\nHosts:")
-  print(cophy[[1]])
+  print(x[[1]])
   cat("\nParasites:")
-  print(cophy[[2]])
+  print(x[[2]])
 }

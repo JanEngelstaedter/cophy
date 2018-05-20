@@ -7,7 +7,7 @@
 rcophylo_PQonH(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
   sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
   kappa.P = 0, kappa.Q = 0, delta.P = 0, delta.Q = 0,
-  prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+  prune.extinct = FALSE, export.format = "phylo", P.startT = 0,
   ini.Hbranch = NA, Gdist = NA, timestep = 0.001)
 }
 \arguments{
@@ -58,8 +58,8 @@ cospeciation for parasites of type Q.}
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
-default setting)) or "Raw" (just a list of branches as used within the
+\item{export.format}{either "phylo" (exported in Ape phylo format, the
+default setting)) or "raw" (just a list of branches as used within the
 function itself)}
 
 \item{P.startT}{a numeric value giving the the timepoint at which a parasite
@@ -78,10 +78,10 @@ proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list
+By default, an object of class "cophylogeny" is returned that is a list
   of phylo objects (one for the host and one for the parasite), as specified
   in the R-package "ape". If the argument \code{export.format} is set to
-  "Raw" the function returns a list of dataframes containing information on
+  "raw" the function returns a list of dataframes containing information on
   all the branches in the trees. (These dataframes are what the function uses
   internally.)
 }
@@ -90,7 +90,7 @@ This function simulates the codiversification of two clades of parasites (P
 and Q) on a given host phylogeny (simulated or estimated) that is provided.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format="Raw")
+Htree<-rphylo_H(tmax=5, export.format="raw")
 rcophylo_PQonH(tmax=5, H.tree=Htree)
 }
 \keyword{Multi-Parasite}

@@ -5,7 +5,7 @@
 \title{Phylogenetic (host) tree simulation}
 \usage{
 rphylo_H(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001)
+  prune.extinct = FALSE, export.format = "phylo", timestep = 0.001)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
@@ -22,8 +22,8 @@ simulation is stopped.}
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "Phylo" (exported in Ape Phylo format, the
-default setting) or "Raw" (just a list of branches as used within the
+\item{export.format}{either "cophylogeny" (exported in Ape phylo format, the
+default setting) or "raw" (just a list of branches as used within the
 function itself)}
 
 \item{timestep}{a numeric value giving the time step by which the simulation
@@ -31,8 +31,8 @@ proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "phylo" is returned, as specified in
-  the R-package "ape". If the argument \code{export.format} is set to "Raw"
+By default, an object of class "cophylogeny" is returned, as specified in
+  the R-package "ape". If the argument \code{export.format} is set to "raw"
   the function returns a dataframe containing information on all the branches
   in the tree. (This dataframe are what the function uses internally.)
 }

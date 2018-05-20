@@ -6,7 +6,7 @@
 \usage{
 rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
   beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-  delta = 0, prune.extinct = FALSE, export.format = "Phylo",
+  delta = 0, prune.extinct = FALSE, export.format = "cophylogeny",
   timestep = 0.001)
 }
 \arguments{
@@ -43,8 +43,8 @@ cospeciation.}
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}
 
-\item{export.format}{either "Phylo" or "Raw" (see Value below) (exported as
-an object of ape phylo class, the default setting), or "Raw" (a matrix
+\item{export.format}{either "phylo" or "raw" (see Value below) (exported as
+an object of ape phylo class, the default setting), or "raw" (a matrix
 where rows are all the branches, this is the used format internally).}
 
 \item{timestep}{a numeric value giving the time step by which the simulation
@@ -52,10 +52,10 @@ proceeds. Increase to make the simulation faster or decrease to make it
 more precise.}
 }
 \value{
-By default, an object of class "cophylo" is returned that is a list
+By default, an object of class "cophylogeny" is returned that is a list
   of phylo objects (one for the host and one for the parasite), as specified
   in the R-package "ape". If the argument \code{export.format} is set to
-  "Raw" the function returns a list of dataframes containing information on
+  "raw" the function returns a list of dataframes containing information on
   all the branches in the trees. (These dataframes are what the function uses
   internally.)
 }
@@ -64,5 +64,7 @@ This function simulates a random host tree with a random parasite tree
 evolving on that host tree.
 }
 \examples{
-rcophylo_HP(tmax=5, k=5)
+cop<-rcophylo_HP(tmax=5, K=5)
+print(cop)
+plot(cop)
 }
