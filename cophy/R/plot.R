@@ -3,56 +3,6 @@
 # This file contains functions to plot cophylogenies.  This file is part of the
 # R-package 'cophy'.
 
-
-#' Creates a cophy object
-#'
-#' This function creates an object of class 'cophy', which can be passed to the
-#' plot.cophy() function. This object must contain at least one host and one
-#' parasite tree, but can also contain a second parasite tree and a
-#' TraitTracking object.
-#' @param H.tree a pre-built host phylogenetic tree of class 'phylo' (required)
-#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo'
-#'   (required)
-#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo'
-#'   (optional)
-#' @param TraitTracking an object that tracks the evolution of a parasite
-#'   response trait on the host tree (optional)
-#' @return this function returns an object of class 'cophylogeny' which can be
-#'   passed to the plot() function.
-#' @keywords cophy, object
-#' @export
-#' @examples
-#' Htree<-rphylo_H(tmax=5, export.format='Raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
-#' cophylogeny(HPtree[[1]], HPtree[[2]])
-
-cophylogeny <- function(H.tree, P.tree, Q.tree = NA, TraitTracking = NA) {
-  if (class(H.tree) == "data.frame") {
-    H.tree <- convert_HBranchesToPhylo(Hbranches = H.tree)
-  }
-
-  if (class(H.tree) == "data.frame") {
-    P.tree <- convert_PBranchesToPhylo(PBranches = P.tree)
-  }
-
-  if (class(H.tree) == "data.frame") {
-    Q.tree <- convert_PBranchesToPhylo(PBranches = Q.tree)
-  }
-
-  if (is.na(Q.tree) & is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree)
-  } else if (!is.na(Q.tree) & is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree, TraitTracking)
-  } else if (is.na(Q.tree) & !is.na(TraitTracking)) {
-    cophy <- list(H.tree, P.tree, Q.tree)
-  } else {
-    cophy <- list(H.tree, P.tree, Q.tree, TraitTracking)
-  }
-
-  class(cophy) <- "cophylogeny"
-  return(cophy)
-}
-
 #' Cophylogeny plot
 #'
 #' This function plots a host-parasite cophylogenetic tree.
@@ -80,9 +30,8 @@ cophylogeny <- function(H.tree, P.tree, Q.tree = NA, TraitTracking = NA) {
 #' @importFrom graphics lines
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format='Raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
-#' plot(cophylogeny(HPtree[[1]], HPtree[[2]]))
+#' cop<-rcophylo_HP(tmax=5, K=5)
+#' plot(cop)
 
 plot.cophylogeny <- function(x, ParasiteCol = c("Red", "Blue"), ResistanceCol = "lawn green",
                              plotHResistance = TRUE, plotPEvolution = c(TRUE, TRUE), ...) {

@@ -2,7 +2,57 @@
 
 # This file contains several functions that convert (co-)phylogenies from a raw,
 # dataframe format into the (co-)phylo class and back. All of these functions
-# are meant for internal use only. This file is part of the R-package 'cophylo'.
+# are meant for internal use only. This file is part of the R-package 'cophy'.
+
+
+#' Creates a cophy object
+#'
+#' This function creates an object of class 'cophy', which can be passed to the
+#' plot.cophy() function. This object must contain at least one host and one
+#' parasite tree, but can also contain a second parasite tree and a
+#' TraitTracking object.
+#' @param H.tree a pre-built host phylogenetic tree of class 'phylo' (required)
+#' @param P.tree a pre-built parasite phylogenetic tree of class 'phylo'
+#'   (required)
+#' @param Q.tree a pre-built parasite phylogenetic tree of class 'phylo'
+#'   (optional)
+#' @param TraitTracking an object that tracks the evolution of a parasite
+#'   response trait on the host tree (optional)
+#' @return this function returns an object of class 'cophylogeny' which can be
+#'   passed to the plot() function.
+#' @keywords cophy, object
+#' @export
+#' @examples
+#' Htree<-rphylo_H(tmax=5, export.format='raw')
+#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' cophylogeny(HPtree[[1]], HPtree[[2]])
+
+cophylogeny <- function(H.tree, P.tree, Q.tree = NA, TraitTracking = NA) {
+  if (class(H.tree) == "data.frame") {
+    H.tree <- convert_HBranchesToPhylo(Hbranches = H.tree)
+  }
+  
+  if (class(P.tree) == "data.frame") {
+    P.tree <- convert_PBranchesToPhylo(PBranches = P.tree)
+  }
+  
+  if (class(Q.tree) == "data.frame") {
+    Q.tree <- convert_PBranchesToPhylo(PBranches = Q.tree)
+  }
+  
+  if (is.na(Q.tree) & is.na(TraitTracking)) {
+    cophy <- list(H.tree, P.tree)
+  } else if (!is.na(Q.tree) & is.na(TraitTracking)) {
+    cophy <- list(H.tree, P.tree, TraitTracking)
+  } else if (is.na(Q.tree) & !is.na(TraitTracking)) {
+    cophy <- list(H.tree, P.tree, Q.tree)
+  } else {
+    cophy <- list(H.tree, P.tree, Q.tree, TraitTracking)
+  }
+  
+  class(cophy) <- "cophylogeny"
+  return(cophy)
+}
 
 
 #' Converting raw trees to phylo format
@@ -13,7 +63,7 @@
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5, export.format = "Raw")
+#' HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
 #' convert_HPBranchesToCophylo(HBranches=HPBranches[[1]], PBranches=HPBranches[[2]])
 
 convert_HPBranchesToCophylo <- function(HBranches, PBranches, prune.extinct = FALSE) {
@@ -35,7 +85,7 @@ convert_HPBranchesToCophylo <- function(HBranches, PBranches, prune.extinct = FA
   }
 
   # deleting the first branch (the root) of host and parasite trees:
-  # (This is necessary because Phylo trees in APE don't have an initial branch.)
+  # (This is necessary because phylo trees in APE don't have an initial branch.)
 
   Proot.edge       <- PBranches$tDeath[1] - PBranches$tBirth[1]
   Proot.time       <- PBranches$tBirth[1]
@@ -255,7 +305,7 @@ convert_HBtoPhy <- function(HBranches, prune.extinct = FALSE) {
   }
 
   # deleting the first branch (the root) of host and parasite trees:
-  # (This is necessary because Phylo trees in APE don't have an initial branch.)
+  # (This is necessary because phylo trees in APE don't have an initial branch.)
   Hroot.edge  <- HBranches[, 5][1] - HBranches[, 3][1]
   HBranches   <- HBranches[-1, ]
   nHBranches  <- nHBranches - 1
@@ -362,7 +412,7 @@ convert_HBtoPhy <- function(HBranches, prune.extinct = FALSE) {
 #' @keywords format, convert, phylo
 #' @export
 #' @examples
-#' HPBranches<-rcophylo_HP(tmax=5, export.format = "Raw")
+#' HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
 #' convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
 
 convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
@@ -373,7 +423,7 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   nPAlive <- sum(PBranches$alive[PBranches$alive == TRUE])
 
   # deleting the first branch (the root) of host and parasite trees:
-  # (This is necessary because Phylo trees in APE don't have an initial branch.)
+  # (This is necessary because phylo trees in APE don't have an initial branch.)
   Proot.edge       <- PBranches$tDeath[1] - PBranches$tBirth[1]
   Proot.time       <- PBranches$tBirth[1]
   Proot.Hassoc     <- PBranches$Hassoc[1]
@@ -488,8 +538,8 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
-#' HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
+#' HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, export.format="raw")
 #' convert_PQBranchesToPhylo(P.PBranches=HPQtree[[2]],Q.PBranches=HPQtree[[2]])
 
 convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
@@ -502,7 +552,7 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
   P.nPAlive <- sum(P.PBranches$alive[P.PBranches$alive == TRUE])
 
   # deleting the first branch (the root) of host and parasite trees:
-  # (This is necessary because Phylo trees in APE don't have an initial branch.)
+  # (This is necessary because phylo trees in APE don't have an initial branch.)
   P.Proot.edge		   <- P.PBranches$tDeath[1] - P.PBranches$tBirth[1]
   P.Proot.time		   <- P.PBranches$tBirth[1]
   P.Proot.Hassoc		 <- P.PBranches$Hassoc[1]
@@ -593,7 +643,7 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
   Q.nPAlive <- sum(Q.PBranches$alive[Q.PBranches$alive == TRUE])
 
   # deleting the first branch (the root) of host and parasite trees:
-  # (This is necessary because Phylo trees in APE don't have an initial branch.)
+  # (This is necessary because phylo trees in APE don't have an initial branch.)
   Q.Proot.edge		   <- Q.PBranches$tDeath[1] - Q.PBranches$tBirth[1]
   Q.Proot.time		   <- Q.PBranches$tBirth[1]
   Q.Proot.Hassoc		 <- Q.PBranches$Hassoc[1]
@@ -724,7 +774,7 @@ convert_PQBranchesToPhylo<-function(P.PBranches,Q.PBranches,prune.extinct=FALSE)
 #' @param toHtree finishing host-tree
 #' @export
 #' @examples
-#' Hbranches<-rphylo_H(tmax=5, export.format = "Raw")
+#' Hbranches<-rphylo_H(tmax=5, export.format = "raw")
 #' convert_HBranchesToPhylo(Hbranches=Hbranches)
 
 convert_HBranchesToPhylo <- function(Hbranches, prune.extinct = FALSE, fromHtree = NA, toHtree = NA) {
@@ -749,14 +799,14 @@ convert_HBranchesToPhylo <- function(Hbranches, prune.extinct = FALSE, fromHtree
 			phylo <- convert_HBtoPhy(TreesToConvert[[1]])
 			HtreesPhylo[[fromHtree]] <- phylo
 		} else {
-			phylo <- lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE Phylo format
+			phylo <- lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE phylo format
 			for (i in fromHtree:toHtree) {
 				HtreesPhylo[[i]] <- phylo[[i - (fromHtree - 1)]]
 			}
 		}
 	} else {
 		if (nHtrees == 1) HtreesPhylo <- convert_HBtoPhy(Hbranches)
-		else HtreesPhylo <- lapply(Hbranches, convert_HBtoPhy)  # converting to APE Phylo format
+		else HtreesPhylo <- lapply(Hbranches, convert_HBtoPhy)  # converting to APE phylo format
 	}
 	HtreesPhylo
 }
@@ -832,7 +882,7 @@ convert_HPCophyloToBranches<-function(cophy) {
 #'   parasite trees. Parasite trees must have at least 1 internal node
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
 #' HPQtree<-rcophylo_PQonH(H.tree=Htree, tmax=5, sigma.cross=0.5)
 #' convert_HPQCophyloToBranches(cophy=HPQtree)
 

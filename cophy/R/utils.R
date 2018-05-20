@@ -1,7 +1,7 @@
 # utils.R
 
 # This file various helper functions for internal use.
-# This file is part of the R-package 'cophylo'.
+# This file is part of the R-package 'cophy'.
 
 #' A function to calculate the initial host resistance trait values prior to
 #' host clade invasion by a parasite
@@ -22,7 +22,7 @@
 #' @param timestep timestep for simulations
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
 #' get_preInvasionTraits(H.tree=Htree, P.startT=2.5, epsilon.1to0=0.01, epsilon.0to1=0.01)
 
 get_preInvasionTraits <- function(H.tree, P.startT, epsilon.1to0, epsilon.0to1,
@@ -181,4 +181,25 @@ get_nodeTime <- function(phy, node) {
     nedge <- match(nnode, phy$edge[, 2])  # find corresponding new edge
   }
   return(t + phy$root.edge)
+}
+
+
+#' Printing a cophylogeny
+#' 
+#' This functions prints information about a cophylogeny, 
+#' listing the general structure of the cophylogeny
+#' along with properties of the host and parasite trees it consists of.
+#'
+#' @param cophy object of class "cophylogeny"
+#' @export
+#' @examples
+#' cop<-rcophylo_HP(tmax=5, K=5)
+#' print(cop)
+
+print.cophylogeny<-function(cophy) {
+  print("Cophylogeny consisting of a host tree and an associated parasite tree.")
+  cat("\nHosts:")
+  print(cophy[[1]])
+  cat("\nParasites:")
+  print(cophy[[2]])
 }

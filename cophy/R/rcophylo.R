@@ -1,9 +1,9 @@
 # rcophylo.R
 
 # This file contains several functions to randomly generate cophylogenies.
-# This file is part of the R-package 'cophylo'.
+# This file is part of the R-package 'cophy'.
 
-DBINC<-100
+DBINC<-100   # constant that is used internally; only affects the speed of simulations
 
 #' Cophylogeny simulation
 #'
@@ -30,27 +30,29 @@ DBINC<-100
 #'   cospeciation.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "Phylo" or "Raw" (see Value below) (exported as
-#'   an object of ape phylo class, the default setting), or "Raw" (a matrix
+#' @param export.format either "phylo" or "raw" (see Value below) (exported as
+#'   an object of ape phylo class, the default setting), or "raw" (a matrix
 #'   where rows are all the branches, this is the used format internally).
 #' @param timestep a numeric value giving the time step by which the simulation
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
-#' @return By default, an object of class "cophylo" is returned that is a list
+#' @return By default, an object of class "cophylogeny" is returned that is a list
 #'   of phylo objects (one for the host and one for the parasite), as specified
 #'   in the R-package "ape". If the argument \code{export.format} is set to
-#'   "Raw" the function returns a list of dataframes containing information on
+#'   "raw" the function returns a list of dataframes containing information on
 #'   all the branches in the trees. (These dataframes are what the function uses
 #'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' rcophylo_HP(tmax=5, k=5)
+#' cop<-rcophylo_HP(tmax=5, K=5)
+#' print(cop)
+#' plot(cop)
 
 rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
                         gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
-                        prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001) {
+                        prune.extinct = FALSE, export.format = "phylo", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda * timestep
@@ -367,9 +369,9 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 
   PBranches <- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches <- PBranches[order(PBranches[, "branchNo"]), ]
-  if (export.format == "Phylo") # return cophylogeny as an APE Phylo class
-    return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
-  else if (export.format == "Raw") # return the HBranches and PBranches lists as they are
+  if (export.format == "phylo") # return cophylogeny as an ape phylo class
+    return(cophylogeny(HBranches, PBranches))
+  else if (export.format == "raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
 }
 
@@ -388,15 +390,15 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #' @param mu a numeric value giving the host extinction rate.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the
-#'   default setting) or "Raw" (just a list of branches as used within the
+#' @param export.format either "phylo" (exported in Ape phylo format, the
+#'   default setting) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param timestep a numeric value giving the time step by which the simulation
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
 #' @keywords Host phylogeny
 #' @return By default, an object of class "phylo" is returned, as specified in
-#'   the R-package "ape". If the argument \code{export.format} is set to "Raw"
+#'   the R-package "ape". If the argument \code{export.format} is set to "raw"
 #'   the function returns a dataframe containing information on all the branches
 #'   in the tree. (This dataframe are what the function uses internally.)
 #' @importFrom stats rbinom
@@ -406,7 +408,7 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #' rphylo_H(tmax=5)
 
 rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-                     prune.extinct = FALSE, export.format = "Phylo", timestep = 0.001) {
+                     prune.extinct = FALSE, export.format = "phylo", timestep = 0.001) {
   # adjusting the evolutionary rates to timesteps:
   lambda  <- lambda * timestep
   mu      <- mu * timestep
@@ -499,9 +501,9 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
   HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
   HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
 
-  if (export.format == "Phylo") # return phylogeny as an APE Phylo class
+  if (export.format == "phylo") # return phylogeny as an APE phylo class
     return(convert_HBranchesToPhylo(HBranches, prune.extinct))
-  else if (export.format == "Raw") # return the HBranches as they are
+  else if (export.format == "raw") # return the HBranches as they are
     return(HBranches)
 }
 
@@ -527,8 +529,8 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #'   cospeciation.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the
-#'   default setting)) or "Raw" (a matrix where rows are all the branches, this
+#' @param export.format either "phylo" (exported in Ape phylo format, the
+#'   default setting)) or "raw" (a matrix where rows are all the branches, this
 #'   is the used format internally).
 #' @param P.startT the timepoint at which a parasite invades the host tree.
 #' @param ini.Hbranch numerical. The host branch number from which the parasite
@@ -541,10 +543,10 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #' @param timestep a numeric value giving the time step by which the simulation
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
-#' @return By default, an object of class "cophylo" is returned that is a list
+#' @return By default, an object of class "cophylogeny" is returned that is a list
 #'   of phylo objects (one for the host and one for the parasite), as specified
 #'   in the R-package "ape". If the argument \code{export.format} is set to
-#'   "Raw" the function returns a list of dataframes containing information on
+#'   "raw" the function returns a list of dataframes containing information on
 #'   all the branches in the trees. (These dataframes are what the function uses
 #'   internally.)
 #' @keywords Host-Parasite phylogeny
@@ -552,11 +554,11 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
 #' rcophylo_PonH(H.tree=Htree, tmax=5)
 
 rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-                          delta = 0, prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+                          delta = 0, prune.extinct = FALSE, export.format = "phylo", P.startT = 0,
                           ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
@@ -862,11 +864,11 @@ rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu 
   PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches	<- PBranches[order(PBranches[, "branchNo"]), ]
 
-  if (export.format == "Phylo"){ # return cophylogeny as an APE Phylo class
-    return(list(convert_HBranchesToPhylo(HBranches), convert_PBranchesToPhylo(PBranches)))
-  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
+  if (export.format == "phylo"){ # return cophylogeny as an APE phylo class
+    return(cophylogeny(HBranches, PBranches))
+  } else if (export.format == "raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
-  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in phylo format
     return(convert_PBranchesToPhylo(PBranches))
   }
 }
@@ -908,8 +910,8 @@ rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu 
 #'   cospeciation for parasites of type Q.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the
-#'   default setting)) or "Raw" (just a list of branches as used within the
+#' @param export.format either "phylo" (exported in Ape phylo format, the
+#'   default setting)) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param P.startT a numeric value giving the the timepoint at which a parasite
 #'   invades the host-tree
@@ -923,23 +925,23 @@ rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu 
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
 #' @keywords Multi-Parasite phylogeny
-#' @return By default, an object of class "cophylo" is returned that is a list
+#' @return By default, an object of class "cophylogeny" is returned that is a list
 #'   of phylo objects (one for the host and one for the parasite), as specified
 #'   in the R-package "ape". If the argument \code{export.format} is set to
-#'   "Raw" the function returns a list of dataframes containing information on
+#'   "raw" the function returns a list of dataframes containing information on
 #'   all the branches in the trees. (These dataframes are what the function uses
 #'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
 #' rcophylo_PQonH(tmax=5, H.tree=Htree)
 
 rcophylo_PQonH <- function(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0.02,
                            sigma.self = 0, sigma.cross = 0, nu.P = 0.5, nu.Q = 0.5,
                            kappa.P = 0, kappa.Q = 0, delta.P = 0, delta.Q = 0,
-                           prune.extinct = FALSE, export.format = "Phylo", P.startT = 0,
+                           prune.extinct = FALSE, export.format = "phylo", P.startT = 0,
                            ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
 
   # adjusting the evolutionary rates to timesteps:
@@ -1448,13 +1450,13 @@ rcophylo_PQonH <- function(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0
   Q.PBranches	<- rbind(Q.PBranches, Q.PDeadBranches[1:Q.nPDeadBranches, ])
   Q.PBranches	<- Q.PBranches[order(Q.PBranches[, "branchNo"]), ]
 
-  if (export.format == "Phylo") { # return cophylogeny as an APE Phylo class
+  if (export.format == "phylo") { # return cophylogeny as an APE phylo class
     H.phylo     <- convert_HBranchesToPhylo(HBranches)
     PandQ.phylo <- convert_PQBranchesToPhylo(P.PBranches, Q.PBranches)
     return(list(H.phylo, PandQ.phylo[[1]], PandQ.phylo[[2]]))
-  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
+  } else if (export.format == "raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches, P.PBranches, Q.PBranches))
-  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in phylo format
     PandQ.phylo <- convert_PQBranchesToPhylo(P.PBranches, Q.PBranches)
     return(list(PandQ.phylo[[1]], PandQ.phylo[[2]]))
   }
@@ -1493,8 +1495,8 @@ rcophylo_PQonH <- function(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0
 #'   parasite interaction trait.
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the
-#'   default setting)) or "Raw" (just a list of branches as used within the
+#' @param export.format either "phylo" (exported in Ape phylo format, the
+#'   default setting)) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param ini.Hbranch the host branch from which the parasite invasion is
@@ -1507,22 +1509,22 @@ rcophylo_PQonH <- function(tmax, H.tree, beta = 0.1, gamma.P = 0.02, gamma.Q = 0
 #'   proceeds. Increase to make the simulation faster or decrease to make it
 #'   more precise.
 #' @keywords Host-Parasite phylogeny
-#' @return By default, an object of class "cophylo" is returned that is a list
+#' @return By default, an object of class "cophylogeny" is returned that is a list
 #'   of phylo objects (one for the host and one for the parasite), as specified
 #'   in the R-package "ape". If the argument \code{export.format} is set to
-#'   "Raw" the function returns a list of dataframes containing information on
+#'   "raw" the function returns a list of dataframes containing information on
 #'   all the branches in the trees. (These dataframes are what the function uses
 #'   internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format="Raw")
+#' Htree<-rphylo_H(tmax=5, export.format="raw")
 #' rcophylo_PonH_Htrait(H.tree=Htree, tmax=5)
 
 rcophylo_PonH_Htrait <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
                                  epsilon.1to0 = 0.01, epsilon.0to1 = 0.001, startTrait = NA, omega = 10, rho = 0.5,
-                                 psi = 0.5, TraitTracking = NA, prune.extinct = FALSE, export.format = "Phylo",
+                                 psi = 0.5, TraitTracking = NA, prune.extinct = FALSE, export.format = "phylo",
                                  P.startT = 0, ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
   #organising inputs
   if (class(TraitTracking) == "logical") { # need to calculate preinvasion trait information
@@ -1965,11 +1967,11 @@ rcophylo_PonH_Htrait <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma =
   for (i in which(H.tree[, 1] == 1)) {
     TraitTracking[[i]] <- rbind(TraitTracking[[i]], c(t, TraitTracking[[i]][length(TraitTracking[[i]][, 1]), 2]))
   }
-  if (export.format == "Phylo") { # return cophylogeny as an APE Phylo class
+  if (export.format == "phylo") { # return cophylogeny as an APE phylo class
     return(list(convert_HBranchesToPhylo(H.tree), convert_PBranchesToPhylo(PBranches), TraitTracking))
-  } else if (export.format == "Raw") { # return the HBranches and PBranches lists as they are
+  } else if (export.format == "raw") { # return the HBranches and PBranches lists as they are
     return(list(H.tree,PBranches,TraitTracking))
-  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in Phylo format
+  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in phylo format
     return(list(convert_PBranchesToPhylo(PBranches), TraitTracking))
   }
 

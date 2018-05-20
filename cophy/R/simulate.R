@@ -3,7 +3,7 @@
 # This file contains functions that simulate several replicate cophylogenies with the same parameters,
 #   calculates some basic summary statistics and saves the results in a file.
 
-# This file is part of the R-package 'cophylo'.
+# This file is part of the R-package 'cophy'.
 #DBINC<-100
 #code.version<-0.0.0.9000
 
@@ -29,7 +29,7 @@ simulate_HostTrees <- function(tmax, lambda, mu, K, timestep, reps, filename = N
   names(parameters) <- c("tmax", "lambda", "mu", "K", "timestep")
   all.trees         <- list() # an empty list that will later contain all the trees
   for(i in 1:reps) {
-    Hphy <- rphylo_H(tmax = tmax, lambda = lambda, mu = mu, timestep = timestep, K = K, export.format = "Raw")
+    Hphy <- rphylo_H(tmax = tmax, lambda = lambda, mu = mu, timestep = timestep, K = K, export.format = "raw")
     all.trees[[i]] <- Hphy
     if ((reps <= 20) | ((reps > 20) & (reps <= 50) & (i%%5 == 0)) |
         ((reps > 50) & (reps <= 100) & (i%%10 == 0)) |
@@ -130,8 +130,8 @@ simulate_cophys_HP <- function(tmax, lambda, mu, beta, gamma, sigma, nu, kappa, 
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
-#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="raw"))
 #' simulate_cophys_PonH(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02, sigma=0,
 #'  nu=0.5, kappa=0, delta=0, timestep=0.001,reps1=1,reps2=2, filename="file")
 
@@ -279,8 +279,8 @@ simulate_cophys_PonH <- function(Htrees, fromHtree = NA, toHtree = NA, HtreesPhy
 #' @importFrom bigmemory describe
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
-#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="raw"))
 #' simulate_cophys_PQonH(Htrees=Htree, P.startT=5, beta=0.1, gamma.P=0.02,
 #'  gamma.Q=0.02, sigma.self=0, sigma.cross=0, nu.P=0.5, nu.Q=0.5, kappa.P=0,
 #'  kappa.Q=0, delta.P=0, delta.Q=0, timestep=0.001,reps1=1,reps2=2,
@@ -413,8 +413,8 @@ simulate_cophys_PQonH <- function(Htrees, fromHtree = NA, toHtree = NA, P.startT
 #'   parasite interaction trait. Needs to match host trees provided.
 #' @param prune.extinct whether to remove all extinct branches defaulting to
 #'   FALSE
-#' @param export.format either "Phylo" (exported in Ape Phylo format, the
-#'   default setting)) or "Raw" (just a list of branches as used within the
+#' @param export.format either "phylo" (exported in Ape phylo format, the
+#'   default setting)) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param P.startT the timepoint at which a parasite invades the host-tree
 #' @param reps1 the number of starting points for the parasite trees
@@ -438,8 +438,8 @@ simulate_cophys_PQonH <- function(Htrees, fromHtree = NA, toHtree = NA, P.startT
 #' @importFrom bigmemory attach.big.matrix
 #' @export
 #' @examples
-#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="Raw"),
-#'  rphylo_H(tmax=10, K=10, export.format="Raw"))
+#' Htree<-list(rphylo_H(tmax=10, K=10, export.format="raw"),
+#'  rphylo_H(tmax=10, K=10, export.format="raw"))
 #' simulate_cophys_PonH_Htrait(Htrees=Htree, P.startT=5, beta=0.1, gamma=0.02,
 #'  sigma=0, nu=0.5, kappa=0, delta=0, epsilon.1to0=0.001, epsilon.0to1=0.001,
 #'  startTrait=0, omega=10, rho=0.75, psi=0.75, timestep=0.001,reps1=1,reps2=2,
@@ -448,7 +448,7 @@ simulate_cophys_PQonH <- function(Htrees, fromHtree = NA, toHtree = NA, P.startT
 simulate_cophys_PonH_Htrait <- function(Htrees, HtreesPhylo = NA, fromHtree = NA, toHtree = NA, beta = 0.1,
                                         gamma = 0.2, sigma = 0, nu = 0.5, kappa, delta, epsilon.1to0, epsilon.0to1,
                                         startTrait, omega, rho, psi, TraitTracking = NA, prune.extinct = FALSE,
-                                        export.format = "Phylo", P.startT = 0, reps1 = 1, reps2 = 1,
+                                        export.format = "phylo", P.startT = 0, reps1 = 1, reps2 = 1,
                                         ini.Hbranch = NA, Gdist = NA, timestep = 0.001, filename = NA, ncores = 1) {
 
   print(paste("Simulations for ", filename, " started.", sep=""))

@@ -1,14 +1,14 @@
 # stats.R
 
 # This file contains functions to obtain various statistics describing cophylogenies.
-# This file is part of the R-package 'cophylo'.
+# This file is part of the R-package 'cophy'.
 
 
 
 #' The following function counts host-jumps
 #'
 #' The following function counts the host-jumps of a host-parasite phylogeny
-#' @param cophy a cophylogeny (object of class "cophy") containing one host and one parasite tree.
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.
 #' @keywords cophylogeny, host-jumps
 #' @export
 #' @examples
@@ -63,7 +63,7 @@ get_HostShifts <- function(cophy) {
 #'
 #' The following function counts the number of hosts infected with a particular
 #' number of parasites from the same parasite phylogeny
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @keywords cophylogeny, infection-counts
 #' @export
@@ -132,7 +132,7 @@ get_2Pinfectionlevels <- function(cophy) {
 #' particular simulation including: number of extant host species, number of
 #' extant parasite species, percentage of host species that are infected by at
 #' least one parasite, mean number of parasites per host
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @keywords cophylogeny, statistics
 #' @export
@@ -436,7 +436,7 @@ get_GDist <- function(branches, t=NA) {
 #' The following function returns a matrix of the patristic distances between
 #' all extant parasite species, and another matrix with the patristic distances
 #' of the associated host species.
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @keywords genetic distance
 #' @export
@@ -466,7 +466,7 @@ get_PHDist <- function(cophy) {
 
 
 #' Calculating the correlation between the distance matrixes of parasites and their associated hosts
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
@@ -494,7 +494,7 @@ get_PHDistCorrelation <- function(cophy) {
 }
 
 #' Calculating the correlation between the distance matrixes of parasites and their associated hosts within subtrees specified by particular height
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host and one parasite tree.
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.
 #' @param h numeric scalar or vector with heights where the tree should be cut.
 #' @param k an integer scalar or vector with the desired number of groups
 #' @keywords genetic distance, correlation
@@ -545,7 +545,7 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
 #' The following function returns the fraction of infected host species within a
 #' subclade of a host tree that is specified by tips, a vector of tip labels.
 #'
-#' @param cophy a cophylogeny (object of class "cophylo") containing one host
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @param tips a vector of tip labels
 #' @keywords subtree, infection frequency
