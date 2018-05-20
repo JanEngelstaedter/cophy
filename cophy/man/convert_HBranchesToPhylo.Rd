@@ -2,24 +2,19 @@
 % Please edit documentation in R/convert.R
 \name{convert_HBranchesToPhylo}
 \alias{convert_HBranchesToPhylo}
-\title{Converting raw host trees to phylo format}
+\title{Convert raw host tree to phylo format}
 \usage{
-convert_HBranchesToPhylo(Hbranches, prune.extinct = FALSE, fromHtree = NA,
-  toHtree = NA)
+convert_HBranchesToPhylo(HBranches, prune.extinct = FALSE)
 }
 \arguments{
-\item{Hbranches}{Host-tree in raw matrix format}
+\item{HBranches}{Host-tree in raw matrix format}
 
 \item{prune.extinct}{whether to remove all extinct branches (defaulting to FALSE)}
-
-\item{fromHtree}{starting host-tree}
-
-\item{toHtree}{finishing host-tree}
 }
 \description{
-The following function converts raw host tree matricies into phylo format
+The following function converts a raw host tree matrix into phylo format
 }
 \examples{
 Hbranches<-rphylo_H(tmax=5, export.format = "raw")
-convert_HBranchesToPhylo(Hbranches=Hbranches)
+convert_HBranchesToPhylo(HBranches=Hbranches)
 }

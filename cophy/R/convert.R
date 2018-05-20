@@ -22,7 +22,7 @@
 
 cophylogeny <- function(HP.tree) {
   if (class(HP.tree[[1]]) == "data.frame") {
-    HP.tree[[1]] <- convert_HBranchesToPhylo(Hbranches = HP.tree[[1]])
+    HP.tree[[1]] <- convert_HBranchesToPhylo(HBranches = HP.tree[[1]])
   }
 
   if (class(HP.tree[[2]]) == "data.frame") {
@@ -35,13 +35,17 @@ cophylogeny <- function(HP.tree) {
   return(cophy)
 }
 
-#' Converting raw tree to phylo format
+#' Convert raw host tree to phylo format
 #'
 #' The following function converts a raw host tree matrix into phylo format
 #' @param HBranches Host-tree in raw matrix format
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
+#' @export
+#' @examples
+#' Hbranches<-rphylo_H(tmax=5, export.format = "raw")
+#' convert_HBranchesToPhylo(HBranches=Hbranches)
 
-convert_HBtoPhy <- function(HBranches, prune.extinct = FALSE) {
+convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
   # number of host and parasite branches:
   nHBranches <- nrow(HBranches)
 
@@ -277,53 +281,6 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   }
   return(Pphy)
 }
-
-#' Converting raw host trees to phylo format
-#'
-#' The following function converts raw host tree matricies into phylo format
-#' @param Hbranches Host-tree in raw matrix format
-#' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
-#' @param fromHtree starting host-tree
-#' @param toHtree finishing host-tree
-#' @export
-#' @examples
-#' Hbranches<-rphylo_H(tmax=5, export.format = "raw")
-#' convert_HBranchesToPhylo(Hbranches=Hbranches)
-
-convert_HBranchesToPhylo <- function(Hbranches, prune.extinct = FALSE, fromHtree = NA, toHtree = NA) {
-	if (class(Hbranches) == "data.frame") nHtrees <- 1
-	else if (class(Hbranches) == "big.matrix") nHtrees <- 1
-	else nHtrees <- length(Hbranches)
-
-	if (is.na(fromHtree)) {
-		fromHtree <- 1
-	}
-	if (is.na(toHtree)) {
-    	toHtree <- nHtrees
-	}
-
-	TreesToConvert <- list()
-	HtreesPhylo    <- list()
-	if (length(fromHtree:toHtree) != nHtrees) {
-		for (i in fromHtree:toHtree) {
-			TreesToConvert[[i - (fromHtree - 1)]] <- Hbranches[[i]]
-		}
-		if (length(fromHtree:toHtree) == 1) {
-			phylo <- convert_HBtoPhy(TreesToConvert[[1]])
-			HtreesPhylo[[fromHtree]] <- phylo
-		} else {
-			phylo <- lapply(TreesToConvert, convert_HBtoPhy)  # converting to APE phylo format
-			for (i in fromHtree:toHtree) {
-				HtreesPhylo[[i]] <- phylo[[i - (fromHtree - 1)]]
-			}
-		}
-	} else {
-		if (nHtrees == 1) HtreesPhylo <- convert_HBtoPhy(Hbranches)
-		else HtreesPhylo <- lapply(Hbranches, convert_HBtoPhy)  # converting to APE phylo format
-	}
-	HtreesPhylo
-}
-
 
 #' Convert cophylogenetic trees from Ape's phylo format to the internal Branches format
 #'
