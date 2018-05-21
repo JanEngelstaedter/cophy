@@ -31,11 +31,10 @@ Installation
 To install cophy, you first need to install and load the devtools package (available on CRAN). Then, run the following line of code:
 
 ``` r
-devtools::install_github("JanEngelstaedter/cophy")
+devtools::install_github("JanEngelstaedter/cophy", pkg = "cophy")
 #> Warning in strptime(x, fmt, tz = "GMT"): unknown timezone 'zone/tz/2018c.
 #> 1.0/zoneinfo/Australia/Brisbane'
 #> Downloading GitHub repo JanEngelstaedter/cophy@master
 #> from URL https://api.github.com/repos/JanEngelstaedter/cophy/zipball/master
-#> Installation failed: 404: Not Found
-#>  (404)
+#> Installation failed: Does not appear to be an R package (no DESCRIPTION)
 ```
