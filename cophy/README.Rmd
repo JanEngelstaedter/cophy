@@ -19,12 +19,13 @@ By this we mean a phylogenetic tree of species ("hosts"), combined with another 
 
 ## Example
 
-Here is a simple example for how you can create a random cophylogeny, display some of its basic properties and plot it:
+Here is a simple example for how you can create a random cophylogeny, and plot it:
 
 ```{r example}
+
 library(cophy)
+set.seed(12)
 cop<-rcophylo_HP(tmax=5, K=5)
-print(cop)
 get_infectionStatistics(cop)
 plot(cop)
 ```
