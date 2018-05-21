@@ -3,7 +3,8 @@
 \name{get_PHDistSubtreeCorrelation}
 \alias{get_PHDistSubtreeCorrelation}
 \title{Calculating the correlation between the distance matrixes of parasites and
-their associated hosts within subtrees specified by particular height}
+their associated hosts within subtrees specified by particular height.
+Requires at least three living parasites.}
 \usage{
 get_PHDistSubtreeCorrelation(cophy, h = NULL, k = NULL)
 }
@@ -17,7 +18,8 @@ host and one parasite tree.}
 }
 \description{
 Calculating the correlation between the distance matrixes of parasites and
-their associated hosts within subtrees specified by particular height
+their associated hosts within subtrees specified by particular height.
+Requires at least three living parasites.
 }
 \examples{
 HPtree<-rcophylo_HP(tmax=10, K=10)

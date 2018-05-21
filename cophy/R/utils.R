@@ -60,6 +60,7 @@ get_nodeTime <- function(phy, node) {
 #'
 #' @param x object of class "cophylogeny" containing a host and parasite tree.
 #' @param ... further arguments passed to or from other methods.
+#' @importFrom ape print.phylo
 #' @export
 #' @examples
 #' cop<-rcophylo_HP(tmax=5, K=5)
@@ -68,7 +69,7 @@ get_nodeTime <- function(phy, node) {
 print.cophylogeny<-function(x, ...) {
   print("Cophylogeny consisting of a host tree and an associated parasite tree.")
   cat("\nHost tree:")
-  print(x[[1]])
+  print.phylo(x[[1]])
   cat("\nParasite tree:")
-  print(x[[2]])
+  print.phylo(x[[2]])
 }
