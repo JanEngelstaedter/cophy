@@ -31,13 +31,13 @@ Installation
 To install cophy, you first need to install and load the devtools package (available on CRAN). Then, run the following line of code:
 
 ``` r
-devtools::install_github("JanEngelstaedter/cophy", subdir="cophy")
+devtools::install_github("JanEngelstaedter/cophy")
 #> Downloading GitHub repo JanEngelstaedter/cophy@master
 #> from URL https://api.github.com/repos/JanEngelstaedter/cophy/zipball/master
 #> Installing cophy
 #> '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file  \
 #>   --no-environ --no-save --no-restore --quiet CMD INSTALL  \
-#>   '/private/var/folders/8z/mqp724ld2n1c6krws_2pqvdh0000gn/T/RtmpNL1sUB/devtoolsdff5744881d/JanEngelstaedter-cophy-40c5c9b/cophy'  \
+#>   '/private/var/folders/8z/mqp724ld2n1c6krws_2pqvdh0000gn/T/Rtmp6Vaw5g/devtools2f724fce37f2/JanEngelstaedter-cophy-307f96d'  \
 #>   --library='/Library/Frameworks/R.framework/Versions/3.3/Resources/library'  \
 #>   --install-tests
 #> 
