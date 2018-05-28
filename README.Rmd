@@ -36,5 +36,5 @@ To install cophy, you first need to install and load the devtools package (avail
 Then, run the following line of code:
 
 ```{r installation}
-devtools::install_github("JanEngelstaedter/cophy", subdir="cophy")
+devtools::install_github("JanEngelstaedter/cophy")
 ```
