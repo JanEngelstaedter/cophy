@@ -1,7 +1,4 @@
-.Rapp.history
-.
-..
-.DS_Store
 .Rproj.user
-Modifications.docx
-Modifications.docx
+.Rhistory
+.RData
+.Rbuildignore
