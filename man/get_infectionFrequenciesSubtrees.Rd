@@ -2,8 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{get_infectionFrequenciesSubtrees}
 \alias{get_infectionFrequenciesSubtrees}
-\title{The following function returns the fraction of infected host species within a
-subclade of a host tree that is specified by tips, a vector of tip labels.}
+\title{Parasite infection frequency per host subtree.}
 \usage{
 get_infectionFrequenciesSubtrees(cophy, tips)
 }

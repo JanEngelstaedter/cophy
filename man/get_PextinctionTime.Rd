@@ -2,7 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{get_PextinctionTime}
 \alias{get_PextinctionTime}
-\title{Function to calculate the time of the last surviving parasite species}
+\title{Parasite lineage extinction time}
 \usage{
 get_PextinctionTime(phy)
 }
