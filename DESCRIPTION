@@ -16,11 +16,5 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     ape (>= 5.0),
-    bigmemory (>= 4.5.24),
-    doParallel (>= 1.0.11),
-    foreach (>= 1.4.4),
-    graphics,
-    parallel,
     phytools (>= 0.6),
-    stats
 RoxygenNote: 6.0.1
