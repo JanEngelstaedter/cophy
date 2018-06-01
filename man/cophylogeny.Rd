@@ -12,11 +12,11 @@ phylogenetic tree of class 'cophylogeny' or 'data.frame'}
 }
 \value{
 this function returns an object of class 'cophylogeny' which can be
-  passed to plot().
+  for plotting and printing pur.
 }
 \description{
 This function creates an object of class 'cophylogeny', which can be passed
-to the plot.cophylogeny() function. This object must contain at least one
+to \code{\link{plot.cophylogeny}}. This object must contain at least one
 host and one parasite tree.
 }
 \examples{

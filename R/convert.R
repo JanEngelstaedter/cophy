@@ -9,12 +9,12 @@
 #' Creates a cophylogeny object
 #'
 #' This function creates an object of class 'cophylogeny', which can be passed
-#' to the plot.cophylogeny() function. This object must contain at least one
+#' to \code{\link{plot.cophylogeny}}. This object must contain at least one
 #' host and one parasite tree.
 #' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite
 #'   phylogenetic tree of class 'cophylogeny' or 'data.frame'
 #' @return this function returns an object of class 'cophylogeny' which can be
-#'   passed to plot().
+#'   for plotting and printing pur.
 #' @keywords cophylogeny, class
 #' @export
 #' @examples
@@ -42,10 +42,6 @@ cophylogeny <- function(HP.tree) {
 #' The following function converts a "raw" host tree matrix into "phylo" format
 #' @param HBranches Host-tree in "raw" format (of class data.frame)
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
-#' @export
-#' @examples
-#' Hbranches<-rphylo_H(tmax=5, export.format = "raw")
-#' convert_HBranchesToPhylo(HBranches=Hbranches)
 
 convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
   # number of host and parasite branches:
@@ -165,11 +161,6 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
 #' The following function converts a "raw" parasite tree matrix into "phylo" format
 #' @param PBranches Parasite-tree in "raw" format (of class data.frame)
 #' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
-#' @keywords format, convert, phylo
-#' @export
-#' @examples
-#' HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
-#' convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
 
 convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   # number of branches:
@@ -289,10 +280,6 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
 #'
 #' The following function converts a "phylo" host-parasite tree into internal Branches format
 #' @param Htree a host tree in "phylo" format
-#' @export
-#' @examples
-#' Htree<-rphylo_H(tmax=5)
-#' convert_HPhyloToBranches(Htree=Htree)
 
 convert_HPhyloToBranches<-function(Htree) {
   # converting host tree:
@@ -321,11 +308,7 @@ convert_HPhyloToBranches<-function(Htree) {
 #' Convert cophylogenetic trees from Ape's "phylo" format to the "raw" internal Branches format
 #'
 #' The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
-#' @param cophy a cophylogeny (in "phylo" format) containing one host and one parasite tree
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' convert_HPCophyloToBranches(cophy=HPtree)
+#' @param cophy a cophylogeny (in "phylo" format) containing one host and one parasite tree.
 
 convert_HPCophyloToBranches<-function(cophy) {
   # converting host tree:

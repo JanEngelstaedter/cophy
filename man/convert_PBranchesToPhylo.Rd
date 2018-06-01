@@ -14,10 +14,3 @@ convert_PBranchesToPhylo(PBranches, prune.extinct = FALSE)
 \description{
 The following function converts a "raw" parasite tree matrix into "phylo" format
 }
-\examples{
-HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
-convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
-}
-\keyword{convert,}
-\keyword{format,}
-\keyword{phylo}

@@ -7,12 +7,8 @@
 convert_HPCophyloToBranches(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (in "phylo" format) containing one host and one parasite tree}
+\item{cophy}{a cophylogeny (in "phylo" format) containing one host and one parasite tree.}
 }
 \description{
 The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
-}
-\examples{
-HPtree<-rcophylo_HP(tmax=5)
-convert_HPCophyloToBranches(cophy=HPtree)
 }

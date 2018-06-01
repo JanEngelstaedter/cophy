@@ -12,7 +12,3 @@ convert_HPhyloToBranches(Htree)
 \description{
 The following function converts a "phylo" host-parasite tree into internal Branches format
 }
-\examples{
-Htree<-rphylo_H(tmax=5)
-convert_HPhyloToBranches(Htree=Htree)
-}

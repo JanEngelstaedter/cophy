@@ -2,10 +2,6 @@
 
 S3method(plot,cophylogeny)
 S3method(print,cophylogeny)
-export(convert_HBranchesToPhylo)
-export(convert_HPCophyloToBranches)
-export(convert_HPhyloToBranches)
-export(convert_PBranchesToPhylo)
 export(cophylogeny)
 export(get_GDist)
 export(get_HostShifts)
