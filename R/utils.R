@@ -47,9 +47,9 @@ add_branchSurvival <- function(Branches) {
 #' print(cop)
 
 print.cophylogeny<-function(x, ...) {
-  print("Cophylogeny consisting of a host tree and an associated parasite tree.")
+  cat("Cophylogeny consisting of a host tree and an associated parasite tree.")
   cat("\nHost tree:")
-  print.phylo(x[[1]])
+  print(x[[1]])
   cat("\nParasite tree:")
-  print.phylo(x[[2]])
+  print(x[[2]])
 }

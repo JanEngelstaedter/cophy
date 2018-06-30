@@ -13,13 +13,30 @@ Here is a simple example for how you can create a random cophylogeny, and plot i
 ``` r
 
 library(cophy)
-set.seed(12)
-cop<-rcophylo_HP(tmax=5, K=5)
+set.seed(7)
+cop<-rcophylo_HP(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
+cop
+#> Cophylogeny consisting of a host tree and an associated parasite tree.
+#> Host tree:
+#> Phylogenetic tree with 136 tips and 135 internal nodes.
+#> 
+#> Tip labels:
+#>  t1, t2, t3, t4, t5, t6, ...
+#> 
+#> Rooted; includes branch lengths.
+#> 
+#> Parasite tree:
+#> Phylogenetic tree with 152 tips and 151 internal nodes.
+#> 
+#> Tip labels:
+#>  t1, t2, t3, t4, t5, t6, ...
+#> 
+#> Rooted; includes branch lengths.
 get_infectionStatistics(cop)
 #>         noHspecies         noPspecies   fractionInfected 
-#>                  1                  0                  0 
+#>         13.0000000          6.0000000          0.4615385 
 #> meanInfectionLevel 
-#>                  0
+#>          0.4615385
 plot(cop)
 ```
 
@@ -37,8 +54,8 @@ devtools::install_github("JanEngelstaedter/cophy")
 #> Installing cophy
 #> '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file  \
 #>   --no-environ --no-save --no-restore --quiet CMD INSTALL  \
-#>   '/private/var/folders/8z/mqp724ld2n1c6krws_2pqvdh0000gn/T/Rtmp6Vaw5g/devtools2f724fce37f2/JanEngelstaedter-cophy-307f96d'  \
-#>   --library='/Library/Frameworks/R.framework/Versions/3.3/Resources/library'  \
+#>   '/private/var/folders/8z/mqp724ld2n1c6krws_2pqvdh0000gn/T/RtmpM43Bj6/devtoolsc62396da9c/JanEngelstaedter-cophy-d9083ef'  \
+#>   --library='/Library/Frameworks/R.framework/Versions/3.5/Resources/library'  \
 #>   --install-tests
 #> 
 #> Reloading installed cophy
