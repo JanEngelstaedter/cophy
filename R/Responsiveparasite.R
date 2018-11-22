@@ -59,16 +59,19 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
   kappa  <- kappa * timestep
 
   nHAlive <- 0
+  nHAliveInf <- 0
   while (nHAlive == 0) { # simulate until surviving tree is built
     t <- 0
-    HBranches    <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 1)
+    HBranches    <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
+                               nParasites = 1, branchNo = 1) #The first host is associated with the first parasite, so nParasites = 1
 
     nHBranches <- 1		  	# total number of branches that have been constructed
     nHAlive    <- 1			  # number of branches that extent until the current timestep
+    nHAliveInf <- 1       # number of branches with associated parasites that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
-    HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0,
-                                tDeath = 0, branchNo = 0)
+    HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                nParasites = 0, branchNo = 0)
 
     nHDeadBranches <- 0	  # number of dead host branches
 
@@ -111,12 +114,16 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextHNode              <- nextHNode+1
           nHAlive			           <- nHAlive-1
 
+          if(HBranches$nParasites[i] > 0){
+            nHAliveInf           <- nHAliveInf-1
+          }
+
           HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
           if (length(HDeadBranches[,1]) == nHDeadBranches) { # if dataframe containing dead branches is full
             HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
-                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
           }
-
+          #Can probably make this more effective using if (HBranches$nParasites[i] < 0)
           assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
           if (length(assocP) > 0) {
             for(j in assocP) {
@@ -158,13 +165,17 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
           if (length(HDeadBranches[, 1]) == nHDeadBranches) # if dataframe containing dead branches is full
             HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE , DBINC), nodeBirth = 0,
-                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, branchNo = 0))
+                                                             tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
 
-          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 1))
-          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, nHBranches + 2))
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, HBranches$nParasites[i], nHBranches + 1))
+          HBranches  <- rbind(HBranches, c(TRUE, nextHNode, timepoint, 0, 0, HBranches$nParasites[i], nHBranches + 2))
           nextHNode  <- nextHNode + 1
           nHAlive    <- nHAlive + 1
           nHBranches <- nHBranches + 2
+
+          if (HBranches$nParasites[i] > 0){
+            nHAliveInf <- nHAliveInf + 1
+          }
 
           # update Gdist matrix:
           # adding new rows and columns
@@ -190,7 +201,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
           # cospeciation of parasites:
           assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
-          if (length(assocP) > 0) { # make sure argument greater then length 0
+          if (length(assocP) > 0) { # make sure argument greater then length 0 (as for extinctions, can probably modify this and use nParasites)
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
               PBranches$nodeDeath[j] <- nextPNode
@@ -210,7 +221,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
             }
             PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately (How to deal with multiple parasites?)
               if(runif(1) < delta) {
                 whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
 
@@ -226,6 +237,13 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
                                                                    tDeath = 0, Hassoc = 0, branchNo = 0))
                 nextPNode <- nextPNode + 1
                 nPAlive		<- nPAlive - 1
+
+                assocH <- which(HBranches$branchNo == PBranches$Hassoc[whichBranch]) #Find which hosts loses a parasite
+                HBranches$nParasites[assocH] = HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
+                if(HBranches$nParasites[assocH] = 0){ #Check whether parasites were reduced to zero
+                  nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
+                }
+
                 PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
@@ -264,6 +282,10 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextPNode  <- nextPNode + 1
           nPAlive    <- nPAlive + 1
           nPBranches <- nPBranches + 2
+
+          assocH <- which(HBranches$branchNo == PBranches$Hassoc[i]) #Find the host branch the parasites speciate within
+          HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] + 1 #Add one to that hosts parasite count
+
         }
         if (length(PToSpeciate) > 0) {
           PBranches <- PBranches[-PToSpeciate, ] # removing all dead parasite branches
@@ -289,6 +311,13 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
           nextPNode <-nextPNode + 1
           nPAlive		<-nPAlive - 1
+
+          assocH <- which(HBranches$branchNo == PBranches$Hassoc[i]) #Find which hosts loses a parasite
+          HBranches$nParasites[assocH] = HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
+          if(HBranches$nParasites[assocH] = 0){ #Check whether parasites were reduced to zero
+            nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
+          }
+
         }
         PBranches <- PBranches[-PToDie, ] # removing all mother parasite branches that have co-speciated
       }
@@ -313,7 +342,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           if(length(otherHosts) > 0) {
             newHost         <- otherHosts[sample.int(length(otherHosts), 1)]  # randomly choose branch number of new host
             probEstablish   <- (exp(-gamma * Gdist[oldHost, newHost])) # determine if Parasite switch to new host is successful, depending on genetic distance
-            estabInfections <- length(which((PBranches$Hassoc == HBranches$branchNo[newHost])))  # no of parasites already infecting the potential new host
+            estabInfections <- HBranches$nParasites[newHost]  # no of parasites already infecting the potential new host
             probEstablish   <- probEstablish * sigma^estabInfections # determine if parasite switch to new host is successful, depending on genetic distance
 
             if(runif(1) < probEstablish) { # if host jump was successful
@@ -334,6 +363,12 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
               nextPNode              <- nextPNode + 1
               nPAlive                <- nPAlive + 1
               nPBranches             <- nPBranches + 2
+
+              if(HBranches$nParasites[newHost] = 0){
+                nHAliveInf <- nHAliveInf + 1
+              }
+              HBranches$nParasites[newHost] <- HBranches$nParasites[newHost] + 1
+
             }
           }
         }
