@@ -123,7 +123,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
             HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
                                                              tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
           }
-          #Can probably make this more effective using if (HBranches$nParasites[i] < 0)
+          #Can probably make this more effective using if (HBranches$nParasites[i] < 0)?
           assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
           if (length(assocP) > 0) {
             for(j in assocP) {
@@ -221,7 +221,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
             }
             PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately (How to deal with multiple parasites?)
+            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
               if(runif(1) < delta) {
                 whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
 
@@ -239,8 +239,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
                 nPAlive		<- nPAlive - 1
 
                 assocH <- which(HBranches$branchNo == PBranches$Hassoc[whichBranch]) #Find which hosts loses a parasite
-                HBranches$nParasites[assocH] = HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
-                if(HBranches$nParasites[assocH] = 0){ #Check whether parasites were reduced to zero
+                HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] - 1 #Reduce that host's parasite count by 1
+                if(HBranches$nParasites[assocH] == 0){ #Check whether parasites were reduced to zero
                   nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
                 }
 
@@ -313,8 +313,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nPAlive		<-nPAlive - 1
 
           assocH <- which(HBranches$branchNo == PBranches$Hassoc[i]) #Find which hosts loses a parasite
-          HBranches$nParasites[assocH] = HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
-          if(HBranches$nParasites[assocH] = 0){ #Check whether parasites were reduced to zero
+          HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
+          if(HBranches$nParasites[assocH] == 0){ #Check whether parasites were reduced to zero
             nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
           }
 
@@ -364,7 +364,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
               nPAlive                <- nPAlive + 1
               nPBranches             <- nPBranches + 2
 
-              if(HBranches$nParasites[newHost] = 0){
+              if(HBranches$nParasites[newHost] == 0){
                 nHAliveInf <- nHAliveInf + 1
               }
               HBranches$nParasites[newHost] <- HBranches$nParasites[newHost] + 1
