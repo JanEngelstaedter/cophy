@@ -47,7 +47,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' print(HPtree)
 #' plot(HPtree)
 
-rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
+rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
                         gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
                         prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
