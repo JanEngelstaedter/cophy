@@ -52,7 +52,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' plot(HPtree)
 
 rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
-                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0, theta = 0, chi = 0,
+                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0, theta = 1, chi = 1,
                         prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
@@ -105,9 +105,31 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       diag(Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
       # host extinction events:
-      nHToDie <- rbinom(1, nHAlive, mu)  # how many host species go extinct?
-      if (nHToDie > 0) {
-        HToDie <- sample.int(nHAlive, nHToDie) # selecting which hosts will become extinct
+      nHToDieUnf <- rbinom(1, (nHAlive - nHAliveInf), mu)       # how many uninfected (Unf) host species go extinct?
+      nHToDieInf <- rbinom(1, nHAliveInf, mu*chi)               # how many infected (Inf) host species go extinct?
+      if ((nHToDieUnf + nHToDieInf) > 0) {
+
+        HToDieUnf <- integer(0)
+        HToDieInf <- integer(0)
+
+        if(nHToDieUnf > 0){
+          if(length(which(HBranches$nParasites == 0)) == 1){
+            HToDieUnf <- which(HBranches$nParasites == 0)
+          }else{
+            HToDieUnf <- sample(which(HBranches$nParasites == 0), nHToDieUnf)
+          }
+        }
+
+        if(nHToDieInf > 0){
+          if(length(which(HBranches$nParasites > 0)) == 1){
+            HToDieInf <- which(HBranches$nParasites > 0)
+          }else{
+            HToDieInf <- sample(which(HBranches$nParasites > 0), nHToDieInf)
+          }
+        }
+
+        HToDie <- c(HToDieUnf, HToDieInf)
+
         for (i in HToDie) {
           timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
           HBranches$alive[i]	   <- FALSE
@@ -118,18 +140,14 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextHNode              <- nextHNode+1
           nHAlive			           <- nHAlive-1
 
-          if(HBranches$nParasites[i] > 0){
-            nHAliveInf           <- nHAliveInf-1
-          }
-
           HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
           if (length(HDeadBranches[,1]) == nHDeadBranches) { # if dataframe containing dead branches is full
             HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
                                                              tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
           }
-          #Can probably make this more effective using if (HBranches$nParasites[i] < 0)?
-          assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
-          if (length(assocP) > 0) {
+
+          if(i %in% HToDieInf){
+            assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
               PBranches$nodeDeath[j] <- nextPNode
@@ -142,7 +160,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
               nextPNode              <- nextPNode + 1
               nPAlive			           <- nPAlive - 1
             }
-
+            nHAliveInf <- nHAliveInf - 1
             PBranches <- PBranches[-assocP, ] # delete all branches associated with extinct host from living tree
           }
         }
