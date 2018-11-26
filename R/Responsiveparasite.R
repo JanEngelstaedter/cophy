@@ -24,6 +24,10 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   co-speciation. delta=0 specifies faithful transmission of the parasites to
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
+#' @param theta a numeric value giving the effect of parasite infection on host
+#'   speciation rate
+#' @param chi a numeric value giving the effect of parasite infection on host
+#'   extinction rate
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
 #' @param export.format a string specifying either "cophylogeny" or "raw". Where
@@ -48,7 +52,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' plot(HPtree)
 
 rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
-                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
+                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0, theta = 0, chi = 0,
                         prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
