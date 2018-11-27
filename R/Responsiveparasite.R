@@ -107,28 +107,28 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       # host extinction events:
       nHToDieUnf <- rbinom(1, (nHAlive - nHAliveInf), mu)       # how many uninfected (Unf) host species go extinct?
       nHToDieInf <- rbinom(1, nHAliveInf, mu*chi)               # how many infected (Inf) host species go extinct?
-      if ((nHToDieUnf + nHToDieInf) > 0) {
+      if ((nHToDieUnf + nHToDieInf) > 0) { # if any hosts are to go extinct
 
-        HToDieUnf <- integer(0)
-        HToDieInf <- integer(0)
+        HToDieUnf <- integer(0) # will hold uninfected hosts to go extinct
+        HToDieInf <- integer(0) # will hold infected hosts to go extinct
 
-        if(nHToDieUnf > 0){
-          if(length(which(HBranches$nParasites == 0)) == 1){
-            HToDieUnf <- which(HBranches$nParasites == 0)
+        if(nHToDieUnf > 0){ # if the number of uninfected hosts to go extinct is 1 or more, sample them
+          if(length(which(HBranches$nParasites == 0)) == 1){ # if the infected host pop. size is 1...
+            HToDieUnf <- which(HBranches$nParasites == 0) # select that one host with which () to avoid unwanted sample() behaviour when pop. size = 1
           }else{
-            HToDieUnf <- sample(which(HBranches$nParasites == 0), nHToDieUnf)
+            HToDieUnf <- sample(which(HBranches$nParasites == 0), nHToDieUnf) #otherwise, sample() host(s) from the population
           }
         }
 
-        if(nHToDieInf > 0){
-          if(length(which(HBranches$nParasites > 0)) == 1){
-            HToDieInf <- which(HBranches$nParasites > 0)
+        if(nHToDieInf > 0){ # if the number of infected hosts to go extinct is 1 or more, sample them
+          if(length(which(HBranches$nParasites > 0)) == 1){ # if the infected host pop. size is 1...
+            HToDieInf <- which(HBranches$nParasites > 0) # select the one host with which() to avoid unwanted sample() behaviour when pop. size is 1
           }else{
-            HToDieInf <- sample(which(HBranches$nParasites > 0), nHToDieInf)
+            HToDieInf <- sample(which(HBranches$nParasites > 0), nHToDieInf) # otherwise, sample() host(s) from the population
           }
         }
 
-        HToDie <- c(HToDieUnf, HToDieInf)
+        HToDie <- c(HToDieUnf, HToDieInf) # combine all hosts to go extinct into HToDie
 
         for (i in HToDie) {
           timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
@@ -146,7 +146,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
                                                              tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
           }
 
-          if(i %in% HToDieInf){
+          if(i %in% HToDieInf){ # if the host is infected, its associated parasite branches also go extinct
             assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
@@ -173,9 +173,30 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       }
 
       # host speciation events:
-      nHToSpeciate <- rbinom(1, nHAlive, lambda.adj) # no. speciating hosts
-      if (nHToSpeciate > 0) {
-        HToSpeciate <- sample.int(nHAlive, nHToSpeciate) # which hosts to speciate
+      nHToSpeciateUnf <- rbinom(1, nHAlive - nHAliveInf, lambda.adj) # no. speciating uninfected hosts
+      nHToSpeciateInf <- rbinom(1, nHAliveInf, lambda.adj*theta) #no. speciating infected hosts
+      if ((nHToSpeciateUnf + nHToSpeciateInf) > 0) { # if any hosts are speciating
+
+        HToSpeciateUnf <- integer(0) # will hold the HBranch row numbers of uninfected hosts to speciate
+        HToSpeciateInf <- integer(0) # will hold the HBranch row numbers of infected hosts to speciate
+
+        if(nHToSpeciateUnf > 0){ # check if any uninfected hosts are to be sampled
+          if(length(which(HBranches$nParasites == 0)) == 1){ # if the uninfected population size is 1...
+            HToSpeciateUnf <- which(HBranches$nParasites == 0) # ... determinately select that host to avoid undesired behaviour in sample ()!
+          }else{
+            HToSpeciateUnf <- sample(which(HBranches$nParasites == 0), nHToSpeciateUnf) # otherwise, sample() from the population
+          }
+        }
+
+        if(nHToSpeciateInf > 0){ # check if any infected hosts are to be sampled
+          if(length(which(HBranches$nParasites > 0)) == 1){ # if the infected host population size is 1...
+            HToSpeciateInf <- which(HBranches$nParasites > 0) # ... use which () instead of sample () to select that one host
+          }else{
+            HToSpeciateInf <- sample(which(HBranches$nParasites > 0), nHToSpeciateInf) # otherwise, sample from the population
+          }
+        }
+
+        HToSpeciate <- c(HToSpeciateUnf, HToSpeciateInf) # makes a combined list of all hosts to speciate
 
         for (i in HToSpeciate) {
           timepoint              <- t - runif(1, max = timestep) # random timepoint for speciation event
@@ -194,10 +215,6 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextHNode  <- nextHNode + 1
           nHAlive    <- nHAlive + 1
           nHBranches <- nHBranches + 2
-
-          if (HBranches$nParasites[i] > 0){
-            nHAliveInf <- nHAliveInf + 1
-          }
 
           # update Gdist matrix:
           # adding new rows and columns
@@ -222,8 +239,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           Gdist[len, 1:(len-2)]   <-Gdist[i, 1:(len-2)]
 
           # cospeciation of parasites:
-          assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
-          if (length(assocP) > 0) { # make sure argument greater then length 0 (as for extinctions, can probably modify this and use nParasites)
+          if (i %in% HToSpeciateInf) { # if parent host is infected with parasites, daughter branches must also have parasites
+            assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
               PBranches$nodeDeath[j] <- nextPNode
@@ -241,6 +258,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
               nPAlive    <- nPAlive + 1
               nPBranches <- nPBranches + 2
             }
+            nHAliveInf <- nHAliveInf + 1
             PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
 
             if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
