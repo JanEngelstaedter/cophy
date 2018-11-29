@@ -24,9 +24,9 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   co-speciation. delta=0 specifies faithful transmission of the parasites to
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
-#' @param theta a numeric value giving the effect of parasite infection on host
+#' @param thetaS a numeric value giving the effect of parasite infection on host
 #'   speciation rate
-#' @param chi a numeric value giving the effect of parasite infection on host
+#' @param thetaE a numeric value giving the effect of parasite infection on host
 #'   extinction rate
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
@@ -51,8 +51,8 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' print(HPtree)
 #' plot(HPtree)
 
-rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
-                        gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0, theta = 1, chi = 1,
+rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0,
+                        gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
                         prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
@@ -106,7 +106,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
       # host extinction events:
       nHToDieUnf <- rbinom(1, (nHAlive - nHAliveInf), mu)       # how many uninfected (Unf) host species go extinct?
-      nHToDieInf <- rbinom(1, nHAliveInf, mu*chi)               # how many infected (Inf) host species go extinct?
+      nHToDieInf <- rbinom(1, nHAliveInf, mu*thetaE)               # how many infected (Inf) host species go extinct?
       if ((nHToDieUnf + nHToDieInf) > 0) { # if any hosts are to go extinct
 
         HToDieUnf <- integer(0) # will hold uninfected hosts to go extinct
@@ -174,7 +174,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
       # host speciation events:
       nHToSpeciateUnf <- rbinom(1, nHAlive - nHAliveInf, lambda.adj) # no. speciating uninfected hosts
-      nHToSpeciateInf <- rbinom(1, nHAliveInf, lambda.adj*theta) #no. speciating infected hosts
+      nHToSpeciateInf <- rbinom(1, nHAliveInf, lambda.adj*thetaS) #no. speciating infected hosts
       if ((nHToSpeciateUnf + nHToSpeciateInf) > 0) { # if any hosts are speciating
 
         HToSpeciateUnf <- integer(0) # will hold the HBranch row numbers of uninfected hosts to speciate
