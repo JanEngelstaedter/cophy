@@ -52,8 +52,8 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' plot(HPtree)
 
 rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0,
-                        gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
-                        prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
+                           gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
+                           prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda * timestep
@@ -62,28 +62,21 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
   beta   <- beta * timestep
   kappa  <- kappa * timestep
 
-  HPCounts.shift <- function(branch, change){ # updates HBranches$nParasites for the given branch ROW NUMBER and HPCounts
-    print("1")
-    print(branch)
-    print(change)
-    print(HPCounts)
-    print(HBranches)
+  HPCounts.shift <- function(HPCounts, HBranches, branch, change){ # local function updating HPCounts when a parasite is lost or gained by a host
     nPOld <- HBranches$nParasites[branch]
-    print("2")
     nPNew <- HBranches$nParasites[branch] + change
-    print("3")
-    HBranches$nParasites[branch] <- nPNew
-    print("4")
+
+    if(is.na(HPCounts[nPNew + 1])){
+      HPCounts <- c(HPCounts,integer(1))
+    }
+
     HPCounts[nPOld + 1] <- HPCounts[nPOld + 1] - 1
-    print("5")
     HPCounts[nPNew + 1] <- HPCounts[nPNew + 1] + 1
-    print("6")
-    print(HPCounts)
-    print(HBranches)
+    return(HPCounts)
   }
 
-  nHAlive <- 0 # eventually can be replaced by sum(HPCounts)
-  nHAliveInf <- 0 # eventually can be replaced by sum(HPCounts[2:length(HPCounts)])
+  nHAlive <- 0
+  nHAliveInf <- 0
   while (nHAlive == 0) { # simulate until surviving tree is built
     t <- 0
     HBranches    <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
@@ -94,8 +87,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
     nHAliveInf <- 1       # number of branches with associated parasites that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
-    HPCounts <- integer(2) # Vector holding the count of hosts at each level of (co)infection, so HPCounts[i] is the count of hosts with i-1 parasites
-    HPCounts[2] <- 1 # HPCounts[2] holds the count of hosts with one parasite, etc...
+    HPCounts    <- integer(2) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
+    HPCounts[2] <- 1          # the first host has one parasite
 
     HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
                                 nParasites = 0, branchNo = 0)
@@ -163,8 +156,6 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextHNode              <- nextHNode+1
           nHAlive			           <- nHAlive-1
 
-          HPCounts[HBranches$nParasites[i]+1] <- HPCounts[HBranches$nParasites[i]+1] - 1
-
           HDeadBranches[nHDeadBranches, ] <- HBranches[i, ] # copy branches updated with death info to dead tree
           if (length(HDeadBranches[,1]) == nHDeadBranches) { # if dataframe containing dead branches is full
             HDeadBranches <- rbind(HDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
@@ -188,6 +179,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
             nHAliveInf <- nHAliveInf - 1
             PBranches <- PBranches[-assocP, ] # delete all branches associated with extinct host from living tree
           }
+          HPCounts[HBranches$nParasites[i]+1] <- HPCounts[HBranches$nParasites[i]+1] - 1
         }
 
         HBranches <- HBranches[-HToDie, ] # delete all extinct hosts from living tree
@@ -241,8 +233,6 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nHAlive    <- nHAlive + 1
           nHBranches <- nHBranches + 2
 
-          HPCounts[HBranches$nParasites[i]+1] <- HPCounts[HBranches$nParasites[i]+1] + 1
-
           # update Gdist matrix:
           # adding new rows and columns
 
@@ -264,6 +254,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           Gdist[1:(len-2), len]   <-Gdist[1:(len-2), i]
           Gdist[len-1, 1:(len-2)] <-Gdist[i, 1:(len-2)]
           Gdist[len, 1:(len-2)]   <-Gdist[i, 1:(len-2)]
+
+          HPCounts[HBranches$nParasites[i]+1] <- HPCounts[HBranches$nParasites[i]+1] + 1
 
           # cospeciation of parasites:
           if (i %in% HToSpeciateInf) { # if parent host is infected with parasites, daughter branches must also have parasites
@@ -305,9 +297,11 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
                 nextPNode <- nextPNode + 1
                 nPAlive		<- nPAlive - 1
 
-                HPCounts.shift(which(HBranches$branchNo == PBranches$Hassoc[whichBranch]), -1)
+                assocH <- which(HBranches$branchNo == PBranches$Hassoc[whichBranch]) #Find which hosts loses a parasite
+                HPCounts <- HPCounts.shift(HPCounts, HBranches, assocH, -1) # Note: HPCounts.shift must be run before changing HBranches$nParasites!
+                HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] - 1 #Reduce that host's parasite count by 1
 
-                if(HBranches$nParasites[which(HBranches$branchNo == PBranches$Hassoc[whichBranch])] == 0){ #Check whether parasites reduced to zero
+                if(HBranches$nParasites[assocH] == 0){ #Check whether parasites were reduced to zero
                   nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
                 }
 
@@ -350,8 +344,9 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nPAlive    <- nPAlive + 1
           nPBranches <- nPBranches + 2
 
-          HPCounts.shift(which(HBranches$branchNo == PBranches$Hassoc[i]), +1) # Add one parasite to parasite count of host species, shift HPCounts
-
+          assocH <- which(HBranches$branchNo == PBranches$Hassoc[i]) #Find the host branch the parasites speciate within
+          HPCounts <- HPCounts.shift(HPCounts,HBranches, assocH, 1)
+          HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] + 1 #Add one to that hosts parasite count
         }
         if (length(PToSpeciate) > 0) {
           PBranches <- PBranches[-PToSpeciate, ] # removing all dead parasite branches
@@ -378,9 +373,11 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
           nextPNode <-nextPNode + 1
           nPAlive		<-nPAlive - 1
 
-          HPCounts.shift(which(HBranches$branchNo == PBranches$Hassoc[i]), -1)
+          assocH <- which(HBranches$branchNo == PBranches$Hassoc[i]) #Find which hosts loses a parasite
+          HPCounts <- HPCounts.shift(HPCounts,HBranches, assocH, -1)
+          HBranches$nParasites[assocH] <- HBranches$nParasites[assocH] - 1 #Reduce that hosts parasite count by 1
 
-          if(HBranches$nParasites[which(HBranches$branchNo == PBranches$Hassoc[i])] == 0){ #Check whether parasites were reduced to zero
+          if(HBranches$nParasites[assocH] == 0){ #Check whether parasites were reduced to zero
             nHAliveInf <- nHAliveInf - 1 #If they were, reduce nHAliveInf by 1
           }
 
@@ -433,9 +430,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
               if(HBranches$nParasites[newHost] == 0){
                 nHAliveInf <- nHAliveInf + 1
               }
-
-              HPCounts.shift(newHost, +1)
-
+              HPCounts <- HPCounts.shift(HPCounts,HBranches, newHost, 1)
+              HBranches$nParasites[newHost] <- HBranches$nParasites[newHost] + 1
             }
           }
         }
@@ -448,12 +444,6 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       if (nHAlive == 0) continue <- FALSE
     }
   }
-
-  # DIAGNOSTICS:
-  print(HPCounts)
-  print(HBranches)
-  #END DIAGNOSTSICS
-
 
   # setting final times and nodes:
 
