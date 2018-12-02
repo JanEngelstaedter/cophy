@@ -196,6 +196,7 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
           # cospeciation of parasites:
           assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
           if (length(assocP) > 0) { # make sure argument greater then length 0
+            #browser()
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
               PBranches$nodeDeath[j] <- nextPNode
@@ -212,28 +213,26 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
               nextPNode  <- nextPNode + 1
               nPAlive    <- nPAlive + 1
               nPBranches <- nPBranches + 2
-            }
-            PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1) < delta) {
-                whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
+              if (delta > 0) {  # parasite loss during cospeciation;
+                if(runif(1) < delta) {
+                  #browser()
+                  lastRow     <-nrow(PBranches)
+                  # getting rid of one of the newly created branches. It is not that the parasite imediatly dies, it never existed.
+                  whichBranch <- sample(c(lastRow - 1, lastRow), 1)  # which of the two daughter branches failed to speciate with host?
 
-                PBranches$alive[whichBranch]	   <- FALSE
-                PBranches$nodeDeath[whichBranch] <- nextPNode
-                PBranches$tDeath[whichBranch]    <- timepoint
+                  nPAlive		 <- nPAlive - 1 # correcting counters
+                  nPBranches <- nPBranches - 1 # correcting counters
 
-                nPDeadBranches <- nPDeadBranches + 1
-                PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
-                if (length(PDeadBranches[, 1]) == nPDeadBranches) # if dataframe containing dead branches is full
-                  PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC),
-                                                                   nodeBirth = 0, tBirth = 0, nodeDeath = 0,
-                                                                   tDeath = 0, Hassoc = 0, branchNo = 0))
-                nextPNode <- nextPNode + 1
-                nPAlive		<- nPAlive - 1
-                PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
+                  if (whichBranch!=lastRow) { # correcting p branch numbering
+                    PBranches$branchNo[lastRow] <- nPBranches
+                  }
+
+                  PBranches  <- PBranches[-whichBranch, ] # removing non-existent parasite branch
+                }
               }
             }
+            PBranches <- PBranches[-assocP, ]  # removing all mother parasite branches that have co-speciated
           }
         }
         HBranches <- HBranches[-HToSpeciate, ]   # removing all host mother branches that have speciated
@@ -670,29 +669,29 @@ rcophylo_PonH <- function(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu 
               nextPNode  <- nextPNode + 1
               nPAlive    <- nPAlive + 1
               nPBranches <- nPBranches + 2
-            }
-            PBranches <- PBranches[-P.Speciations, ]  # removing all mother parasite branches that have co-speciated
 
-            if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
-              if(runif(1) < delta) {
-                whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
+              if (delta > 0) {  # parasite loss during cospeciation; one of the new branches dies immediately
+                if(runif(1) < delta) {
+                  whichBranch <- sample(c(nPAlive - 1, nPAlive), 1)  # which of the two daughter branches dies?
 
-                PBranches$alive[whichBranch]	   <-FALSE
-                PBranches$nodeDeath[whichBranch] <-nextPNode
-                PBranches$tDeath[whichBranch]    <-timepoint
+                  PBranches$alive[whichBranch]	   <-FALSE
+                  PBranches$nodeDeath[whichBranch] <-nextPNode
+                  PBranches$tDeath[whichBranch]    <-timepoint
 
-                nPDeadBranches <-nPDeadBranches+1
-                PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
-                if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
-                  PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
-                                                                   tBirth = 0, nodeDeath = 0, tDeath = 0,
-                                                                   Hassoc = 0, branchNo = 0))
+                  nPDeadBranches <-nPDeadBranches+1
+                  PDeadBranches[nPDeadBranches, ] <- PBranches[whichBranch, ] # copy branches updated with death info to dead tree
+                  if (length(PDeadBranches[, 1]) == nPDeadBranches) {# if dataframe containing dead branches is full
+                    PDeadBranches <- rbind(PDeadBranches, data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0,
+                                                                     tBirth = 0, nodeDeath = 0, tDeath = 0,
+                                                                     Hassoc = 0, branchNo = 0))
+                  }
+                  nextPNode <- nextPNode + 1
+                  nPAlive   <- nPAlive - 1
+                  PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
                 }
-                nextPNode <- nextPNode + 1
-                nPAlive   <- nPAlive - 1
-                PBranches <- PBranches[-whichBranch, ] # removing dead parasite branche
               }
             }
+            PBranches <- PBranches[-P.Speciations, ]  # removing all mother parasite branches that have co-speciated
           }
 
           # delete all extinct hosts from living tree

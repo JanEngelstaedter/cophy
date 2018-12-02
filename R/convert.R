@@ -164,7 +164,7 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
 
 convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   # number of branches:
-  nPBranches <- length(PBranches[, 1])
+  nPBranches <- nrow(PBranches)
 
   # number of living parasite species:
   nPAlive <- sum(PBranches$alive[PBranches$alive == TRUE])
@@ -182,7 +182,11 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   rPBranches <- PBranches
   i.tip      <- 1
   i.ext      <- nPAlive + 1
-  i.int      <- nPBranches / 2 + 2
+  if (nPBranches==1) { # the case that the root has only one daughter species, which goes extinct
+    i.int <- 0
+  } else {
+    i.int      <- nPBranches / 2 + 2
+  }
 
   for (i in 1:(nPBranches + 1)) {
     if (any(PBranches$nodeBirth == i)) { # is node i an internal node?
