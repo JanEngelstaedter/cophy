@@ -96,14 +96,13 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
       PBranchLines       <- rbind(PBranchLines, c(0, Pphy$edge.length[2], HBranchLines[Pphy$Hassoc[2], 3]))
     }
 
-    if (nrow(Pphy$edge)==2 & Pphy$edge[1, 1]!=Pphy$edge[2, 1]) { # in the case that one daughter branch oly one daughter descendant
+    if (nrow(Pphy$edge)==2 & Pphy$edge[1, 1]!=Pphy$edge[2, 1]) { # in the case that root has only one  descendant
       PBranchLines       <- rbind(PBranchLines, c(Pphy$edge.length[1], Pphy$edge.length[1] + Pphy$edge.length[2], HBranchLines[Pphy$Hassoc[2], 3]))
     }
   }
 
   PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)
   colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")
-
 
   noPNodes <- max(Pphy$edge[,2])  # total number of nodes in the parasite phylogeny
   firstPNode <- Pphy$edge[1, 1]  # the first internal node in the parasite phylogeny
@@ -136,7 +135,6 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
 
     PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1],
                                                                    3], PBranchLines[daughterBranches[2], 3], hostJump))
-
   }
 
   if (!is.null(Hphy$root.edge)) {
@@ -151,7 +149,22 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
     } else {
       Proot.y <- HBranchLines[Pphy$root.Hassoc, 3]
     }
+
+    if (is.na(PConnectorLines[1,'y2'])) {
+      PConnectorLines[1,'y2'] <- Proot.y
+    }
+
+    for (i in 2:nrow(PConnectorLines)) {
+      if (is.na(PConnectorLines[i,'y2'])) {
+        daughter <- which(PBranchLines[, 'y'] == PConnectorLines[i,'y1'])
+        if (length(daughter)==1) {
+          PConnectorLines[i,'y2'] <-  PBranchLines[which(PBranchLines[, 2] == PBranchLines[daughter, 1]), 'y']
+        }
+      }
+    }
+
     PBranchLines <- rbind(c(0, Pphy$root.edge, Proot.y), PBranchLines)
+
     PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0))
 
     xshift <- max(HBranchLines[, 2])/1000 + Pphy$root.time
