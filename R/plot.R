@@ -91,20 +91,23 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
     return(warning("Parasite dies on the host root branch."))
   }
 
-  if (nrow(Pphy$edge)>1) { # is there more than 1 descendant branch?
-    if (Pphy$edge[1, 1]==Pphy$edge[2, 1]) { # are the 1st 2 edge.lengths sisters?
-      PBranchLines       <- rbind(PBranchLines, c(0, Pphy$edge.length[2], HBranchLines[Pphy$Hassoc[2], 3]))
-    }
-
-    if (nrow(Pphy$edge) == 2 & Pphy$edge[1, 1] != Pphy$edge[2, 1]) { # in the case that root has only one  descendant
-      PBranchLines       <- rbind(PBranchLines, c(Pphy$edge.length[1], Pphy$edge.length[1] + Pphy$edge.length[2], HBranchLines[Pphy$Hassoc[2], 3]))
-    }
-  }
-
   PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)
   colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")
 
-  noPNodes <- max(Pphy$edge[,2])  # total number of nodes in the parasite phylogeny
+  if (nrow(Pphy$edge)>1) { # is there more than 1 descendant branch?
+    if (Pphy$edge[1, 1]==Pphy$edge[2, 1]) { # are the 1st 2 edge.lengths sisters?
+      PBranchLines       <- rbind(PBranchLines, c(0, Pphy$edge.length[2], HBranchLines[Pphy$Hassoc[2], 3]))
+      PConnectorLines    <- rbind(PConnectorLines, c(0, PBranchLines[,'y'], 0))
+    }
+
+    if (nrow(Pphy$edge) == 2 & Pphy$edge[1, 1] != Pphy$edge[2, 1]) { # in the case that root has only one  descendant
+      PBranchLines       <- rbind(PBranchLines, c(Pphy$edge.length[1], Pphy$edge.length[1] + Pphy$edge.length[2],
+                                                  HBranchLines[Pphy$Hassoc[2], 3]))
+      PConnectorLines    <- rbind(PConnectorLines, c(0, PBranchLines[,'y'], 0))
+    }
+  }
+
+  noPNodes <- max(Pphy$edge)  # total number of nodes in the parasite phylogeny
   firstPNode <- Pphy$edge[1, 1]  # the first internal node in the parasite phylogeny
 
   if (nrow(Pphy$edge) > 2) {
@@ -135,8 +138,6 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
       PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1],
                                                                    3], PBranchLines[daughterBranches[2], 3], hostJump))
     }
-  } else if (nrow(Pphy$edge) == 2) {
-    PConnectorLines <- rbind(PConnectorLines, c(PBranchLines[1, 2], PBranchLines[1, 'y'], PBranchLines[2, 'y'], 0))
   }
 
   if (!is.null(Hphy$root.edge)) {
@@ -170,25 +171,14 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
 
     PBranchLines <- rbind(c(0, Pphy$root.edge, Proot.y), PBranchLines)
 
-    if (nrow(PConnectorLines)>0) {
-      if (nrow(PBranchLines) == 3 & nrow(PConnectorLines)==1) { # 2 lineage sorting events then P extinction
-        PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0)) # correct for root
-        PConnectorLines <- rbind(c(PBranchLines[1, 2], PBranchLines[1, 'y'], PBranchLines[2, 'y'], 0), PConnectorLines)
-      } else {
-        PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0))
-      }
-    } else {
-      PConnectorLines <- rbind(PConnectorLines, c(PBranchLines[1, 2], PBranchLines[1, 'y'], PBranchLines[2, 'y'], 0))
+    if (nrow(Pphy$edge)==1) { # in the case that there was a single lineage sorting event
+      PConnectorLines  <- rbind(PConnectorLines, c(PBranches[1, 2], PBranches[, 2], 0))
     }
+
+    PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0)) # correct for root
 
     xshift <- max(HBranchLines[, 2])/1000 + Pphy$root.time
     yshift <- 0.1
-
-    #for (i in 1:nrow(PBranchLines)) {
-    #  if (length(which(PBranchLines[,1], PBranchLines[i, 2]))==1) {
-    #    PConnectorLines <-rbind(PConnectorLines, c(PBranchLines[i, 2], ))
-    #  }
-    #}
 
     PBranchLines <- sweep(PBranchLines, 2, -c(xshift, xshift, yshift))
     if (length(PConnectorLines[, 1]) > 1) {
