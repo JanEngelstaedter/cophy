@@ -121,30 +121,27 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       diag(Gdist) <- 0  # cleaning up so that distance between branch to itself is always 0
 
       # host extinction events:
-      nHToDieUnf <- rbinom(1, (nHAlive - nHAliveInf), mu)       # how many uninfected (Unf) host species go extinct?
-      nHToDieInf <- rbinom(1, nHAliveInf, mu*thetaE)               # how many infected (Inf) host species go extinct?
-      if ((nHToDieUnf + nHToDieInf) > 0) { # if any hosts are to go extinct
 
-        HToDieUnf <- integer(0) # will hold uninfected hosts to go extinct
-        HToDieInf <- integer(0) # will hold infected hosts to go extinct
+      nHToDie <- integer(0) # the number of hosts to go extinct as a vector where nHToDie[i] is the amount of hosts to die with i - 1 parasites
 
-        if(nHToDieUnf > 0){ # if the number of uninfected hosts to go extinct is 1 or more, sample them
-          if(length(which(HBranches$nParasites == 0)) == 1){ # if the infected host pop. size is 1...
-            HToDieUnf <- which(HBranches$nParasites == 0) # select that one host with which () to avoid unwanted sample() behaviour when pop. size = 1
-          }else{
-            HToDieUnf <- sample(which(HBranches$nParasites == 0), nHToDieUnf) #otherwise, sample() host(s) from the population
+      for(i in 1:length(HPCounts)){
+        thetaE.adj <- thetaE^(i-1) # theta has no effect on uninfected hosts, and then rises as a power function for host nParasites > 0
+        nHToDie <- c(nHToDie, rbinom(1, HPCounts[i], mu*thetaE.adj)) # add the number of hosts with i - 1 parasites to go extinct to nHToDie
+      }
+
+      if (sum(nHToDie) > 0) { # if any hosts are to go extinct
+
+        HToDie <- integer(0) # vector of hosts to go extinct as indicated by their row numbers in HBranches
+
+        for(i in 1:length(nHToDie)){                                                        # sample a number of host branches as per count in nHToDie
+          if(nHToDie[i] > 0){                                                               # if any hosts with i - 1 parasites are to die, sample
+            if(length(which(HBranches$nParasites == (i-1))) == 1){                          # if n of hosts with i-1 parasites is 1...
+              HToDie <- c(HToDie, which(HBranches$nParasites == (i-1)))                       # ... avoid undesired behaviour in sample() using which()
+            }else{                                                                          # otherwise, if n of hosts with i-1 parasites is >1...
+              HToDie <- c(HToDie, sample(which(HBranches$nParasites == (i-1)), nHToDie[i]))   # ... get a sample from the hosts using sample()
+            }
           }
         }
-
-        if(nHToDieInf > 0){ # if the number of infected hosts to go extinct is 1 or more, sample them
-          if(length(which(HBranches$nParasites > 0)) == 1){ # if the infected host pop. size is 1...
-            HToDieInf <- which(HBranches$nParasites > 0) # select the one host with which() to avoid unwanted sample() behaviour when pop. size is 1
-          }else{
-            HToDieInf <- sample(which(HBranches$nParasites > 0), nHToDieInf) # otherwise, sample() host(s) from the population
-          }
-        }
-
-        HToDie <- c(HToDieUnf, HToDieInf) # combine all hosts to go extinct into HToDie
 
         for (i in HToDie) {
           timepoint			         <- t - runif(1, max = timestep) # random timepoint for extinction event
@@ -162,7 +159,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
                                                              tBirth = 0, nodeDeath = 0, tDeath = 0, nParasites = 0, branchNo = 0))
           }
 
-          if(i %in% HToDieInf){ # if the host is infected, its associated parasite branches also go extinct
+          if(HBranches$nParasites[i] > 0){ # if the host is infected, its associated parasite branches also go extinct
             assocP <- which(PBranches$Hassoc == HBranches$branchNo[i]) # retrieve associated parasites
             for(j in assocP) {
               PBranches$alive[j]	   <- FALSE
