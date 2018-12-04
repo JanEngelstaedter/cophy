@@ -24,6 +24,14 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
   Hphy <- x[[1]]
   Pphy <- x[[2]]
 
+  #if (0 %in% Pphy$Hassoc) { # if p speciation occured on the h root
+  #  onHroot          <- which(Pphy$Hassoc == 0)
+
+  #  Pphy$edge        <- Pphy$edge[-onHroot, ]
+  #  Pphy$edge.length <- Pphy$edge.length[-onHroot]
+  #  Pphy$Hassoc      <- Pphy$Hassoc[-onHroot]
+  #}
+
   # determining lines to be drawn for the host phylogeny:
   HBranchLines <- matrix(NA, ncol = 3, nrow = 0)
   colnames(HBranchLines) <- c("x1", "x2", "y")
@@ -37,7 +45,7 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
   noHNodes <- length(Hphy$edge[, 1]) + 1  # total number of nodes in the host phylogeny
   firstHNode <- (length(Hphy$edge[, 1])/2) + 2  # the first internal node in the host phylogeny
 
-  if (length(Hphy$edge[, 1]) > 2) {
+  if (nrow(Hphy$edge) > 2) {
     for (i in (firstHNode + 1):noHNodes) {
       # loop covering all internal nodes
       daughterBranches <- which(Hphy$edge[, 1] == i)  # indices of the two new branches to be added
@@ -100,10 +108,12 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
       PConnectorLines    <- rbind(PConnectorLines, c(0, PBranchLines[,'y'], 0))
     }
 
-    if (nrow(Pphy$edge) == 2 & Pphy$edge[1, 1] != Pphy$edge[2, 1]) { # in the case that root has only one  descendant
+    if (nrow(Pphy$edge)==2 & Pphy$edge[1, 1] != Pphy$edge[2, 1]) { # in the case that root has only one  descendant
       PBranchLines       <- rbind(PBranchLines, c(Pphy$edge.length[1], Pphy$edge.length[1] + Pphy$edge.length[2],
                                                   HBranchLines[Pphy$Hassoc[2], 3]))
-      PConnectorLines    <- rbind(PConnectorLines, c(0, PBranchLines[,'y'], 0))
+      if (PBranchLines[1, 'y'] != PBranchLines[2, 'y']) { # within host speciation
+        PConnectorLines    <- rbind(PConnectorLines, c(PBranchLines[1, 2], PBranchLines[,'y'], 0))
+      }
     }
   }
 
@@ -121,9 +131,8 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
       }
     }
 
-    for (i in firstPNode:noPNodes) {
+    for (i in (firstPNode + 1):noPNodes) {
       # loop covering all internal nodes
-      #browser()
       daughterBranches <- which(Pphy$edge[, 1] == i)  # indices of the two daughter branches extending from node
 
       tnew <- PBranchLines[daughterBranches[1], 1]  # time point of the node
@@ -135,8 +144,16 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
         hostJump <- (Pphy$Hassoc[daughterBranches[1]] == Pphy$Hassoc[motherBranch])  # whether or not the node corresponds to a host jump
       }
 
-      PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1],
-                                                                   3], PBranchLines[daughterBranches[2], 3], hostJump))
+      if (length(unique(Pphy$Hassoc[daughterBranches]))>1) {
+        if (Pphy$Hassoc[motherBranch] %in% Pphy$Hassoc[daughterBranches]) {
+          PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1], 3],
+                                                      PBranchLines[motherBranch[1], 3], 1))
+        } else {
+          PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1], 3],
+                                                      PBranchLines[daughterBranches[2], 3], 0))
+        }
+      }
+
     }
   }
 
@@ -161,7 +178,7 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
         if (is.na(PConnectorLines[i,'y2'])) {
           daughter <- which(PBranchLines[, 'y'] == PConnectorLines[i, 'y1'] & PBranchLines[, 'x1'] == PConnectorLines[i, 'x'])
           if (length(daughter)==1) {
-            PConnectorLines[i,'y2'] <-  PBranchLines[which(PBranchLines[, 2] == PBranchLines[daughter, 1]), 'y']
+            PConnectorLines[i,'y2'] <-  PBranchLines[which(PBranchLines[, 2] == PBranchLines[daughter[1], 1]), 'y'][1]
           }
         }
       }
@@ -171,8 +188,8 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
 
     PBranchLines <- rbind(c(0, Pphy$root.edge, Proot.y), PBranchLines)
 
-    if (nrow(Pphy$edge)==1) { # in the case that there was a single lineage sorting event
-      PConnectorLines  <- rbind(PConnectorLines, c(PBranches[1, 2], PBranches[, 2], 0))
+    if (nrow(Pphy$edge)==1 | nrow(PConnectorLines)==0) { # in the case that there was a single lineage sorting event
+      PConnectorLines  <- rbind(PConnectorLines, c(PBranchLines[1, 2], PBranchLines[c(1, 2), 2], 0))
     }
 
     PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0)) # correct for root
