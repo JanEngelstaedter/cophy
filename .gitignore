@@ -3,3 +3,4 @@
 .RData
 .Rbuildignore
 .github
+.Rapp.history
