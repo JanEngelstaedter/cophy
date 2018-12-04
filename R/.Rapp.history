@@ -1,0 +1,441 @@
+files<-list.files(path="/Volumes/NicoleWork/ExplorationG/ExplorationG2", full.names=T)#
+files<-files[grep("prop.dataLoss", files)]
+files
+# The following script performs clustering analyses on simulation data.#
+# Specifically, host trees are divided into subtrees (using four different depths), #
+# and the infection frequencies in these subtrees are then plotted against their size. #
+# Both the statistics and the plots are saved.#
+##
+# Before this script can be run, the following variables need to be specified:#
+##
+#   path.simdata  (path where simulation data is to be found)#
+#   file.simdata  (file name of simulation data)#
+#   statspath.save     (path where stats are to be saved)#
+#   plotspath.save     (path where plots are to be saved)#
+#################################################################################
+######################### Preparation of all data ###############################
+#################################################################################
+library(phytools)#
+library(ape)#
+library(cophy)#
+#
+files<-list.files(path="/Volumes/NicoleWork/ExplorationG/ExplorationG2", full.names=T)#
+files<-files[grep("prop.dataLoss", files)]#
+#
+clusterheight<-50#
+#
+for (f in files) {#
+	load(f)#
+#
+	subtreeStats<-data.frame(NULL)   # a summary table of statistics for each subtree in each host tree#
+	subtreeFreqInfected<-vector('list',length(output$Htrees))  # detailed information about infection frequencies for each subtree in each host and with each parasite tree#
+#
+	for (i0 in 1:length(output$Htrees))	{#
+		Hdist<-cophenetic.phylo(output$Htrees[[i0]])[1:output$Htrees[[i0]]$nAlive,1:output$Htrees[[i0]]$nAlive]#
+		subtreeclustering<-cutree(hclust(as.dist(Hdist)),h=clusterheight)#
+		nsubtrees<-max(subtreeclustering)#
+		i.lower<-(i0-1)*output$replicates$reps1*output$replicates$reps2+1  # lower index in total list of simulations#
+		i.upper<-i0*output$replicates$reps1*output$replicates$reps2        # upper index in total list of simulations#
+		subtreeFreqInfected[[i0]]<-as.data.frame(output$statistics[i.lower:i.upper,2:4])#
+		for(j in 1:nsubtrees) { # loop through subtrees#
+			tips<-names(subtreeclustering[subtreeclustering==j])#
+			if (length(tips)>1) {#
+				mrcaAge<-unname(output$parameters["tmax"]-nodeheight(output$Htrees[[i0]],getMRCA(output$Htrees[[i0]],tips))-output$Htrees[[i0]]$root.edge) # age of subtree	#
+				Hdist.subtree<-Hdist[tips,tips]#
+				meanDist<-mean(Hdist.subtree[upper.tri(Hdist.subtree)])#
+			} else {#
+				mrcaAge<-output$Htrees[[i0]]$edge.length[match(match(tips[1],output$Htrees[[i0]]$tip),output$Htrees[[i0]]$edge[,2])]  # length of branch terminating in tip#
+			}#
+			freqInfected<-rep(NA,output$replicates$reps1*output$replicates$reps2)#
+			i<-i.lower-1#
+			for(k in 1:(output$replicates$reps1*output$replicates$reps2)) {#
+				i<-i+1#
+				if(output$statistics[i,"noPspecies"]>0) {#
+					freqInfected[k]<-get_infectionFrequenciesSubtrees(list(output$Htrees[[i0]],output$Ptrees[[i]]),tips) # fraction of infected parasite species in subtree#
+				}#
+			}#
+			subtreeFreqInfected[[i0]][,paste("Subtree",j,sep="")]<-freqInfected#
+			if (length(freqInfected[!is.na(freqInfected)])>0) {#
+				freqInfected<-freqInfected[!is.na(freqInfected)]#
+			} else {	#
+				freqInfected<-c(0,0)#
+			}#
+			subtreeStats<-rbind(subtreeStats, data.frame(Htree=i0,subtree=j, size=length(tips), 												mrcaAge=mrcaAge, meanDist=meanDist, 																				fracInf=sum(freqInfected>0)/length(freqInfected), 																meanFreqInf=mean(freqInfected), varFreqInf=var(freqInfected), 													minFreqInf=min(freqInfected), medianFreqInf=median(freqInfected), 												maxFreqInf=max(freqInfected)))#
+			subtreeStats[which(is.na(subtreeStats[,'varFreqInf'])),'varFreqInf']<-0#
+		}#
+		print(paste("   Cluster analysis for host tree",i0,"finished."))#
+	}#
+			# saving:#
+	save(subtreeStats,file=paste("/Volumes/NicoleWork/ExplorationG/ExplorationG2/Subtree stats h-",clusterheight,", epsilon-",newOutput$parameters[['epsilon.1to0']],", startTrait-",newOutput$parameters[['startTrait']],", prop.dataLoss",newOutput$parameters[['prop.missed']],".RData",sep=""))#
+	save(subtreeFreqInfected,file=paste("/Volumes/NicoleWork/ExplorationG/ExplorationG2/subtree FreqInfected h-",clusterheight,", epsilon-",newOutput$parameters[['epsilon.1to0']],", startTrait-",newOutput$parameters[['startTrait']],", prop.dataLoss", newOutput$parameters[['prop.missed']],".RData",sep=""))#
+	print(paste('Finished', f))#
+}#
+#load(file=file=paste(path.save,"Subtree stats ",file.simdata," h=",clusterheight".RData",sep="")#
+#################################################################################
+############################ Actual plotting ####################################
+#################################################################################
+# just for checking clusters:#
+#zoom(output$Htrees[[i0]],list(names(subtreeclustering[subtreeclustering==1]),names(subtreeclustering[subtreeclustering==2]),names(subtreeclustering[subtreeclustering==4]),names(subtreeclustering[subtreeclustering==5])))#
+#quartz(paste("Subtree stats plot ",file.simdata,sep=""),6,4.5)#
+pdf(file=paste(plotspath.save,"Subtree stats plot ",file.simdata,".pdf",sep=""),width=6,height=4.5)#
+par(mfrow=c(3,4),mar=c(3.2,3,1.5,1)+0.1,mgp=c(1.8,0.6,0))#
+#
+for(clusterheight in clusterheight.values)#
+{#
+	load(file=paste(path.save,"Subtree stats ",file.simdata," h=",clusterheight,".RData",sep=""))#
+	plot(x=subtreeStats$size,y=subtreeStats$meanFreqInf,main=paste("height=",clusterheight,sep=""),xlab="Size of subtree", ylab="Infection frequency",pch=16,col=hsv(0.66,0.5,1,0.3),cex=0.7,cex.main=0.7,cex.axis=0.6,cex.lab=0.7)#
+}#
+#
+for(clusterheight in clusterheight.values)#
+{#
+	load(file=paste(path.save,"Subtree stats ",file.simdata," h=",clusterheight,".RData",sep=""))#
+	plot(x=subtreeStats$meanDist,y=subtreeStats$meanFreqInf,main=paste("height=",clusterheight,sep=""),xlab="Mean genetic distance within subtree", ylab="Infection frequency",pch=16,col=hsv(0.66,0.5,1,0.3),cex=0.7,cex.main=0.7,cex.axis=0.6,cex.lab=0.7)#
+}#
+#
+for(clusterheight in clusterheight.values)#
+{#
+	load(file=paste(path.save,"Subtree stats ",file.simdata," h=",clusterheight,".RData",sep=""))#
+	plot(x=subtreeStats$mrcaAge,y=subtreeStats$meanFreqInf,main=paste("height=",clusterheight,sep=""),xlab="Age of MRCA of subtree", ylab="Infection frequency",pch=16,col=hsv(0.66,0.5,1,0.3),cex=0.7,cex.main=0.7,cex.axis=0.6,cex.lab=0.7)#
+}#
+dev.off()
+0 %in% Pphy$Hassoc
+fromProotBranches <- which(!Pphy$edge[,1]%in%Pphy$edge[,2])#
+#
+  PBranchLines <- matrix(NA, ncol = 3, nrow = length(fromProotBranches))#
+  colnames(PBranchLines) <- c("x1", "x2", "y") #
+  for (i in 1:length(fromProotBranches)) {#
+  	PBranchLines[i,] <- c(0, Pphy$edge.length[fromProotBranches[i]], #
+  						  HBranchLines[Pphy$Hassoc[fromProotBranches[i]], 3])#
+  }
+notProotBranches
+c(1,2)<2
+c(1,2)==2
+c(1,2)==2[1]
+c(c(1,2)==2[1])
+c(c(1,2)==2[1])[1]
+c(c(1,2)<2[1])[1]
+any(c(1,2)==1)
+any(c(1,2)==2)
+any(c(1,2)==3)
+fromProotBranches <- which(!Pphy$edge[,1]%in%Pphy$edge[,2])#
+#
+  PBranchLines <- matrix(NA, ncol = 3, nrow = length(fromProotBranches))#
+  colnames(PBranchLines) <- c("x1", "x2", "y") #
+  for (i in 1:length(fromProotBranches)) {#
+  	PBranchLines[i,] <- c(0, Pphy$edge.length[fromProotBranches[i]], #
+  						  HBranchLines[Pphy$Hassoc[fromProotBranches[i]], 3])#
+  }#
+  PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)#
+  colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")#
+  notProotBranches <- c(1:nrow(Pphy$edge))[-c(fromProotBranches)] # remaining PBranches#
+  if (length(notProotBranches)>0) {#
+  	for (i in notProotBranches) {#
+  		motherBranch		<- which(Pphy$edge[, 2] == Pphy$edge[i, 1] )#
+  		PBranchLines	<- rbind(PBranchLines, c(PBranchLines[motherBranch, 'x2'], #
+  								 PBranchLines[motherBranch, 'x2'] + Pphy$edge.length[i], #
+  								 HBranchLines[Pphy$Hassoc[i], 3]))#
+  		if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==1) { # lineage sorting#
+  			PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  														HBranchLines[Pphy$Hassoc[motherBranch], 'y'], #
+  														PBranchLines[i, 'y']), 0)#
+  		} else if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==2) { # cospeciation or host shift#
+  			sisBranches <- which(Pphy$edge[, 1]==Pphy$edge[i, 1])#
+  			if (c(sisBranches<i)[1]) { # only pick up when on the 2nd of the sister branches#
+  				if (any(Pphy$Hassoc[sisBranches]==Pphy[motherBranch])) { # host shift#
+  					PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																PBranchLines[motherBranch, 'y'], #
+  																PBranchLines[i, 'y']), 1)#
+  				} else { # cospeciation#
+  					PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																PBranchLines[sisBranches[1], 'y'], #
+  																PBranchLines[sisBranches[2], 'y'], 0)#
+  				}#
+  			}#
+  		}#
+  	}#
+  }
+fromProotBranches <- which(!Pphy$edge[,1]%in%Pphy$edge[,2])#
+#
+  PBranchLines <- matrix(NA, ncol = 3, nrow = length(fromProotBranches))#
+  colnames(PBranchLines) <- c("x1", "x2", "y") #
+  for (i in 1:length(fromProotBranches)) {#
+  	PBranchLines[i,] <- c(0, Pphy$edge.length[fromProotBranches[i]], #
+  						  HBranchLines[Pphy$Hassoc[fromProotBranches[i]], 3])#
+  }#
+  PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)#
+  colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")#
+  notProotBranches <- c(1:nrow(Pphy$edge))[-c(fromProotBranches)] # remaining PBranches#
+  if (length(notProotBranches)>0) {#
+  	for (i in notProotBranches) {#
+  		motherBranch		<- which(Pphy$edge[, 2] == Pphy$edge[i, 1] )#
+  		PBranchLines	<- rbind(PBranchLines, c(PBranchLines[motherBranch, 'x2'], #
+  								 PBranchLines[motherBranch, 'x2'] + Pphy$edge.length[i], #
+  								 HBranchLines[Pphy$Hassoc[i], 3]))#
+  		if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==1) { # lineage sorting#
+  			PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  														HBranchLines[Pphy$Hassoc[motherBranch], 'y'], #
+  														PBranchLines[i, 'y'], 0))#
+  		} else if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==2) { # cospeciation / host shift / lineage sorting#
+  			sisBranches <- which(Pphy$edge[, 1]==Pphy$edge[i, 1])#
+  			if (c(sisBranches<i)[1]) { # only pick up when on the 2nd of the sister branches#
+  				if (any(Pphy$Hassoc[sisBranches]==Pphy$Hassoc[motherBranch])) { # host shift / lineage sorting#
+  					PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																PBranchLines[motherBranch, 'y'], #
+  																PBranchLines[i, 'y'], 1))#
+  				} else { # cospeciation#
+  					PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																PBranchLines[sisBranches[1], 'y'], #
+  																PBranchLines[sisBranches[2], 'y'], 0))#
+  				}#
+  			}#
+  		}#
+  	}#
+  }
+x
+if (!is.null(Hphy$root.edge)) {#
+    # adding root branch if there is one#
+    HBranchLines <- t(t(HBranchLines) + c(Hphy$root.edge, Hphy$root.edge, 0))#
+    HBranchLines <- rbind(c(0, Hphy$root.edge, (HBranchLines[1, 3] + HBranchLines[2, 3])/2), HBranchLines)#
+    HConnectorLines <- t(t(HConnectorLines) + c(Hphy$root.edge, 0, 0))#
+#
+    if (is.null(Pphy$root.Hassoc)) {#
+      Proot.y <- HBranchLines[1, 3]#
+    } else {#
+      Proot.y <- HBranchLines[Pphy$root.Hassoc, 3]#
+    }#
+#
+    PBranchLines <- t(t(PBranchLines) + c(Pphy$root.edge, Pphy$root.edge, 0))#
+#
+    PBranchLines <- rbind(HBranchLines[1, ], PBranchLines)#
+    # Create the first PConnectorLines#
+    firstPy <- unique(PBranchLines[which(Pphy$Hassoc %in% c(1, 2)), 'y'])#
+    if (length(firstPy) == 1) { # lineage sorting#
+    	PConnectorLines <- rbind(c(PBranchLines[1, 'x2'], PBranchLines[1, 'y'], firstPy, 0), PConnectorLines)#
+    } else { # cospeciation#
+    	PConnectorLines <- rbind(c(PBranchLines[1, 'x2'], firstPy[1], firstPy[2], 0), PConnectorLines)#
+    }#
+#
+    xshift <- max(HBranchLines[, 2])/1000 + Pphy$root.time#
+    yshift <- 0.1#
+#
+    PBranchLines <- sweep(PBranchLines, 2, -c(xshift, xshift, yshift))#
+    if (length(PConnectorLines[, 1]) > 1) {#
+      PConnectorLines[, 1:3] <- sweep(PConnectorLines[, 1:3], 2, -c(xshift, yshift, yshift))#
+    } else {#
+      PConnectorLines[1, 1:3] <- PConnectorLines[1, 1:3] + c(xshift, yshift, yshift)#
+    }#
+  }
+# plotting all lines:#
+  graphics::plot.new()#
+  graphics::plot.window(xlim = c(0, max(HBranchLines[, 2])), ylim = c(0, max(HBranchLines[, 3])))#
+  for (i in 1:length(HBranchLines[, 1])) {#
+    graphics::lines(c(HBranchLines[i, 1], HBranchLines[i, 2]), c(HBranchLines[i, 3], HBranchLines[i, 3]))#
+  }#
+  for (i in 1:length(HConnectorLines[, 1])) {#
+    graphics::lines(c(HConnectorLines[i, 1], HConnectorLines[i, 1]), c(HConnectorLines[i, 2], HConnectorLines[i,3]))#
+  }#
+#
+  for (i in 1:length(PBranchLines[, 1])) {#
+    graphics::lines(c(PBranchLines[i, 1], PBranchLines[i, 2]), c(PBranchLines[i, 3], PBranchLines[i, 3]), col = ParasiteCol[[1]])#
+  }#
+  for (i in 1:length(PConnectorLines[, 1])) {#
+    if (PConnectorLines[i, 4] == TRUE) {#
+      graphics::arrows(PConnectorLines[i, 1], PConnectorLines[i, 2], PConnectorLines[i, 1], PConnectorLines[i, 3], col = ParasiteCol[[1]], length = 0.1, angle = 10)#
+    } else {#
+      graphics::lines(c(PConnectorLines[i, 1], PConnectorLines[i, 1]), c(PConnectorLines[i, 2], PConnectorLines[i, 3]), col = ParasiteCol[[1]])#
+    }#
+  }
+# plot.R#
+#
+# This file contains functions to plot cophylogenies.#
+# R-package 'cophy'. This file is part of the#
+#
+#' Cophylogeny plot#
+#'#
+#' This function plots a host-parasite cophylogenetic tree.#
+#' @param x a cophylogeny of class 'cophylogeny', containing a host tree and a#
+#'   parasite tree.#
+#' @param ParasiteCol specifies the colour to use when ploting parasite lineages.#
+#'   Defaults to "Red".#
+#' @param ... other parameters to be passed to plotting functions.#
+#' @keywords cophylogeny, plot#
+#' @importFrom graphics arrows#
+#' @importFrom graphics lines#
+#' @export#
+#' @examples#
+#' Htree<-rphylo_H(tmax=5, export.format='raw')#
+#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)#
+#' plot(cophylogeny(HPtree))#
+#
+plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {#
+  Hphy <- x[[1]]#
+  Pphy <- x[[2]]#
+#
+  # determining lines to be drawn for the host phylogeny:#
+  HBranchLines <- matrix(NA, ncol = 3, nrow = 0)#
+  colnames(HBranchLines) <- c("x1", "x2", "y")#
+#
+  HBranchLines <- rbind(HBranchLines, c(0, Hphy$edge.length[1], 0))#
+  HBranchLines <- rbind(HBranchLines, c(0, Hphy$edge.length[2], 1))#
+#
+  HConnectorLines <- matrix(NA, ncol = 3, nrow = 0)#
+  colnames(HConnectorLines) <- c("x", "y1", "y2")#
+#
+  noHNodes <- length(Hphy$edge[, 1]) + 1  # total number of nodes in the host phylogeny#
+  firstHNode <- (length(Hphy$edge[, 1])/2) + 2  # the first internal node in the host phylogeny#
+#
+  if (nrow(Hphy$edge) > 2) {#
+    for (i in (firstHNode + 1):noHNodes) {#
+      # loop covering all internal nodes#
+      daughterBranches <- which(Hphy$edge[, 1] == i)  # indices of the two new branches to be added#
+      motherBranch <- match(i, Hphy$edge[, 2])  # index of the mother branch#
+      tnew <- HBranchLines[motherBranch, 2]  # time point when the new branches begin#
+      HBranchLines <- rbind(HBranchLines, c(tnew, tnew + Hphy$edge.length[daughterBranches[1]],#
+                                            HBranchLines[motherBranch, 3]))#
+      HBranchLines <- rbind(HBranchLines, c(tnew, tnew + Hphy$edge.length[daughterBranches[2]],#
+                                            HBranchLines[motherBranch, 3] + 1))#
+#
+      # move old branches situated above the new ones up by one unit:#
+      branchesAbove <- which(HBranchLines[1:(length(HBranchLines[, 1]) - 2),#
+                                          3] >= HBranchLines[motherBranch, 3] + 1)#
+      HBranchLines[branchesAbove, 3] <- HBranchLines[branchesAbove, 3] + 1#
+#
+      # go backwards in time and adjust ancestral branches so that they are in the#
+      # middle of daughter branches:#
+      j <- motherBranch#
+      while (!is.na(j)) {#
+        daughterBranches <- which(Hphy$edge[j, 2] == Hphy$edge[, 1])#
+        HBranchLines[j, 3] <- mean(HBranchLines[daughterBranches, 3])  # y-position of branch should be average of two daugher branch y-values#
+        j <- match(Hphy$edge[j, 1], Hphy$edge[, 2])  # going further back in time to the ancestral branch#
+      }#
+    }#
+  }#
+#
+  for (i in firstHNode:noHNodes) {#
+    # loop covering all internal nodes#
+    daughterBranches <- which(Hphy$edge[, 1] == i)  # indices of the two daughter branches extending from node#
+    tnew <- HBranchLines[daughterBranches[1], 1]  # time point of the node#
+    HConnectorLines <- rbind(HConnectorLines, c(tnew, HBranchLines[daughterBranches[1],#
+                                                                   3], HBranchLines[daughterBranches[2], 3]))#
+  }#
+  # if within host speciation occurs on host root branch#
+  if (0 %in% Pphy$Hassoc) { # if p speciation occured on the h root#
+    onHroot          <- which(Pphy$Hassoc == 0)#
+#
+    Pphy$edge        <- Pphy$edge[-onHroot, ]#
+    Pphy$edge.length <- Pphy$edge.length[-onHroot]#
+    Pphy$Hassoc      <- Pphy$Hassoc[-onHroot]#
+  }#
+  if (nrow(Pphy$edge)==0) { # P dies on the root, plots H tree and exits function with warning#
+    graphics::plot.new()#
+    graphics::plot.window(xlim = c(0, max(HBranchLines[, 2])), ylim = c(0, max(HBranchLines[, 3])))#
+    for (i in 1:length(HBranchLines[, 1])) {#
+      graphics::lines(c(HBranchLines[i, 1], HBranchLines[i, 2]), c(HBranchLines[i, 3], HBranchLines[i, 3]))#
+    }#
+    for (i in 1:length(HConnectorLines[, 1])) {#
+      graphics::lines(c(HConnectorLines[i, 1], HConnectorLines[i, 1]), c(HConnectorLines[i, 2], HConnectorLines[i,3]))#
+    }#
+#
+    return(warning("Parasite dies on the host root branch."))#
+  }#
+  # collect all the edge rows that are born from P branches that were associated with #
+  # the host root and are associated with descendant host branches#
+  fromProotBranches <- which(!Pphy$edge[,1]%in%Pphy$edge[,2])#
+#
+  PBranchLines <- matrix(NA, ncol = 3, nrow = length(fromProotBranches))#
+  colnames(PBranchLines) <- c("x1", "x2", "y") #
+  for (i in 1:length(fromProotBranches)) {#
+  	PBranchLines[i,] <- c(0, Pphy$edge.length[fromProotBranches[i]], #
+  						  HBranchLines[Pphy$Hassoc[fromProotBranches[i]], 3])#
+  }#
+  PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)#
+  colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")#
+  notProotBranches <- c(1:nrow(Pphy$edge))[-c(fromProotBranches)] # remaining PBranches#
+  if (length(notProotBranches)>0) {#
+  	for (i in notProotBranches) {#
+  		motherBranch		<- which(Pphy$edge[, 2] == Pphy$edge[i, 1] )#
+  		PBranchLines	<- rbind(PBranchLines, c(PBranchLines[motherBranch, 'x2'], #
+  								 PBranchLines[motherBranch, 'x2'] + Pphy$edge.length[i], #
+  								 HBranchLines[Pphy$Hassoc[i], 3]))#
+  		if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==1) { # lineage sorting#
+  			PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  														HBranchLines[Pphy$Hassoc[motherBranch], 'y'], #
+  														PBranchLines[i, 'y'], 0))#
+  		} else if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==2) { # cospeciation / host shift / lineage sorting#
+  			sisBranches <- which(Pphy$edge[, 1]==Pphy$edge[i, 1])#
+  			if (c(sisBranches<i)[1]) { # only pick up when on the 2nd of the sister branches#
+  				if (any(Pphy$Hassoc[sisBranches]==Pphy$Hassoc[motherBranch])) { # host shift / lineage sorting#
+  					if (round(HBranchLines[Pphy$Hassoc[i], 'x2'], 5)==round(PBranchLines[i, 'x2'], 5)) { # lineage sorting#
+  						PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																	PBranchLines[motherBranch, 'y'], #
+  																	PBranchLines[i, 'y'], 0))#
+  					} else { # host shift#
+  						PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																	PBranchLines[motherBranch, 'y'], #
+  																	PBranchLines[i, 'y'], 1))#
+  					}#
+  				} else { # cospeciation#
+  					PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 'x2'], #
+  																PBranchLines[sisBranches[1], 'y'], #
+  																PBranchLines[sisBranches[2], 'y'], 0))#
+  				}#
+  			}#
+  		}#
+  	}#
+  }#
+#
+  if (!is.null(Hphy$root.edge)) {#
+    # adding root branch if there is one#
+    HBranchLines <- t(t(HBranchLines) + c(Hphy$root.edge, Hphy$root.edge, 0))#
+    HBranchLines <- rbind(c(0, Hphy$root.edge, (HBranchLines[1, 3] + HBranchLines[2, 3])/2), HBranchLines)#
+    HConnectorLines <- t(t(HConnectorLines) + c(Hphy$root.edge, 0, 0))#
+#
+    if (is.null(Pphy$root.Hassoc)) {#
+      Proot.y <- HBranchLines[1, 3]#
+    } else {#
+      Proot.y <- HBranchLines[Pphy$root.Hassoc, 3]#
+    }#
+#
+    PBranchLines <- t(t(PBranchLines) + c(Pphy$root.edge, Pphy$root.edge, 0))#
+#
+    PBranchLines <- rbind(HBranchLines[1, ], PBranchLines)#
+    # Create the first PConnectorLines#
+    firstPy <- unique(PBranchLines[which(Pphy$Hassoc %in% c(1, 2)), 'y'])#
+    if (length(firstPy) == 1) { # lineage sorting#
+    	PConnectorLines <- rbind(c(PBranchLines[1, 2], PBranchLines[1, 3], firstPy, 0), PConnectorLines)#
+    } else { # cospeciation#
+    	PConnectorLines <- rbind(c(PBranchLines[1, 2], firstPy[1], firstPy[2], 0), PConnectorLines)#
+    }#
+#
+    xshift <- max(HBranchLines[, 2])/1000 + Pphy$root.time#
+    yshift <- 0.1#
+#
+    PBranchLines <- sweep(PBranchLines, 2, -c(xshift, xshift, yshift))#
+    if (length(PConnectorLines[, 1]) > 1) {#
+      PConnectorLines[, 1:3] <- sweep(PConnectorLines[, 1:3], 2, -c(xshift, yshift, yshift))#
+    } else {#
+      PConnectorLines[1, 1:3] <- PConnectorLines[1, 1:3] + c(xshift, yshift, yshift)#
+    }#
+  }#
+#
+  # plotting all lines:#
+  graphics::plot.new()#
+  graphics::plot.window(xlim = c(0, max(HBranchLines[, 2])), ylim = c(0, max(HBranchLines[, 3])))#
+  for (i in 1:length(HBranchLines[, 1])) {#
+    graphics::lines(c(HBranchLines[i, 1], HBranchLines[i, 2]), c(HBranchLines[i, 3], HBranchLines[i, 3]))#
+  }#
+  for (i in 1:length(HConnectorLines[, 1])) {#
+    graphics::lines(c(HConnectorLines[i, 1], HConnectorLines[i, 1]), c(HConnectorLines[i, 2], HConnectorLines[i,3]))#
+  }#
+#
+  for (i in 1:length(PBranchLines[, 1])) {#
+    graphics::lines(c(PBranchLines[i, 1], PBranchLines[i, 2]), c(PBranchLines[i, 3], PBranchLines[i, 3]), col = ParasiteCol[[1]])#
+  }#
+  for (i in 1:length(PConnectorLines[, 1])) {#
+    if (PConnectorLines[i, 4] == TRUE) {#
+      graphics::arrows(PConnectorLines[i, 1], PConnectorLines[i, 2], PConnectorLines[i, 1], PConnectorLines[i, 3], col = ParasiteCol[[1]], length = 0.1, angle = 10)#
+    } else {#
+      graphics::lines(c(PConnectorLines[i, 1], PConnectorLines[i, 1]), c(PConnectorLines[i, 2], PConnectorLines[i, 3]), col = ParasiteCol[[1]])#
+    }#
+  }#
+}
