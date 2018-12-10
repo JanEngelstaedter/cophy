@@ -4,14 +4,12 @@
 \alias{rcophylo_PonH}
 \title{Cophylogeny simulation on an existing host tree.}
 \usage{
-rcophylo_PonH(tmax, H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
+rcophylo_PonH(H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
   nu = 0.5, kappa = 0, delta = 0, prune.extinct = FALSE,
   export.format = "cophylogeny", P.startT = 0, ini.Hbranch = NA,
   Gdist = NA, timestep = 0.001)
 }
 \arguments{
-\item{tmax}{a numeric value giving the length of the simulation.}
-
 \item{H.tree}{a pre-built host phylogenetic tree.}
 
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}
@@ -73,7 +71,7 @@ given host phylogeny (simulated or estimated) that is provided.
 }
 \examples{
 Htree<-rphylo_H(tmax=5)
-rcophylo_PonH(H.tree=Htree, tmax=5)
+rcophylo_PonH(H.tree=Htree)
 }
 \keyword{Host-Parasite}
 \keyword{phylogeny}

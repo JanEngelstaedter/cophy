@@ -19,7 +19,7 @@
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format='raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' HPtree<-rcophylo_PonH(H.tree=Htree)
 #' cophylogeny(HPtree)
 
 cophylogeny <- function(HP.tree) {
@@ -292,6 +292,11 @@ convert_HPhyloToBranches<-function(Htree) {
                           branchNo = 2:(nrow(Htree$edge) + 1))
   ancBranches <- match(HBranches$nodeBirth, HBranches$nodeDeath)
 
+  if (is.null(Htree$root.edge)) { # creating a dummy root branch
+    Htree$root.edge <- 0.0001
+    warning("Tree has no root branch. A small root has been added to the tree to allow for parasite simulations.")
+  }
+
   HBranches$tBirth <- sapply(1:length(HBranches$nodeBirth), get_tBirth, Htree$root.edge,
                              Htree$edge.length, ancBranches = ancBranches)
   HBranches$tDeath <- HBranches$tBirth + Htree$edge.length
@@ -299,11 +304,21 @@ convert_HPhyloToBranches<-function(Htree) {
   HBranches <- rbind(data.frame(alive = NA, nodeBirth = 0, tBirth = 0, nodeDeath = rootNode,
                                 tDeath = Htree$root.edge, branchNo = 1), HBranches) # adding the root
 
+  if (nrow(HBranches)==length(Htree$root.edge)) { # accounting for root in edge length vector
+    Htree$edge.length <- c(0.0001, Htree$edge.length)
+  }
+
   if (!is.null(Htree$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (Htree$nAlive > 0) {
       HBranches$alive[HBranches$tDeath == max(HBranches$tDeath)] <- TRUE
     }
+  } else {
+    HBranches$alive <- HBranches$tDeath==max(HBranches$tDeath)
+    Htree$nAlive <- sum(HBranches$alive)
+    # make sure branches are ordered correctly
+    HBranches <- HBranches[order(HBranches$nodeBirth), ]
+    HBranches$branchNo <- 1:nrow(HBranches)
   }
 
   return(HBranches)
