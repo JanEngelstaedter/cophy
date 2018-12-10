@@ -17,7 +17,7 @@
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format='raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' HPtree<-rcophylo_PonH(H.tree=Htree)
 #' plot(cophylogeny(HPtree))
 
 plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
