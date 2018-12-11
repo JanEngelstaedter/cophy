@@ -90,7 +90,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
     nHAlive    <- 1			  # number of branches that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
-    HPCounts    <- integer(10) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
+    HPCounts    <- integer(2) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
     HPCounts[2] <- 1          # the first host has one parasite
 
     HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
@@ -129,6 +129,9 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
       for(i in 1:length(HPCounts)){
         thetaE.adj <- thetaE^(i-1) # theta has no effect on uninfected hosts, and then rises as a power function for host nParasites > 0
+        if(mu*thetaE.adj > 1){        # if thetaE is high, so the probability of extinction > 1, set it so probability of extinction = 1
+          thetaE.adj <- 1/mu
+        }
         nHToDie[i] <- rbinom(1, HPCounts[i], mu*thetaE.adj) # add the number of hosts with i - 1 parasites to go extinct to nHToDie
       }
 
