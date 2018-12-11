@@ -62,16 +62,21 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
   beta   <- beta * timestep
   kappa  <- kappa * timestep
 
-  HPCounts.shift <- function(HPCounts, HBranches, branch, change){ # local function updating HPCounts when a parasite is lost or gained by a host
-    nPOld <- HBranches$nParasites[branch]
-    nPNew <- HBranches$nParasites[branch] + change
+  # HPCounts.shift is a local function taking HPCounts upon host branch parasite loss or gain, to return an updated HPCounts vector
+  # Param HPCounts:     the HPCounts vector (see line 93)
+  # Param HBranches:    the HBranches data frame (see line 86)
+  # Param branch:       the HBranches row number of the host branch in question
+  # Param change:       a numerical value (1 or -1) reflecting whether the host branch gains or loses a parasite
+  HPCounts.shift <- function(HPCounts, HBranches, branch, change){
+    nPOld <- HBranches$nParasites[branch]          # determine current number of parasites on the host
+    nPNew <- nPOld + change                        # determine number of parasites on the host after the event
 
-    if(is.na(HPCounts[nPNew + 1])){
+    if((nPNew +1) > length(HPCounts)){             # if the new parasite count is out of bounds of the HPCounts vector, increase vector length
       HPCounts <- c(HPCounts,integer(1))
     }
 
-    HPCounts[nPOld + 1] <- HPCounts[nPOld + 1] - 1
-    HPCounts[nPNew + 1] <- HPCounts[nPNew + 1] + 1
+    HPCounts[nPOld + 1] <- HPCounts[nPOld + 1] - 1 # decrease number in HPCounts of hosts with the old number of parasites by 1
+    HPCounts[nPNew + 1] <- HPCounts[nPNew + 1] + 1 # increase number in HPCounts of hosts with the new number of parasites by 1
     return(HPCounts)
   }
 
@@ -85,7 +90,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
     nHAlive    <- 1			  # number of branches that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
-    HPCounts    <- integer(2) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
+    HPCounts    <- integer(10) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
     HPCounts[2] <- 1          # the first host has one parasite
 
     HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
@@ -120,16 +125,16 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
       # host extinction events:
 
-      nHToDie <- integer(0) # the number of hosts to go extinct as a vector where nHToDie[i] is the amount of hosts to die with i - 1 parasites
+      nHToDie <- integer(length(HPCounts)) # the number of hosts to go extinct as a vector where nHToDie[i] is the amount of hosts to die with i - 1 parasites
 
       for(i in 1:length(HPCounts)){
         thetaE.adj <- thetaE^(i-1) # theta has no effect on uninfected hosts, and then rises as a power function for host nParasites > 0
-        nHToDie <- c(nHToDie, rbinom(1, HPCounts[i], mu*thetaE.adj)) # add the number of hosts with i - 1 parasites to go extinct to nHToDie
+        nHToDie[i] <- rbinom(1, HPCounts[i], mu*thetaE.adj) # add the number of hosts with i - 1 parasites to go extinct to nHToDie
       }
 
       if (sum(nHToDie) > 0) { # if any hosts are to go extinct
 
-        HToDie <- integer(0) # vector of hosts to go extinct as indicated by their row numbers in HBranches
+        HToDie <- integer(0)  # vector of hosts to go extinct as indicated by their row numbers in HBranches
 
         for(i in 1:length(nHToDie)){                                                        # sample a number of host branches as per count in nHToDie
           if(nHToDie[i] > 0){                                                               # if any hosts with i - 1 parasites are to die, sample
@@ -184,11 +189,15 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
       }
 
       # host speciation events:
-      nHToSpeciate <- integer(0)
+      nHToSpeciate <- integer(length(HPCounts))
 
       for(i in 1:length(HPCounts)){
-        thetaS.adj <-  1 + ((thetaS - 1)*is.finite(1/(i-1))) # for infected hosts, theta.adj <- thetaS, for uninfected hosts theta.adj <- 1
-        nHToSpeciate <- c(nHToSpeciate, rbinom(1, HPCounts[i], lambda.adj*thetaS.adj))
+        if(i == 1){  # for infected hosts, theta.adj <- thetaS, for uninfected hosts theta.adj <- 1
+          thetaS.adj <- 1
+        }else{
+          thetaS.adj <- thetaS
+        }
+        nHToSpeciate[i] <- rbinom(1, HPCounts[i], lambda.adj*thetaS.adj)
       }
 
       if (sum(nHToSpeciate) > 0) { # if any hosts are speciating
