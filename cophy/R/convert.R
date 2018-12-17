@@ -9,17 +9,17 @@
 #' Creates a cophylogeny object
 #'
 #' This function creates an object of class 'cophylogeny', which can be passed
-#' to the plot.cophylogeny() function. This object must contain at least one
+#' to \code{\link{plot.cophylogeny}}. This object must contain at least one
 #' host and one parasite tree.
 #' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite
 #'   phylogenetic tree of class 'cophylogeny' or 'data.frame'
 #' @return this function returns an object of class 'cophylogeny' which can be
-#'   passed to plot().
+#'   for plotting and printing pur.
 #' @keywords cophylogeny, class
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format='raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' HPtree<-rcophylo_PonH(H.tree=Htree)
 #' cophylogeny(HPtree)
 
 cophylogeny <- function(HP.tree) {
@@ -37,15 +37,11 @@ cophylogeny <- function(HP.tree) {
   return(cophy)
 }
 
-#' Convert "raw" host tree to "phylo" format
-#'
-#' The following function converts a "raw" host tree matrix into "phylo" format
-#' @param HBranches Host-tree in "raw" format (of class data.frame)
-#' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
-#' @export
-#' @examples
-#' Hbranches<-rphylo_H(tmax=5, export.format = "raw")
-#' convert_HBranchesToPhylo(HBranches=Hbranches)
+# Convert "raw" host tree to "phylo" format
+#
+# The following function converts a "raw" host tree matrix into "phylo" format
+# @param HBranches Host-tree in "raw" format (of class data.frame)
+# @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 
 convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
   # number of host and parasite branches:
@@ -160,20 +156,15 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
   return(Hphy)
 }
 
-#' Converting "raw" Parasite tree to "phylo" format
-#'
-#' The following function converts a "raw" parasite tree matrix into "phylo" format
-#' @param PBranches Parasite-tree in "raw" format (of class data.frame)
-#' @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
-#' @keywords format, convert, phylo
-#' @export
-#' @examples
-#' HPBranches<-rcophylo_HP(tmax=5, export.format = "raw")
-#' convert_PBranchesToPhylo(PBranches=HPBranches[[2]])
+# Converting "raw" Parasite tree to "phylo" format
+#
+# The following function converts a "raw" parasite tree matrix into "phylo" format
+# @param PBranches Parasite-tree in "raw" format (of class data.frame)
+# @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 
 convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   # number of branches:
-  nPBranches <- length(PBranches[, 1])
+  nPBranches <- nrow(PBranches)
 
   # number of living parasite species:
   nPAlive <- sum(PBranches$alive[PBranches$alive == TRUE])
@@ -191,7 +182,11 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   rPBranches <- PBranches
   i.tip      <- 1
   i.ext      <- nPAlive + 1
-  i.int      <- nPBranches / 2 + 2
+  if (nPBranches==1) { # the case that the root has only one daughter species, which goes extinct
+    i.int <- 0
+  } else {
+    i.int      <- nPBranches / 2 + 2
+  }
 
   for (i in 1:(nPBranches + 1)) {
     if (any(PBranches$nodeBirth == i)) { # is node i an internal node?
@@ -285,14 +280,10 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
 }
 
 
-#' Convert host tree from Ape's "phylo" format to the internal Branches format
-#'
-#' The following function converts a "phylo" host-parasite tree into internal Branches format
-#' @param Htree a host tree in "phylo" format
-#' @export
-#' @examples
-#' Htree<-rphylo_H(tmax=5)
-#' convert_HPhyloToBranches(Htree=Htree)
+# Convert host tree from Ape's "phylo" format to the internal Branches format
+#
+# The following function converts a "phylo" host-parasite tree into internal Branches format
+# @param Htree a host tree in "phylo" format
 
 convert_HPhyloToBranches<-function(Htree) {
   # converting host tree:
@@ -301,6 +292,11 @@ convert_HPhyloToBranches<-function(Htree) {
                           branchNo = 2:(nrow(Htree$edge) + 1))
   ancBranches <- match(HBranches$nodeBirth, HBranches$nodeDeath)
 
+  if (is.null(Htree$root.edge)) { # creating a dummy root branch
+    Htree$root.edge <- 0.0001
+    warning("Tree has no root branch. A small root has been added to the tree to allow for parasite simulations.")
+  }
+
   HBranches$tBirth <- sapply(1:length(HBranches$nodeBirth), get_tBirth, Htree$root.edge,
                              Htree$edge.length, ancBranches = ancBranches)
   HBranches$tDeath <- HBranches$tBirth + Htree$edge.length
@@ -308,24 +304,30 @@ convert_HPhyloToBranches<-function(Htree) {
   HBranches <- rbind(data.frame(alive = NA, nodeBirth = 0, tBirth = 0, nodeDeath = rootNode,
                                 tDeath = Htree$root.edge, branchNo = 1), HBranches) # adding the root
 
+  if (nrow(HBranches)==length(Htree$root.edge)) { # accounting for root in edge length vector
+    Htree$edge.length <- c(0.0001, Htree$edge.length)
+  }
+
   if (!is.null(Htree$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (Htree$nAlive > 0) {
       HBranches$alive[HBranches$tDeath == max(HBranches$tDeath)] <- TRUE
     }
+  } else {
+    HBranches$alive <- HBranches$tDeath==max(HBranches$tDeath)
+    Htree$nAlive <- sum(HBranches$alive)
+    # make sure branches are ordered correctly
+    HBranches <- HBranches[order(HBranches$nodeBirth), ]
+    HBranches$branchNo <- 1:nrow(HBranches)
   }
 
   return(HBranches)
 }
 
-#' Convert cophylogenetic trees from Ape's "phylo" format to the "raw" internal Branches format
-#'
-#' The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
-#' @param cophy a cophylogeny (in "phylo" format) containing one host and one parasite tree
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' convert_HPCophyloToBranches(cophy=HPtree)
+# Convert cophylogenetic trees from Ape's "phylo" format to the "raw" internal Branches format
+#
+# The following function converts a "phylo" host-parasite tree into "raw" internal Branches format
+# @param cophy a cophylogeny (in "phylo" format) containing one host and one parasite tree.
 
 convert_HPCophyloToBranches<-function(cophy) {
   # converting host tree:
@@ -357,10 +359,6 @@ convert_HPCophyloToBranches<-function(cophy) {
 
   PBranches$tBirth <- sapply(1:length(PBranches$nodeBirth), get_tBirth, cophy[[2]]$root.edge,
                              cophy[[2]]$edge.length, ancBranches = ancBranches) + cophy[[2]]$root.time
-  #	for (i in 1:length(PBranches$nodeBirth)) {
-  #		print(i)
-  #		PBranches$tBirth[i]<-get_tBirth(n=i, cophy[[2]]$root.edge, cophy[[2]]$edge.length,ancBranches=ancBranches) + cophy[[2]]$root.time
-  #	}
 
   PBranches$tDeath <- PBranches$tBirth + cophy[[2]]$edge.length
   PBranches$Hassoc <- cophy[[2]]$Hassoc + 1

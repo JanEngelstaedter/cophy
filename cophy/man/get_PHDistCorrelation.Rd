@@ -2,15 +2,17 @@
 % Please edit documentation in R/stats.R
 \name{get_PHDistCorrelation}
 \alias{get_PHDistCorrelation}
-\title{Calculating the correlation between the distance matrixes of parasites and their associated hosts}
+\title{Correlation between pairwise distances of associated hosts and parasites.}
 \usage{
 get_PHDistCorrelation(cophy)
 }
 \arguments{
-\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.}
+\item{cophy}{a cophylogeny (object of class "cophylogeny") containing one
+host and one parasite tree.}
 }
 \description{
-Calculating the correlation between the distance matrixes of parasites and their associated hosts
+Calculating the correlation between the distance matrixes of parasites and
+their associated hosts
 }
 \examples{
 HPtree<-rcophylo_HP(tmax=5)

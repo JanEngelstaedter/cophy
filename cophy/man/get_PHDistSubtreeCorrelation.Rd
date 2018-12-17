@@ -2,9 +2,8 @@
 % Please edit documentation in R/stats.R
 \name{get_PHDistSubtreeCorrelation}
 \alias{get_PHDistSubtreeCorrelation}
-\title{Calculating the correlation between the distance matrixes of parasites and
-their associated hosts within subtrees specified by particular height.
-Requires at least three living parasites.}
+\title{Correlation between pairwise distances of associated hosts and parasites by
+host subtree.}
 \usage{
 get_PHDistSubtreeCorrelation(cophy, h = NULL, k = NULL)
 }

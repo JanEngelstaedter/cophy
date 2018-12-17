@@ -3,22 +3,22 @@
 # This file contains various helper functions for internal use.
 # This file is part of the R-package 'cophy'.
 
-#' A (recursive) function to obtain the time of birth of a branch n, given a tree
-#' in phylo format and a list of ancestor branches for that tree
-#'
-#' @param n some branch in a tree
-#' @param root.edge object sourced from tree in phylo format
-#' @param edge.length object sourced from tree in phylo format
-#' @param ancBranches the ancestral branches for the tree
+# A (recursive) function to obtain the time of birth of a branch n, given a
+# tree in phylo format and a list of ancestor branches for that tree
+#
+# @param n some branch in a tree
+# @param root.edge object sourced from tree in phylo format
+# @param edge.length object sourced from tree in phylo format
+# @param ancBranches the ancestral branches for the tree
 
 get_tBirth <- function(n, root.edge, edge.length, ancBranches) {
   if (is.na(ancBranches[n])) return(root.edge)
   else return(get_tBirth(ancBranches[n], root.edge, edge.length, ancBranches) + edge.length[ancBranches[n]])
 }
 
-#' Function to add new column to Branches dataframe indicating for each branch whether or not it leaves any extant descendents
-#'
-#' @param Branches tree in internal branch format
+# Function to add new column to Branches dataframe indicating for each branch whether or not it leaves any extant descendents
+#
+# @param Branches tree in internal branch format
 
 add_branchSurvival <- function(Branches) {
   Branches$surviving <- FALSE
@@ -31,26 +31,6 @@ add_branchSurvival <- function(Branches) {
   }
   return(Branches)
 }
-
-
-#' Function to obtain the time of a node relative to the root
-#'
-#' @param phy tree in phylo format
-#' @param node a particular node in the tree
-#' @keywords node, root
-
-get_nodeTime <- function(phy, node) {
-  nnode <- node
-  t     <- 0
-  nedge <- match(nnode, phy$edge[, 2])  # find corresponding edge
-  while (!is.na(nedge)) {
-    t     <- t + phy$edge.length[nedge] # add edge.length to total time
-    nnode <- phy$edge[nedge, 1] # set new node to ancestral node
-    nedge <- match(nnode, phy$edge[, 2])  # find corresponding new edge
-  }
-  return(t + phy$root.edge)
-}
-
 
 #' Printing a cophylogeny
 #'
@@ -67,9 +47,26 @@ get_nodeTime <- function(phy, node) {
 #' print(cop)
 
 print.cophylogeny<-function(x, ...) {
-  print("Cophylogeny consisting of a host tree and an associated parasite tree.")
+  cat("Cophylogeny consisting of a host tree and an associated parasite tree.")
   cat("\nHost tree:")
-  print.phylo(x[[1]])
+  print(x[[1]])
   cat("\nParasite tree:")
-  print.phylo(x[[2]])
+  print(x[[2]])
+}
+
+#' A function to count the number of decimal places in a number
+#'
+#' Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r
+#' @param x some number
+#' @author daroczig
+#' examples
+#' decimal_places(1)
+#' decimal_places(0.4)
+
+decimal_places <- function(x) {
+  if (abs(x - round(x)) > .Machine$double.eps^0.5) {
+    nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed = TRUE)[[1]][[2]])
+  } else {
+    return(0)
+  }
 }

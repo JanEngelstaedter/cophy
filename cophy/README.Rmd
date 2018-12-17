@@ -24,8 +24,9 @@ Here is a simple example for how you can create a random cophylogeny, and plot i
 ```{r example}
 
 library(cophy)
-set.seed(12)
-cop<-rcophylo_HP(tmax=5, K=5)
+set.seed(7)
+cop<-rcophylo_HP(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
+cop
 get_infectionStatistics(cop)
 plot(cop)
 ```

@@ -4,15 +4,22 @@
 \alias{get_branchNThroughTime}
 \title{Branch (species) numbers through time.}
 \usage{
-get_branchNThroughTime(phy, tmax, dt)
+get_branchNThroughTime(phy, tmax, startT = 0, dt)
 }
 \arguments{
 \item{phy}{a phylogeny (object of APE class "phylo").}
 
 \item{tmax}{maximum time for which to simulate; may be greater than the actual tree length.}
 
+\item{startT}{the timepoint at which the lineage began simulating.}
+
 \item{dt}{step size for performing calculations.}
 }
 \description{
-Branch (species) numbers through time.
+Calculates the number of living species at particular time intervals of a
+simulation. Applicable for both host and parasite phylogenies.
+}
+\examples{
+phy <- rcophylo_HP(tmax=5, k=5)
+get_branchNThroughTime(phy=phy[[2]], tmax=5, dt=1)
 }

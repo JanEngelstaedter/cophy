@@ -17,7 +17,7 @@
 #' @export
 #' @examples
 #' Htree<-rphylo_H(tmax=5, export.format='raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree, tmax=5)
+#' HPtree<-rcophylo_PonH(H.tree=Htree)
 #' plot(cophylogeny(HPtree))
 
 plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
@@ -37,7 +37,7 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
   noHNodes <- length(Hphy$edge[, 1]) + 1  # total number of nodes in the host phylogeny
   firstHNode <- (length(Hphy$edge[, 1])/2) + 2  # the first internal node in the host phylogeny
 
-  if (length(Hphy$edge[, 1]) > 2) {
+  if (nrow(Hphy$edge) > 2) {
     for (i in (firstHNode + 1):noHNodes) {
       # loop covering all internal nodes
       daughterBranches <- which(Hphy$edge[, 1] == i)  # indices of the two new branches to be added
@@ -72,49 +72,73 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
                                                                    3], HBranchLines[daughterBranches[2], 3]))
   }
 
-  PBranchLines <- matrix(NA, ncol = 3, nrow = 2)
-  colnames(PBranchLines) <- c("x1", "x2", "y")
-  PBranchLines[1, 1] <- 0
-  PBranchLines[1, 2] <- Pphy$edge.length[1]
-  PBranchLines[1, 3] <- HBranchLines[Pphy$Hassoc[1], 3]
+  # if within host speciation occurs on host root branch
+  if (0 %in% Pphy$Hassoc) { # if p speciation occured on the h root
+    onHroot          <- which(Pphy$Hassoc == 0)
 
-  PBranchLines[2, 1] <- 0
-  PBranchLines[2, 2] <- Pphy$edge.length[2]
-  PBranchLines[2, 3] <- HBranchLines[Pphy$Hassoc[2], 3]
+    Pphy$edge        <- Pphy$edge[-onHroot, ]
+    Pphy$edge.length <- Pphy$edge.length[-onHroot]
+    Pphy$Hassoc      <- Pphy$Hassoc[-onHroot]
+  }
+
+  if (nrow(Pphy$edge)==0) { # P dies on the root, plots H tree and exits function with warning
+    graphics::plot.new()
+    graphics::plot.window(xlim = c(0, max(HBranchLines[, 2])), ylim = c(0, max(HBranchLines[, 3])))
+    for (i in 1:length(HBranchLines[, 1])) {
+      graphics::lines(c(HBranchLines[i, 1], HBranchLines[i, 2]), c(HBranchLines[i, 3], HBranchLines[i, 3]))
+    }
+    for (i in 1:length(HConnectorLines[, 1])) {
+      graphics::lines(c(HConnectorLines[i, 1], HConnectorLines[i, 1]), c(HConnectorLines[i, 2], HConnectorLines[i,3]))
+    }
+
+    return(warning("Parasite dies on the host root branch."))
+  }
+
+  # collect all the edge rows that are born from P branches that were associated with
+  # the host root and are associated with descendant host branches
+  fromProotBranches <- which(!Pphy$edge[,1]%in%Pphy$edge[,2])
+
+  PBranchLines <- matrix(NA, ncol = 3, nrow = length(fromProotBranches))
+  colnames(PBranchLines) <- c("x1", "x2", "y")
+  for (i in 1:length(fromProotBranches)) {
+    PBranchLines[i,] <- c(0, Pphy$edge.length[fromProotBranches[i]],
+                          HBranchLines[Pphy$Hassoc[fromProotBranches[i]], 3])
+  }
 
   PConnectorLines <- matrix(NA, ncol = 4, nrow = 0)
   colnames(PConnectorLines) <- c("x", "y1", "y2", "hostJump")
 
-  noPNodes <- length(Pphy$edge[, 1]) + 1  # total number of nodes in the parasite phylogeny
-  firstPNode <- (length(Pphy$edge[, 1])/2) + 2  # the first internal node in the parasite phylogeny
+  notProotBranches <- c(1:nrow(Pphy$edge))[-c(fromProotBranches)] # remaining PBranches
 
-  if (length(Pphy$edge[, 1]) > 2) {
-    for (i in (firstPNode + 1):noPNodes) {
-      # loop covering all internal nodes
-      daughterBranches <- which(Pphy$edge[, 1] == i)  # indices of the two new branches to be added
-      motherBranch <- match(i, Pphy$edge[, 2])  # index of the mother branch
-      tnew <- PBranchLines[motherBranch, 2]  # time point when the new branches begin
-      PBranchLines <- rbind(PBranchLines, c(tnew, tnew + Pphy$edge.length[daughterBranches[1]],
-                                            HBranchLines[Pphy$Hassoc[daughterBranches[1]], 3]))
-      PBranchLines <- rbind(PBranchLines, c(tnew, tnew + Pphy$edge.length[daughterBranches[2]],
-                                            HBranchLines[Pphy$Hassoc[daughterBranches[2]], 3]))
-    }
-  }
+  if (length(notProotBranches)>0) {
+    for (i in notProotBranches) {
+      motherBranch		<- which(Pphy$edge[, 2] == Pphy$edge[i, 1] )
+      PBranchLines	<- rbind(PBranchLines, c(PBranchLines[motherBranch, 2],
+                                            PBranchLines[motherBranch, 2] + Pphy$edge.length[i],
+                                            HBranchLines[Pphy$Hassoc[i], 3]))
 
-  for (i in firstPNode:noPNodes) {
-    # loop covering all internal nodes
-    daughterBranches <- which(Pphy$edge[, 1] == i)  # indices of the two daughter branches extending from node
+      if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==1) { # lineage sorting
+        PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 1],
+                                                    HBranchLines[Pphy$Hassoc[motherBranch], 'y'],
+                                                    PBranchLines[i, 'y'], 0))
+      } else if (sum(Pphy$edge[, 1]==Pphy$edge[i, 1])==2) { # cospeciation / host shift / within H speciation
+        sisBranches <- which(Pphy$edge[, 1]==Pphy$edge[i, 1])
+        if (c(sisBranches<i)[1]) { # only pick up when on the 2nd of the sister branches
+          if (any(Pphy$Hassoc[sisBranches]==Pphy$Hassoc[motherBranch])) { # host shift / within H speciation
+            if (HBranchLines[Pphy$Hassoc[sisBranches[1]], 3]!=HBranchLines[Pphy$Hassoc[sisBranches[2]], 3]) { # host shift
+              PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 1],
+                                                          PBranchLines[motherBranch, 'y'],
+                                                          PBranchLines[i, 'y'], 1))
+            }
 
-    tnew <- PBranchLines[daughterBranches[1], 1]  # time point of the node
-    if (i == firstPNode) {
-      hostJump <- FALSE
+          } else { # cospeciation
+            PConnectorLines	<- rbind(PConnectorLines, c(PBranchLines[i, 1],
+                                                        PBranchLines[sisBranches[1], 'y'],
+                                                        PBranchLines[sisBranches[2], 'y'], 0))
+          }
+        }
+      }
     }
-    if (i > firstPNode) {
-      motherBranch <- match(i, Pphy$edge[, 2])  # index of the mother branch
-      hostJump <- (Pphy$Hassoc[daughterBranches[1]] == Pphy$Hassoc[motherBranch])  # whether or not the node corresponds to a host jump
-    }
-    PConnectorLines <- rbind(PConnectorLines, c(tnew, PBranchLines[daughterBranches[1],
-                                                                   3], PBranchLines[daughterBranches[2], 3], hostJump))
   }
 
   if (!is.null(Hphy$root.edge)) {
@@ -123,14 +147,26 @@ plot.cophylogeny <- function(x, ParasiteCol = "Red", ...) {
     HBranchLines <- rbind(c(0, Hphy$root.edge, (HBranchLines[1, 3] + HBranchLines[2, 3])/2), HBranchLines)
     HConnectorLines <- t(t(HConnectorLines) + c(Hphy$root.edge, 0, 0))
 
-    PBranchLines <- t(t(PBranchLines) + c(Pphy$root.edge, Pphy$root.edge, 0))
     if (is.null(Pphy$root.Hassoc)) {
       Proot.y <- HBranchLines[1, 3]
     } else {
       Proot.y <- HBranchLines[Pphy$root.Hassoc, 3]
     }
-    PBranchLines <- rbind(c(0, Pphy$root.edge, Proot.y), PBranchLines)
-    PConnectorLines <- t(t(PConnectorLines) + c(Pphy$root.edge, 0, 0, 0))
+
+    PBranchLines <- t(t(PBranchLines) + c(Hphy$root.edge, Hphy$root.edge, 0))
+
+    PBranchLines <- rbind(HBranchLines[1, ], PBranchLines)
+
+    # Create the first PConnectorLines
+    firstPy <- unique(PBranchLines[which(PBranchLines[, 1]==PBranchLines[1, 2]), 'y'])
+
+    if (length(firstPy) == 1) { # lineage sorting
+      PConnectorLines <- rbind(c(PBranchLines[1, 1], PBranchLines[1, 3], firstPy, 0), PConnectorLines)
+    } else { # cospeciation
+      PConnectorLines <- rbind(c(PBranchLines[1, 1], firstPy[1], firstPy[2], 0), PConnectorLines)
+    }
+
+    PConnectorLines <- t(t(PConnectorLines) + c(Hphy$root.edge, 0, 0, 0))
 
     xshift <- max(HBranchLines[, 2])/1000 + Pphy$root.time
     yshift <- 0.1

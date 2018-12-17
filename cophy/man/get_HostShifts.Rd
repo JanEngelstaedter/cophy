@@ -2,7 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{get_HostShifts}
 \alias{get_HostShifts}
-\title{The following function counts host-jumps}
+\title{Counting parasite host-jumps.}
 \usage{
 get_HostShifts(cophy)
 }
