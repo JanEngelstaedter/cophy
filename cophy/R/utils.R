@@ -43,7 +43,7 @@ add_branchSurvival <- function(Branches) {
 #' @importFrom ape print.phylo
 #' @export
 #' @examples
-#' cop<-rcophylo_HP(tmax=5, K=5)
+#' cop<-rcophylo(tmax=5, K=5)
 #' print(cop)
 
 print.cophylogeny<-function(x, ...) {
@@ -59,10 +59,8 @@ print.cophylogeny<-function(x, ...) {
 #' Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r
 #' @param x some number
 #' @author daroczig
-#' examples
-#' decimal_places(1)
-#' decimal_places(0.4)
-
+#' @keywords internal
+#'
 decimal_places <- function(x) {
   if (abs(x - round(x)) > .Machine$double.eps^0.5) {
     nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed = TRUE)[[1]][[2]])

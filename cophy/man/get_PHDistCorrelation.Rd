@@ -15,8 +15,8 @@ Calculating the correlation between the distance matrixes of parasites and
 their associated hosts
 }
 \examples{
-HPtree<-rcophylo_HP(tmax=5)
-get_PHDistCorrelation(cophy=HPtree)
+cop<-rcophylo(tmax=5)
+get_PHDistCorrelation(cophy=cop)
 }
 \keyword{correlation}
 \keyword{distance,}

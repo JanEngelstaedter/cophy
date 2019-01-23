@@ -18,9 +18,9 @@
 #' @keywords cophylogeny, class
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, export.format='raw')
-#' HPtree<-rcophylo_PonH(H.tree=Htree)
-#' cophylogeny(HPtree)
+#' HTree<-rphylo_H(tmax=5, exportFormat='raw')
+#' HPTree<-rcophylo(HTree=HTree)
+#' cophylogeny(HPTree)
 
 cophylogeny <- function(HP.tree) {
   if (class(HP.tree[[1]]) == "data.frame") {
@@ -41,9 +41,8 @@ cophylogeny <- function(HP.tree) {
 #
 # The following function converts a "raw" host tree matrix into "phylo" format
 # @param HBranches Host-tree in "raw" format (of class data.frame)
-# @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 
-convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
+convert_HBranchesToPhylo <- function(HBranches) {
   # number of host and parasite branches:
   nHBranches <- nrow(HBranches)
 
@@ -84,75 +83,11 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
     }
   }
 
-  # exclude extinct taxa:
-
-  if (prune.extinct == TRUE) {
-    # find nodes that don't leave any descendents:
-    nodeHDead <- rep(TRUE, nHBranches + 1)
-    nodeHDead[rHBranches[, 2][1]] <- FALSE # root is definitely alive!
-    for(i in 1:nHAlive){
-      n <- i
-      while (nodeHDead[n] == TRUE) {
-        nodeHDead[n] <- FALSE
-        n <- rHBranches[, 2][rHBranches[, 4] == n]
-      }
-    }
-
-    # keep only branches that terminate in live nodes:
-    prunedHBranches <- rHBranches[!nodeHDead[rHBranches[, 4]], ]
-
-    # find and collapse nodes that are no nodes anymore:
-    nHBranches <- length(prunedHBranches[, 1]) # collapse H ~nodes
-    for (i in 1:nHBranches) {
-      if ((prunedHBranches$nodeDeath[i] > nHAlive) &&
-          (length(prunedHBranches[prunedHBranches$nodeBirth == prunedHBranches$nodeDeath[i], 1])==1)) {
-        # this branch does not terminate in a tip and also not in two new branches
-        fuse <- (prunedHBranches$nodeBirth == prunedHBranches$nodeDeath[i])   # vector marking the branch that fuses to branch i
-        prunedHBranches$nodeBirth[fuse] <- prunedHBranches$nodeBirth[i]
-        prunedHBranches$tBirth[fuse]    <- prunedHBranches$tBirth[i]
-        prunedHBranches$nodeBirth[i]    <- 0  # mark this branch as dead for later deletion
-      }
-    }
-
-    # if a new root branch has been formed, mark this for deletion as well H:
-    for (i in 1:nHBranches) {
-      if ((prunedHBranches$nodeBirth[i] > 0) &&
-          (length(prunedHBranches[prunedHBranches$nodeBirth == prunedHBranches$nodeBirth[i], 1]) < 2)) {
-        prunedHBranches$nodeBirth[i] <- 0
-      }
-    }
-
-    prunedHBranches <- prunedHBranches[prunedHBranches$nodeBirth > 0, ]
-    nHBranches      <- length(prunedHBranches[, 1])
-
-    # relabel nodes so that only nodes 1...2n-1 exist:
-    prunedHBranches <- prunedHBranches[order(prunedHBranches$tBirth), ]
-    newNodeBirth    <- sort(rep((nHAlive + 1):(2 * nHAlive - 1), 2))
-    newNodeDeath    <- rep(0, nHBranches)
-    for (i in 1:nHBranches) {
-      if (prunedHBranches$nodeDeath[i] > nHAlive) {
-        newNodeDeath[i] <- newNodeBirth[prunedHBranches$nodeBirth == prunedHBranches$nodeDeath[i]][1]
-      } else {
-        newNodeDeath[i] <- prunedHBranches$nodeDeath[i]
-      }
-    }
-    prunedHBranches$nodeBirth <- newNodeBirth
-    prunedHBranches$nodeDeath <- newNodeDeath
-  }
-
   # translate into phylo format:
-  if (prune.extinct == TRUE) {
-    Hphy <- list(edge = cbind(prunedHBranches$nodeBirth, prunedHBranches$nodeDeath),
-                 edge.length = prunedHBranches$tDeath - prunedHBranches$tBirth,
-                 tip.label = paste("t", 1:nHAlive, sep = ""), root.edge = Hroot.edge, nAlive = nHAlive)
-    class(Hphy) <- "phylo"
-    Hphy$Nnode  <- nHAlive - 1
-  } else { # extinct taxa included:
-    Hphy <- list(edge = cbind(rHBranches[, 2], rHBranches[, 4]), edge.length = rHBranches[, 5] - rHBranches[, 3],
-                 tip.label = paste("t", 1:(1 + nHBranches / 2), sep = ""), root.edge = Hroot.edge, nAlive = nHAlive)
-    class(Hphy) <- "phylo"
-    Hphy$Nnode 	<- nHBranches / 2
-  }
+  Hphy <- list(edge = cbind(rHBranches[, 2], rHBranches[, 4]), edge.length = rHBranches[, 5] - rHBranches[, 3],
+               tip.label = paste("t", 1:(1 + nHBranches / 2), sep = ""), root.edge = Hroot.edge, nAlive = nHAlive)
+  class(Hphy) <- "phylo"
+  Hphy$Nnode 	<- nHBranches / 2
   return(Hphy)
 }
 
@@ -160,9 +95,8 @@ convert_HBranchesToPhylo <- function(HBranches, prune.extinct = FALSE) {
 #
 # The following function converts a "raw" parasite tree matrix into "phylo" format
 # @param PBranches Parasite-tree in "raw" format (of class data.frame)
-# @param prune.extinct whether to remove all extinct branches (defaulting to FALSE)
 
-convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
+convert_PBranchesToPhylo <- function(PBranches) {
   # number of branches:
   nPBranches <- nrow(PBranches)
 
@@ -173,109 +107,53 @@ convert_PBranchesToPhylo <- function(PBranches, prune.extinct = FALSE) {
   # (This is necessary because phylo trees in APE don't have an initial branch.)
   Proot.edge       <- PBranches$tDeath[1] - PBranches$tBirth[1]
   Proot.time       <- PBranches$tBirth[1]
-  Proot.Hassoc     <- PBranches$Hassoc[1]
-  PBranches$Hassoc <- PBranches$Hassoc - 1
+  Proot.Hassoc     <- PBranches$Hassoc[1] - 1  # because host branch #1 is no longer the root in phylo format
+  PBranches$Hassoc <- PBranches$Hassoc - 1 # because host branch #1 is no longer the root in phylo format
   PBranches        <- PBranches[-1, ]  # deleting the first branch (the root)
   nPBranches       <- nPBranches - 1
 
-  # relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones:
-  rPBranches <- PBranches
-  i.tip      <- 1
-  i.ext      <- nPAlive + 1
-  if (nPBranches==1) { # the case that the root has only one daughter species, which goes extinct
-    i.int <- 0
-  } else {
-    i.int      <- nPBranches / 2 + 2
-  }
-
-  for (i in 1:(nPBranches + 1)) {
-    if (any(PBranches$nodeBirth == i)) { # is node i an internal node?
-      rPBranches$nodeBirth[PBranches$nodeBirth == i] <- i.int
-      rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.int
-      i.int <- i.int + 1
-    } else {	# node i is an external node
-      if ((nPAlive > 0) && (PBranches$alive[PBranches$nodeDeath == i] == 1)) {
-        rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.tip
-        i.tip <- i.tip + 1
-      } else {
-        rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.ext
-        i.ext <- i.ext + 1
-      }
+  if (nPBranches > 1) {
+    # relabeling all the nodes so that they are ordered with surviving species first, then external nodes, then internal ones:
+    rPBranches <- PBranches
+    i.tip      <- 1
+    i.ext      <- nPAlive + 1
+    if (nPBranches==1) { # the case that the root has only one daughter species, which goes extinct
+      i.int <- 0
+    } else {
+      i.int      <- nPBranches / 2 + 2
     }
-  }
 
-  # exclude extinct taxa:
-  if (prune.extinct==TRUE) {
-    # find nodes that don't leave any descendents:
-    nodePDead <- rep(TRUE, nPBranches + 1)
-    nodePDead[rPBranches$nodeBirth[1]] <- FALSE # root is definitely alive!
-    for(i in 1:nPAlive) {
-      n <- i
-      while (nodePDead[n] == TRUE) {
-        nodePDead[n] <- FALSE
-        n <- rPBranches$nodeBirth[rPBranches$nodeDeath == n]
-      }
-    }
-    # keep only branches that terminate in live nodes:
-    prunedPBranches <- rPBranches[!nodePDead[rPBranches$nodeDeath], ]
-
-    # find and collapse nodes that are no nodes anymore:
-    nPBranches <- length(prunedPBranches[, 1]) # collapse P ~nodes
-    for (i in 1:nPBranches) {
-      if ((prunedPBranches$nodeDeath[i] > nPAlive) &&
-          (length(prunedPBranches[prunedPBranches$nodeBirth == prunedPBranches$nodeDeath[i], 1]) == 1)) {
-        # this branch does not terminate in a tip and also not in two new branches
-        Pfuse <- (prunedPBranches$nodeBirth == prunedPBranches$nodeDeath[i])   # vector marking the branch that fuses to branch i
-        prunedPBranches$nodeBirth[Pfuse] <- prunedPBranches$nodeBirth[i]
-        prunedPBranches$tBirth[Pfuse]    <- prunedPBranches$tBirth[i]
-        prunedPBranches$nodeBirth[i]     <- 0  # mark this branch as dead for later deletion
+    for (i in 1:(nPBranches + 1)) {
+      if (any(PBranches$nodeBirth == i)) { # is node i an internal node?
+        rPBranches$nodeBirth[PBranches$nodeBirth == i] <- i.int
+        rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.int
+        i.int <- i.int + 1
+      } else {	# node i is an external node
+        if ((nPAlive > 0) && (PBranches$alive[PBranches$nodeDeath == i] == 1)) {
+          rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.tip
+          i.tip <- i.tip + 1
+        } else {
+          rPBranches$nodeDeath[PBranches$nodeDeath == i] <- i.ext
+          i.ext <- i.ext + 1
+        }
       }
     }
 
-    # if a new root branch has been formed, mark this for deletion as well P:
-    for (i in 1:nPBranches) {
-      if ((prunedPBranches$nodeBirth[i] > 0) &&
-          (length(prunedPBranches[prunedPBranches$nodeBirth == prunedPBranches$nodeBirth[i], 1]) < 2)) {
-        prunedPBranches$nodeBirth[i] <- 0
-      }
-    }
-
-    prunedPBranches <- prunedPBranches[prunedPBranches$nodeBirth > 0, ]
-    nPBranches      <- length(prunedPBranches[, 1])
-
-    # relabel nodes so that only nodes 1...2n-1 exist P:
-    prunedPBranches <- prunedPBranches[order(prunedPBranches$tBirth), ]
-    newNodePBirth   <- sort(rep((nPAlive + 1):(2 * nPAlive - 1), 2))
-    newNodePDeath   <- rep(0, nPBranches)
-    for (i in 1:nPBranches) {
-      if (prunedPBranches$nodeDeath[i]>nPAlive) {
-        newNodePDeath[i]<-newNodePBirth[prunedPBranches$nodeBirth==prunedPBranches$nodeDeath[i]][1]
-      } else {
-        newNodePDeath[i] <- prunedPBranches$nodeDeath[i]
-      }
-    }
-    prunedPBranches$nodeBirth <- newNodePBirth
-    prunedPBranches$nodeDeath <- newNodePDeath
-  }
-
-  # translate into phylo format:
-  if (prune.extinct==TRUE) {
-    Pphy <- list(edge = cbind(prunedPBranches$nodeBirth, prunedPBranches$nodeDeath),
-                 edge.length = prunedPBranches$tDeath - prunedPBranches$tBirth,
-                 tip.label = paste("t", 1:nPAlive, sep = ""), root.edge = Proot.edge,
-                 root.time = Proot.time, nAlive = nPAlive, Hassoc = prunedPBranches$Hassoc,
-                 root.Hassoc = Proot.Hassoc)
-    class(Pphy) <- "phylo"
-    Pphy$Nnode  <- nPAlive - 1
-  } else { # extinct taxa included:
+    # translate into phylo format:
     Pphy <- list(edge = cbind(rPBranches$nodeBirth, rPBranches$nodeDeath),
                  edge.length = rPBranches$tDeath - rPBranches$tBirth,
                  tip.label = paste("t", 1:(1 + nPBranches / 2), sep = ""),
                  root.edge = Proot.edge, root.time = Proot.time, nAlive = nPAlive,
                  Hassoc = rPBranches$Hassoc, root.Hassoc = Proot.Hassoc)
-    class(Pphy) <- "phylo"
-    Pphy$Nnode 	<- nPBranches / 2
+  } else {
+    Pphy <- list(edge = NULL,
+                 edge.length = NULL,
+                 tip.label = paste("t", 1:(1 + nPBranches / 2), sep = ""),
+                 root.edge = Proot.edge, root.time = Proot.time, nAlive = nPAlive,
+                 Hassoc = NULL, root.Hassoc = Proot.Hassoc)
   }
+  class(Pphy) <- "phylo"
+  Pphy$Nnode 	<- nPBranches / 2
   return(Pphy)
 }
 

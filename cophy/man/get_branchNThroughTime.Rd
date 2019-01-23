@@ -19,7 +19,4 @@ get_branchNThroughTime(phy, tmax, startT = 0, dt)
 Calculates the number of living species at particular time intervals of a
 simulation. Applicable for both host and parasite phylogenies.
 }
-\examples{
-phy <- rcophylo_HP(tmax=5, k=5)
-get_branchNThroughTime(phy=phy[[2]], tmax=5, dt=1)
-}
+\keyword{internal}

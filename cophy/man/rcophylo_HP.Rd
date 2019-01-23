@@ -6,8 +6,7 @@
 \usage{
 rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
   beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-  delta = 0, prune.extinct = FALSE, export.format = "cophylogeny",
-  timestep = 0.001)
+  delta = 0, exportFormat = "cophylogeny", timestep = 0.001)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
@@ -41,10 +40,7 @@ co-speciation. delta=0 specifies faithful transmission of the parasites to
 both new host species, whereas delta=1 specifies that parasites will only
 be inherited by one daughter host species.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct
-branches.}
-
-\item{export.format}{a string specifying either "cophylogeny" or "raw". Where
+\item{exportFormat}{a string specifying either "cophylogeny" or "raw". Where
 "cophylogeny" specifies that the output will be exported as class
 "cophylogeny" (the default). "raw" exports the output as two objects of
 class "data.frame".}
@@ -56,7 +52,7 @@ more precise.}
 \value{
 By default, an object of class "cophylogeny" is returned that is a
   list of phylo objects (one for the host and one for the parasite), as
-  specified in the R-package "ape". If the argument \code{export.format} is
+  specified in the R-package "ape". If the argument \code{exportFormat} is
   set to "raw" the function returns a list of dataframes containing
   information on all the branches in the trees. (These dataframes are what
   the function uses internally.)
@@ -65,8 +61,4 @@ By default, an object of class "cophylogeny" is returned that is a
 This function simulates the evolution of a random host tree with a coevolving
 random parasite tree.
 }
-\examples{
-HPtree<-rcophylo_HP(tmax=5, K=5)
-print(HPtree)
-plot(HPtree)
-}
+\keyword{internal}

@@ -25,7 +25,7 @@ Here is a simple example for how you can create a random cophylogeny, and plot i
 
 library(cophy)
 set.seed(7)
-cop<-rcophylo_HP(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
+cop<-rcophylo(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
 cop
 get_infectionStatistics(cop)
 plot(cop)
@@ -33,9 +33,9 @@ plot(cop)
 
 ## Installation
 
-To install cophy, you first need to install and load the devtools package (available on CRAN). 
+To install cophy, you first need to install and load the latest version of the devtools package (available on CRAN). 
 Then, run the following line of code:
 
-```{r installation}
-devtools::install_github("JanEngelstaedter/cophy")
+```{r installation, eval = FALSE}
+devtools::install_github("JanEngelstaedter/cophy", build_opts = c("--no-resave-data", "--no-manual"))
 ```

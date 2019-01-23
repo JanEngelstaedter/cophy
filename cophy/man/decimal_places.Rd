@@ -14,7 +14,5 @@ Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-
 }
 \author{
 daroczig
-examples
-decimal_places(1)
-decimal_places(0.4)
 }
+\keyword{internal}

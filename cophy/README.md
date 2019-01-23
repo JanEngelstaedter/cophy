@@ -14,7 +14,7 @@ Here is a simple example for how you can create a random cophylogeny, and plot i
 
 library(cophy)
 set.seed(7)
-cop<-rcophylo_HP(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
+cop<-rcophylo(tmax=20, K=30, beta = 2, gamma = 0.3, nu = 0.3)
 cop
 #> Cophylogeny consisting of a host tree and an associated parasite tree.
 #> Host tree:
@@ -45,18 +45,8 @@ plot(cop)
 Installation
 ------------
 
-To install cophy, you first need to install and load the devtools package (available on CRAN). Then, run the following line of code:
+To install cophy, you first need to install and load the latest version of the devtools package (available on CRAN). Then, run the following line of code:
 
 ``` r
-devtools::install_github("JanEngelstaedter/cophy")
-#> Downloading GitHub repo JanEngelstaedter/cophy@master
-#> from URL https://api.github.com/repos/JanEngelstaedter/cophy/zipball/master
-#> Installing cophy
-#> '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file  \
-#>   --no-environ --no-save --no-restore --quiet CMD INSTALL  \
-#>   '/private/var/folders/8z/mqp724ld2n1c6krws_2pqvdh0000gn/T/RtmpM43Bj6/devtoolsc62396da9c/JanEngelstaedter-cophy-d9083ef'  \
-#>   --library='/Library/Frameworks/R.framework/Versions/3.5/Resources/library'  \
-#>   --install-tests
-#> 
-#> Reloading installed cophy
+devtools::install_github("JanEngelstaedter/cophy", build_opts = c("--no-resave-data", "--no-manual"))
 ```

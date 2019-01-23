@@ -4,13 +4,17 @@
 \alias{plot.cophylogeny}
 \title{Cophylogeny plot}
 \usage{
-\method{plot}{cophylogeny}(x, ParasiteCol = "Red", ...)
+\method{plot}{cophylogeny}(x, hostCol = "Black", parasiteCol = "Red",
+  ...)
 }
 \arguments{
 \item{x}{a cophylogeny of class 'cophylogeny', containing a host tree and a
 parasite tree.}
 
-\item{ParasiteCol}{specifies the colour to use when ploting parasite lineages.
+\item{hostCol}{specifies the colour to use when ploting host lineages.
+Defaults to "Black".}
+
+\item{parasiteCol}{specifies the colour to use when ploting parasite lineages.
 Defaults to "Red".}
 
 \item{...}{other parameters to be passed to plotting functions.}
@@ -19,8 +23,8 @@ Defaults to "Red".}
 This function plots a host-parasite cophylogenetic tree.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format='raw')
-HPtree<-rcophylo_PonH(H.tree=Htree)
+Htree<-rphylo_H(tmax=5, exportFormat='raw')
+HPtree<-rcophylo(HTree=Htree)
 plot(cophylogeny(HPtree))
 }
 \keyword{cophylogeny,}

@@ -20,10 +20,4 @@ Calculating the correlation between the distance matrixes of parasites and
 their associated hosts within subtrees specified by particular height.
 Requires at least three living parasites.
 }
-\examples{
-HPtree<-rcophylo_HP(tmax=10, K=10)
-get_PHDistSubtreeCorrelation(cophy=HPtree, h=2)
-}
-\keyword{correlation}
-\keyword{distance,}
-\keyword{genetic}
+\keyword{internal}
