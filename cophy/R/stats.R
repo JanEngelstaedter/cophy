@@ -385,3 +385,28 @@ get_PextinctionTime <- function(x) {
 	}
 }
 
+
+#' A function that prunes a cophylogeny and plots the resulting co-cladogram
+#'
+#' @param cophy an object of class cophylogeny that contains a host tree with one
+#'   associated parasite tree.
+#' @param plot logical. Whether or not the output should automatically be plotted.
+#' @importFrom phytools getExtinct
+#' @importFrom phytools cophylo
+#' @importFrom ape drop.tip
+#' @export
+#' @examples
+#' cophy <- rcophylo_HP(5)
+#' prune_Cophylo(cophy)
+
+prune_Cophylo <- function(cophy, plot = TRUE) {
+  prunedHtree <- prune_hostTree(Htree = cophy[[1]])
+  prunedPtree <- prune_parasiteTree(Htree = cophy[[1]], Ptree = cophy[[2]])
+
+  if (plot == TRUE) {
+    par(mar = c(0, 0, 0, 0))
+    plot(phytools::cophylo(prunedHtree$Htree, prunedPtree$Ptree, prunedPtree$tipAssociations))
+  }
+
+  return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree, tipAssociations = prunedPtree$tipAssociations))
+}
