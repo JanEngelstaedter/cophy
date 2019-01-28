@@ -25,9 +25,4 @@ interval), cospeciation events, host shifts, extinction (with hosts
 surviving), co-extinction (extinction caused by host extinction), speciation
 events for lineages with surviving descendents
 }
-\examples{
-HPtree<-rcophylo_HP(tmax=5)
-get_PEventsThroughTime(cophy=HPtree)
-}
-\keyword{cophylogeny,}
-\keyword{events}
+\keyword{internal}

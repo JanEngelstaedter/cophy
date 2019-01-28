@@ -4,17 +4,16 @@
 \alias{get_PextinctionTime}
 \title{Parasite lineage extinction time}
 \usage{
-get_PextinctionTime(phy)
+get_PextinctionTime(x)
 }
 \arguments{
-\item{phy}{parasite tree in phylo format}
+\item{x}{either a cophylogeny (object of class "cophylogeny") containing one host
+and one parasite tree, or just a parasite tree (of class "phylo")}
 }
 \description{
 Function to calculate the time of the last surviving parasite species
 }
 \examples{
-HPtree<-rcophylo_HP(tmax=5)
-get_PextinctionTime(phy=HPtree[[2]])
+coph <- rcophylo(tmax=5)
+get_PextinctionTime(coph)
 }
-\keyword{last}
-\keyword{parasite}

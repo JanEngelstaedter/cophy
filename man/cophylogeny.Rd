@@ -20,9 +20,9 @@ to \code{\link{plot.cophylogeny}}. This object must contain at least one
 host and one parasite tree.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, export.format='raw')
-HPtree<-rcophylo_PonH(H.tree=Htree)
-cophylogeny(HPtree)
+HTree<-rphylo_H(tmax=5, exportFormat='raw')
+HPTree<-rcophylo(HTree=HTree)
+cophylogeny(HPTree)
 }
 \keyword{class}
 \keyword{cophylogeny,}

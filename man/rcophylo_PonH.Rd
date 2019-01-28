@@ -4,13 +4,12 @@
 \alias{rcophylo_PonH}
 \title{Cophylogeny simulation on an existing host tree.}
 \usage{
-rcophylo_PonH(H.tree, beta = 0.1, gamma = 0.02, sigma = 0,
-  nu = 0.5, kappa = 0, delta = 0, prune.extinct = FALSE,
-  export.format = "cophylogeny", P.startT = 0, ini.Hbranch = NA,
-  Gdist = NA, timestep = 0.001)
+rcophylo_PonH(HTree, beta = 0.1, gamma = 0, sigma = 0, nu = 0.5,
+  kappa = 0, delta = 0, exportFormat = "cophylogeny", PStartT = 0,
+  iniHBranch = NULL, Gdist = NULL, timestep = 0.001)
 }
 \arguments{
-\item{H.tree}{a pre-built host phylogenetic tree.}
+\item{HTree}{a pre-built host phylogenetic tree.}
 
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}
 
@@ -32,23 +31,20 @@ co-speciation. delta=0 specifies faithful transmission of the parasites to
 both new host species, whereas delta=1 specifies that parasites will only
 be inherited by one daughter host species.}
 
-\item{prune.extinct}{logical. Determines whether or not to remove all extinct
-branches.}
-
-\item{export.format}{a string specifying either "cophylogeny" or "raw". Where
+\item{exportFormat}{a string specifying either "cophylogeny" or "raw". Where
 "cophylogeny" specifies that the output will be exported as class
 "cophylogeny" (the default). "raw" exports the output as two objects of
 class "data.frame".}
 
-\item{P.startT}{the timepoint at which a parasite invades the host tree
+\item{PStartT}{the timepoint at which a parasite invades the host tree
 (default set to 0).}
 
-\item{ini.Hbranch}{numerical. The host branch number from which the parasite
+\item{iniHBranch}{numerical. The host branch number from which the parasite
 invasion is initiated. If left at the default value NA, a randomly chosen
-host branch alive at P.startT (time of infection) will be selected.}
+host branch alive at PStartT (time of infection) will be selected.}
 
 \item{Gdist}{optional: a pre-calculated distance matrix of the living host
-branches at P.startT (time of infection). Providing this matrix will speed
+branches at PStartT (time of infection). Providing this matrix will speed
 up the calculation which may be useful when running several simulations on
 the same host tree.}
 
@@ -60,7 +56,7 @@ should be used to build the parasite tree to avoid potential errors.}
 \value{
 By default, an object of class "cophylogeny" is returned that is a
   list of phylo objects (one for the host and one for the parasite), as
-  specified in the R-package "ape". If the argument \code{export.format} is
+  specified in the R-package "ape". If the argument \code{exportFormat} is
   set to "raw" the function returns a list of dataframes containing
   information on all the branches in the trees. (These dataframes are what
   the function uses internally.)
@@ -69,9 +65,4 @@ By default, an object of class "cophylogeny" is returned that is a
 This function simulates the codiversification of a clade of parasites on a
 given host phylogeny (simulated or estimated) that is provided.
 }
-\examples{
-Htree<-rphylo_H(tmax=5)
-rcophylo_PonH(H.tree=Htree)
-}
-\keyword{Host-Parasite}
-\keyword{phylogeny}
+\keyword{internal}

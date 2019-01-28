@@ -1,7 +1,7 @@
 Package: cophy
 Title: Constructing random cophylogenetic trees and analysing their statistics
-Version: 1.0.0
-Date: 2018-05-08
+Version: 0.1.0
+Date: 2019-01-20
 Authors@R: c(
     person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "aut"),
     person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = c("aut", "cre")))
@@ -16,5 +16,8 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     ape (>= 5.0),
-    phytools (>= 0.6),
+    phytools (>= 0.6)
+Suggests:
+    knitr
+VignetteBuilder: knitr
 RoxygenNote: 6.1.1

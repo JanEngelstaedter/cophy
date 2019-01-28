@@ -5,6 +5,97 @@
 
 DBINC <- 100   # constant that is used internally; only affects the speed of simulations
 
+#' Simulate cophylogenies
+#'
+#' This function simulates the process of a parasite lineage that can codiversifies with a host lineage through a number of possible events such as cospeciation, extinction and host-switching. The host tree can either be supplied or simulated along with the parasite tree.
+#'
+#' @param beta a numeric value giving the baseline parasite host shift rate.
+#' @param nu a numeric value giving the parasite extinction rate.
+#' @param gamma a numeric value giving the dependency of host shift success on
+#'   phylogenetic distance between the old and the new host.
+#' @param sigma a numeric value determining how successful host shift are when
+#'   the new host is already infected by a parasite. Specifically, the
+#'   probability of host shift success \eqn{(1-\sigma)^n}, where \eqn{n} is the
+#'   number of pre-existing parasites on the new host branch.
+#' @param kappa a numeric value giving the parasite speciation rate within
+#'   hosts.
+#' @param delta a numeric value giving the probability of lineage loss during
+#'   co-speciation. delta=0 specifies faithful transmission of the parasites to
+#'   both new host species, whereas delta=1 specifies that parasites will only
+#'   be inherited by one daughter host species.
+#'@param HTree a pre-built host phylogenetic tree.
+#' @param lambda a numeric value giving the host speciation rate.
+#' @param mu a numeric value giving the host extinction rate.
+#' @param K a numeric value giving the carrying capacity for the host species.
+#' @param tmax a numeric value giving the length of the simulation.
+#' @param nHmax a numeric value giving the number of host species at which the
+#'   simulation is stopped.
+#' @param PStartT the timepoint at which a parasite invades the host tree
+#'   (default set to 0).
+#' @param iniHBranch numerical. The host branch number from which the parasite
+#'   invasion is initiated. If left at the default value NA, a randomly chosen
+#'   host branch alive at PStartT (time of infection) will be selected.
+#' @param Gdist optional: a pre-calculated distance matrix of the living host
+#'   branches at PStartT (time of infection). Providing this matrix will speed
+#'   up the calculation which may be useful when running several simulations on
+#'   the same host tree.
+#' @param exportFormat a string specifying either "cophylogeny" or "raw". Where
+#'   "cophylogeny" specifies that the output will be exported as class
+#'   "cophylogeny" (the default). "raw" exports the output as two objects of
+#'   class "data.frame".
+#' @param timestep a numeric value giving the time step by which the simulation
+#'   proceeds. Increase to make the simulation faster or decrease to make it
+#'   more precise.
+#' @return By default, an object of class "cophylogeny" is returned that is a
+#'   list of phylo objects (one for the host and one for the parasite), as
+#'   specified in the R-package "ape". If the argument \code{exportFormat} is
+#'   set to "raw" the function returns a list of dataframes containing
+#'   information on all the branches in the trees. (These dataframes are what
+#'   the function uses internally.)
+#' @importFrom stats rbinom
+#' @importFrom stats runif
+#' @export
+#' @examples
+#' cophylogeny <- rcophylo(tmax=5)
+#' print(cophylogeny)
+#' plot(cophylogeny)
+rcophylo <- function(beta = 0.1,
+                     nu = 0.5,
+                     gamma = 0,
+                     sigma = 0,
+                     kappa = 0,
+                     delta = 0,
+                     HTree = NULL,
+                     lambda = 1,
+                     mu = 0.5,
+                     K = Inf,
+                     tmax = NULL,
+                     nHmax = Inf,
+                     PStartT = 0,
+                     iniHBranch = NULL,
+                     Gdist = NULL,
+                     exportFormat = "cophylogeny",
+                     timestep = 0.001) {
+
+  if (is.null(HTree)) {   # simulate host tree along with parasite tree
+    if (!is.null(iniHBranch))
+      warning("When no host tree is provided, any values for iniHBranch will be ignored.")
+      cop <- rcophylo_HP(tmax = tmax, nHmax = nHmax, lambda = lambda, mu = mu, K = K, beta = beta,
+                         gamma = gamma, sigma = sigma, nu = nu, kappa = kappa, delta = delta,
+                         exportFormat = exportFormat, timestep = timestep)
+  } else { # host tree has been provided
+    if (!is.null(tmax))
+        warning("When a host tree is provided, simulations will run across the entire tree and any value provided for tmax will be ignored.")
+    if ((lambda!=1) || (mu!=0.5) || (!is.infinite(K)))
+        warning("When a host tree is provided, any parameter values provided for lambda, mu and K will be ignored.")
+    cop <- rcophylo_PonH(HTree = HTree,
+                         beta = beta, gamma = gamma, sigma = sigma, nu = nu, kappa = kappa, delta = delta,
+                         exportFormat = exportFormat, PStartT = PStartT,
+                         iniHBranch = iniHBranch, Gdist = Gdist, timestep = timestep)
+  }
+  return(cop)
+}
+
 #' Cophylogeny simulation
 #'
 #' This function simulates the evolution of a random host tree with a coevolving
@@ -29,9 +120,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   co-speciation. delta=0 specifies faithful transmission of the parasites to
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct
-#'   branches.
-#' @param export.format a string specifying either "cophylogeny" or "raw". Where
+#' @param exportFormat a string specifying either "cophylogeny" or "raw". Where
 #'   "cophylogeny" specifies that the output will be exported as class
 #'   "cophylogeny" (the default). "raw" exports the output as two objects of
 #'   class "data.frame".
@@ -40,21 +129,17 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   more precise.
 #' @return By default, an object of class "cophylogeny" is returned that is a
 #'   list of phylo objects (one for the host and one for the parasite), as
-#'   specified in the R-package "ape". If the argument \code{export.format} is
+#'   specified in the R-package "ape". If the argument \code{exportFormat} is
 #'   set to "raw" the function returns a list of dataframes containing
 #'   information on all the branches in the trees. (These dataframes are what
 #'   the function uses internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5, K=5)
-#' print(HPtree)
-#' plot(HPtree)
+#' @keywords internal
 
 rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0.1,
                         gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0, delta = 0,
-                        prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
+                        exportFormat = "cophylogeny", timestep = 0.001) {
 
   # adjusting the evolutionary rates to probabilities per time step:
   lambda <- lambda * timestep
@@ -360,17 +445,17 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
   }
 
   # merging two H matricies together:
-
-  HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
+  if (nHDeadBranches > 0)
+    HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
   HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
 
   # merging two P matricies together:
-
-  PBranches <- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
+  if (nPDeadBranches > 0)
+    PBranches <- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches <- PBranches[order(PBranches[, "branchNo"]), ]
-  if (export.format == "cophylogeny") # return cophylogeny as an ape phylo class
+  if (exportFormat == "cophylogeny") # return cophylogeny as an ape phylo class
     return(cophylogeny(list(HBranches, PBranches)))
-  else if (export.format == "raw") # return the HBranches and PBranches lists as they are
+  else if (exportFormat == "raw") # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
 }
 
@@ -387,9 +472,7 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
 #' @param mu a numeric value giving the host extinction rate.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct
-#'   branches.
-#' @param export.format either "phylo" (exported in Ape phylo format, the
+#' @param exportFormat either "phylo" (exported in Ape phylo format, the
 #'   default setting) or "raw" (just a list of branches as used within the
 #'   function itself)
 #' @param timestep a numeric value giving the time step by which the simulation
@@ -397,7 +480,7 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #'   more precise.
 #' @keywords Host phylogeny
 #' @return By default, an object of class "phylo" is returned, as specified in
-#'   the R-package "ape". If the argument \code{export.format} is set to "raw"
+#'   the R-package "ape". If the argument \code{exportFormat} is set to "raw"
 #'   the function returns a dataframe containing information on all the branches
 #'   in the tree. (This dataframe are what the function uses internally.)
 #' @importFrom stats rbinom
@@ -407,7 +490,7 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
 #' rphylo_H(tmax=5)
 
 rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-                     prune.extinct = FALSE, export.format = "phylo", timestep = 0.001) {
+                     exportFormat = "phylo", timestep = 0.001) {
   # adjusting the evolutionary rates to timesteps:
   lambda  <- lambda * timestep
   mu      <- mu * timestep
@@ -500,9 +583,9 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
   HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
   HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
 
-  if (export.format == "phylo") # return phylogeny as an APE phylo class
-    return(convert_HBranchesToPhylo(HBranches, prune.extinct))
-  else if (export.format == "raw") # return the HBranches as they are
+  if (exportFormat == "phylo") # return phylogeny as an APE phylo class
+    return(convert_HBranchesToPhylo(HBranches))
+  else if (exportFormat == "raw") # return the HBranches as they are
     return(HBranches)
 }
 
@@ -511,7 +594,7 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #' This function simulates the codiversification of a clade of parasites on a
 #' given host phylogeny (simulated or estimated) that is provided.
 #'
-#' @param H.tree a pre-built host phylogenetic tree.
+#' @param HTree a pre-built host phylogenetic tree.
 #' @param beta a numeric value giving the baseline parasite host shift rate.
 #' @param gamma a numeric value giving the dependency of host shift success of a
 #'   parasite on phylogenetic distance between the old and the new host.
@@ -526,19 +609,17 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #'   co-speciation. delta=0 specifies faithful transmission of the parasites to
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
-#' @param prune.extinct logical. Determines whether or not to remove all extinct
-#'   branches.
-#' @param export.format a string specifying either "cophylogeny" or "raw". Where
+#' @param exportFormat a string specifying either "cophylogeny" or "raw". Where
 #'   "cophylogeny" specifies that the output will be exported as class
 #'   "cophylogeny" (the default). "raw" exports the output as two objects of
 #'   class "data.frame".
-#' @param P.startT the timepoint at which a parasite invades the host tree
+#' @param PStartT the timepoint at which a parasite invades the host tree
 #'   (default set to 0).
-#' @param ini.Hbranch numerical. The host branch number from which the parasite
+#' @param iniHBranch numerical. The host branch number from which the parasite
 #'   invasion is initiated. If left at the default value NA, a randomly chosen
-#'   host branch alive at P.startT (time of infection) will be selected.
+#'   host branch alive at PStartT (time of infection) will be selected.
 #' @param Gdist optional: a pre-calculated distance matrix of the living host
-#'   branches at P.startT (time of infection). Providing this matrix will speed
+#'   branches at PStartT (time of infection). Providing this matrix will speed
 #'   up the calculation which may be useful when running several simulations on
 #'   the same host tree.
 #' @param timestep a numeric value giving the time step by which the simulation
@@ -547,30 +628,27 @@ rphylo_H <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
 #'   should be used to build the parasite tree to avoid potential errors.
 #' @return By default, an object of class "cophylogeny" is returned that is a
 #'   list of phylo objects (one for the host and one for the parasite), as
-#'   specified in the R-package "ape". If the argument \code{export.format} is
+#'   specified in the R-package "ape". If the argument \code{exportFormat} is
 #'   set to "raw" the function returns a list of dataframes containing
 #'   information on all the branches in the trees. (These dataframes are what
 #'   the function uses internally.)
-#' @keywords Host-Parasite phylogeny
+#' @keywords internal
 #' @importFrom stats rbinom
 #' @importFrom stats runif
-#' @export
-#' @examples
-#' Htree<-rphylo_H(tmax=5)
-#' rcophylo_PonH(H.tree=Htree)
+#' @keywords internal
 
-rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-                          delta = 0, prune.extinct = FALSE, export.format = "cophylogeny", P.startT = 0,
-                          ini.Hbranch = NA, Gdist = NA, timestep = 0.001) {
-  if (class(H.tree) == "phylo") {
-    H.tree <- convert_HPhyloToBranches(Htree = H.tree) # Make sure is internal data.frame structure
+rcophylo_PonH <- function(HTree, beta = 0.1, gamma = 0, sigma = 0, nu = 0.5, kappa = 0,
+                          delta = 0, exportFormat = "cophylogeny", PStartT = 0,
+                          iniHBranch = NULL, Gdist = NULL, timestep = 0.001) {
+  if (class(HTree) == "phylo") {
+    HTree <- convert_HPhyloToBranches(Htree = HTree) # Make sure is internal data.frame structure
 
     # correct death time in case host tree was built by another package
-    H.tree[which(H.tree$alive==T), 'tDeath'] <- round(max(H.tree$tDeath), decimal_places(timestep))
-    tmax <- max(H.tree$tDeath)
+    HTree[which(HTree$alive==T), 'tDeath'] <- round(max(HTree$tDeath), decimal_places(timestep))
+    tmax <- max(HTree$tDeath)
   } else {
-    H.tree[which(H.tree$alive==T), 'tDeath'] <- round(max(H.tree$tDeath), decimal_places(timestep))
-    tmax <- max(H.tree$tDeath)
+    HTree[which(HTree$alive==T), 'tDeath'] <- round(max(HTree$tDeath), decimal_places(timestep))
+    tmax <- max(HTree$tDeath)
   }
 
   # adjusting the evolutionary rates to probabilities per time step:
@@ -580,15 +658,19 @@ rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5,
 
   # Set beginning for P simulation
 
-  HBranches <- H.tree[which(H.tree[, 5] >= P.startT & H.tree[, 3] <= P.startT), ]  # which host branches are alive at invasion time T?
+  HBranches <- HTree[which(HTree[, 5] >= PStartT & HTree[, 3] <= PStartT), ]  # which host branches are alive at invasion time T?
 
-  if (is.na(ini.Hbranch)) { # no initial host branch specified --> choose random branch
-    P.startHassoc <- sample(HBranches$branchNo, 1) # HBranch that invasion will start from
+  if (is.null(iniHBranch)) { # no initial host branch specified --> choose random branch
+    if (length(HBranches$branchNo) > 1) {
+      P.startHassoc <- sample(HBranches$branchNo, 1) # HBranch that invasion will start from
+    } else {
+      P.startHassoc <- HBranches$branchNo[1]
+    }
   } else {
-    P.startHassoc <- ini.Hbranch # HBranch that invasion will start from
+    P.startHassoc <- iniHBranch # HBranch that invasion will start from
   }
 
-  PBranches <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = P.startT, nodeDeath = 0,
+  PBranches <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = PStartT, nodeDeath = 0,
                           tDeath = 0, Hassoc = P.startHassoc, branchNo = 1)
 
   nPBranches <- 1	# total number of branches that have been constructed
@@ -599,15 +681,15 @@ rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5,
                               nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
   nPDeadBranches <- 0		  	    # number of dead parasite branches
 
-  if (any(is.na(Gdist))) { # calculate the Gdist matrix in the case that one is not provided
-    Gdist	<- get_GDist(H.tree, t = P.startT) # initialise matrix that will record the genetic distance between all living hosts at time t
+  if (any(is.null(Gdist))) { # calculate the Gdist matrix in the case that one is not provided
+    Gdist	<- get_GDist(HTree, t = PStartT) # initialise matrix that will record the genetic distance between all living hosts at time t
   }
 
-  HBranchDeathTimes <- sort(H.tree$tDeath[H.tree$tDeath >= P.startT & H.tree$alive == FALSE])
+  HBranchDeathTimes <- sort(HTree$tDeath[HTree$tDeath >= PStartT & HTree$alive == FALSE])
   HDeathIndex <- 1
 
   continue <- TRUE
-  t <- P.startT
+  t <- PStartT
   while (continue == TRUE) # continue simulation until continue is set to FALSE
   {  # main simulation loop through time
     t <- t + timestep
@@ -625,12 +707,12 @@ rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5,
       for (i in HBranches$nodeDeath[H.Death][order(HBranches$nodeDeath[H.Death])]) # for each node where a host died
       {
         # Cospeciation events:
-        if (i %in% H.tree$nodeBirth)   # Check if host death is due to speciation
+        if (i %in% HTree$nodeBirth)   # Check if host death is due to speciation
         {
           H.Speciations    <-which(HBranches$nodeDeath == i) # H row speciating at time t at particular node
-          daughterBranches <-which(H.tree$nodeBirth == i)
-          HBranches        <-rbind(HBranches, H.tree[daughterBranches[1], ])
-          HBranches        <-rbind(HBranches, H.tree[daughterBranches[2], ])
+          daughterBranches <-which(HTree$nodeBirth == i)
+          HBranches        <-rbind(HBranches, HTree[daughterBranches[1], ])
+          HBranches        <-rbind(HBranches, HTree[daughterBranches[2], ])
 
           timepoint        <-HBranches$tDeath[H.Speciations] # use exact time of death as opposed to current time t
           # update Gdist matrix:
@@ -668,8 +750,8 @@ rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5,
                                                                  tDeath = 0, Hassoc = 0, branchNo = 0))
               }
 
-              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[1]], nPBranches + 1))
-              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, H.tree$branchNo[daughterBranches[2]], nPBranches + 2))
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, HTree$branchNo[daughterBranches[1]], nPBranches + 1))
+              PBranches  <- rbind(PBranches, c(TRUE, nextPNode, timepoint, 0, 0, HTree$branchNo[daughterBranches[2]], nPBranches + 2))
               nextPNode  <- nextPNode + 1
               nPAlive    <- nPAlive + 1
               nPBranches <- nPBranches + 2
@@ -865,18 +947,18 @@ rcophylo_PonH <- function(H.tree, beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5,
 
   # recovering the original host tree:
 
-  HBranches	<- H.tree
+  HBranches	<- HTree
 
   # merging two P matricies together:
-
-  PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
+  if (nPDeadBranches > 0)
+    PBranches	<- rbind(PBranches, PDeadBranches[1:nPDeadBranches, ])
   PBranches	<- PBranches[order(PBranches[, "branchNo"]), ]
 
-  if (export.format == "cophylogeny"){ # return cophylogeny as an APE phylo class
+  if (exportFormat == "cophylogeny"){ # return cophylogeny as an APE phylo class
     return(cophylogeny(list(HBranches, PBranches)))
-  } else if (export.format == "raw") { # return the HBranches and PBranches lists as they are
+  } else if (exportFormat == "raw") { # return the HBranches and PBranches lists as they are
     return(list(HBranches, PBranches))
-  } else if (export.format == "PhyloPonly") {# return only the parasite tree, converted in phylo format
+  } else if (exportFormat == "PhyloPonly") {# return only the parasite tree, converted in phylo format
     return(convert_PBranchesToPhylo(PBranches))
   }
 }

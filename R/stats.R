@@ -8,12 +8,9 @@
 #' The following function counts the host-jumps of a host-parasite phylogeny
 #' @param cophy a cophylogeny (object of class "cophylogeny") containing one host and one parasite tree.
 #' @keywords cophylogeny, host-jumps
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_HostShifts(cophy=HPtree)
+#' @keywords internal
 
-get_HostShifts <- function(cophy) {
+get_hostShifts <- function(cophy) {
   Pphy  <- cophy[[2]]
   jumps <- c()
 
@@ -55,14 +52,13 @@ get_HostShifts <- function(cophy) {
 }
 
 
-
-# Calculates the final infection levels of a cophylogeny.
-#
-# The following function counts the number of hosts infected with a particular
-# number of parasites from the same parasite phylogeny.
-# @param cophy a cophylogeny (object of class "cophylogeny") containing one host
-#   and one parasite tree.
-# @keywords cophylogeny, infection-counts
+#' Distribution of parasite numbers on the tips of a cophylogeny.
+#'
+#' This function returns the numbers of extant hosts infected with a particular
+#' number of parasites (0, 1, 2, ...).
+#' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
+#'   and one parasite tree.
+#' @export
 
 get_infectionFrequencies <- function(cophy) {
   if (cophy[[1]]$nAlive > 0) {
@@ -95,8 +91,8 @@ get_infectionFrequencies <- function(cophy) {
 #' @keywords cophylogeny, statistics
 #' @export
 #' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_infectionStatistics(cophy=HPtree)
+#' cop<-rcophylo(tmax=5)
+#' get_infectionStatistics(cophy=cop)
 
 get_infectionStatistics <- function(cophy) {
   HistData <- get_infectionFrequencies(cophy)
@@ -122,10 +118,7 @@ get_infectionStatistics <- function(cophy) {
 #' @param tmax maximum time for which to simulate; may be greater than the actual tree length.
 #' @param startT the timepoint at which the lineage began simulating.
 #' @param dt step size for performing calculations.
-#' @export
-#' @examples
-#' phy <- rcophylo_HP(tmax=5, k=5)
-#' get_branchNThroughTime(phy=phy[[2]], tmax=5, dt=1)
+#' @keywords internal
 
 get_branchNThroughTime <- function(phy, tmax, startT=0, dt) {
   btt              <- rep(NA, length(seq(startT, tmax, by = dt)))
@@ -169,11 +162,7 @@ get_branchNThroughTime <- function(phy, tmax, startT=0, dt) {
 #' @param tmax the timepoint in the simulation until which parasite events
 #'   should be recorded, default = 'max' (end point for the cophylogeny)
 #' @param dt step size for the time points at which calculations are made
-#' @keywords cophylogeny, events
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_PEventsThroughTime(cophy=HPtree)
+#' @keywords internal
 
 get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
   Branches  <- convert_HPCophyloToBranches(cophy)
@@ -220,12 +209,13 @@ get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
   return(events)
 }
 
-# Calculating the distance matrix between host branches alive at a particular timepoint
-#
-# The following function returns a matrix of genetic distances between all species present at a given time.
-# If time t is not specified, the end point of the tree is used.
-# @param branches raw branches matrix of a host tree
-# @param t timepoint in simulation at which you want distance information
+#' Calculating the distance matrix between host branches alive at a particular timepoint
+#'
+#' The following function returns a matrix of genetic distances between all species present at a given time.
+#' If time t is not specified, the end point of the tree is used.
+#' @keywords internal
+#' @param branches raw branches matrix of a host tree
+#' @param t timepoint in simulation at which you want distance information
 
 get_GDist <- function(branches, t=NA) {
   if (is.na(t)) t <- max(branches[, 5])
@@ -237,7 +227,7 @@ get_GDist <- function(branches, t=NA) {
   n <- length(liveBranches[, 1])
 
   if (n == 0) return(NA)
-  if (n == 1) return(0)
+  if (n == 1) return(matrix(0, nrow = 1, ncol = 1))
 
   NodeTimes <- branches[, 5][order(branches[, 4])] # vector of times for each node in the tree
 
@@ -282,8 +272,8 @@ get_GDist <- function(branches, t=NA) {
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_PHDistCorrelation(cophy=HPtree)
+#' cop<-rcophylo(tmax=5)
+#' get_PHDistCorrelation(cophy=cop)
 
 get_PHDistCorrelation <- function(cophy) {
   if (length(cophy[[2]]$tip.label) == 1) {
@@ -315,11 +305,7 @@ get_PHDistCorrelation <- function(cophy) {
 #'   host and one parasite tree.
 #' @param h numeric scalar or vector with heights where the tree should be cut.
 #' @param k an integer scalar or vector with the desired number of groups
-#' @keywords genetic distance, correlation
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=10, K=10)
-#' get_PHDistSubtreeCorrelation(cophy=HPtree, h=2)
+#' @keywords internal
 
 get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
   #Hdist<-cophenetic.phylo(cophy[[1]])[1:cophy[[1]]$nAlive,1:cophy[[1]]$nAlive]
@@ -367,11 +353,7 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
 #' @param cophy a cophylogeny (object of class "cophylogeny") containing one host
 #'   and one parasite tree.
 #' @param tips a vector of tip labels
-#' @keywords subtree, infection frequency
-#' @export
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_infectionFrequenciesSubtrees(cophy=HPtree, tips=HPtree[[1]]$tip.label)
+#' @keywords internal
 
 get_infectionFrequenciesSubtrees <- function(cophy, tips) {
   HnodeNumbers         <- which(cophy[[1]]$tip.label %in% tips)
@@ -385,14 +367,16 @@ get_infectionFrequenciesSubtrees <- function(cophy, tips) {
 #' Parasite lineage extinction time
 #'
 #' Function to calculate the time of the last surviving parasite species
-#' @param phy parasite tree in phylo format
-#' @keywords last parasite
+#' @param x either a cophylogeny (object of class "cophylogeny") containing one host
+#'   and one parasite tree, or just a parasite tree (of class "phylo")
 #' @export
 #' @examples
-#' HPtree<-rcophylo_HP(tmax=5)
-#' get_PextinctionTime(phy=HPtree[[2]])
+#' coph <- rcophylo(tmax=5)
+#' get_PextinctionTime(coph)
 
-get_PextinctionTime <- function(phy) {
+get_PextinctionTime <- function(x) {
+  if (class(x) == 'cophylogeny') phy <- x[[2]]
+  else if (class(x) == 'phylo') phy <- x
 	if (is.null(phy)) return(NA)
 	if (nrow(phy$edge) >= 2) { # proper tree?
 		return(max(ape::node.depth.edgelength(phy)) + phy$root.edge+phy$root.time)
@@ -401,3 +385,28 @@ get_PextinctionTime <- function(phy) {
 	}
 }
 
+
+#' A function that prunes a cophylogeny and plots the resulting co-cladogram
+#'
+#' @param cophy an object of class cophylogeny that contains a host tree with one
+#'   associated parasite tree.
+#' @param plot logical. Whether or not the output should automatically be plotted.
+#' @importFrom phytools getExtinct
+#' @importFrom phytools cophylo
+#' @importFrom ape drop.tip
+#' @export
+#' @examples
+#' cophy <- rcophylo_HP(5)
+#' prune_Cophylo(cophy)
+
+prune_Cophylo <- function(cophy, plot = TRUE) {
+  prunedHtree <- prune_hostTree(Htree = cophy[[1]])
+  prunedPtree <- prune_parasiteTree(Htree = cophy[[1]], Ptree = cophy[[2]])
+
+  if (plot == TRUE) {
+    par(mar = c(0, 0, 0, 0))
+    plot(phytools::cophylo(prunedHtree$Htree, prunedPtree$Ptree, prunedPtree$tipAssociations))
+  } else {
+    return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree$Ptree, tipAssociations = prunedPtree$tipAssociations))
+  }
+}

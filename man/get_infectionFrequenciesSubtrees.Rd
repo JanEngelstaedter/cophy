@@ -16,10 +16,4 @@ and one parasite tree.}
 The following function returns the fraction of infected host species within a
 subclade of a host tree that is specified by tips, a vector of tip labels.
 }
-\examples{
-HPtree<-rcophylo_HP(tmax=5)
-get_infectionFrequenciesSubtrees(cophy=HPtree, tips=HPtree[[1]]$tip.label)
-}
-\keyword{frequency}
-\keyword{infection}
-\keyword{subtree,}
+\keyword{internal}
