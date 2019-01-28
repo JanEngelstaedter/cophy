@@ -47,7 +47,7 @@ convert_HBranchesToPhylo <- function(HBranches) {
   nHBranches <- nrow(HBranches)
 
   # number of living host and parasite species:
-  nHAlive <- sum(HBranches[, 1][HBranches[, 1] == TRUE])
+  nHAlive <- sum(HBranches$alive)
 
   # check if we have a host tree (with more than the initial branch):
   if (nHBranches == 1) {
@@ -101,7 +101,7 @@ convert_PBranchesToPhylo <- function(PBranches) {
   nPBranches <- nrow(PBranches)
 
   # number of living parasite species:
-  nPAlive <- sum(PBranches$alive[PBranches$alive == TRUE])
+  nPAlive <- sum(PBranches$alive)
 
   # deleting the first branch (the root) of host and parasite trees:
   # (This is necessary because phylo trees in APE don't have an initial branch.)
@@ -171,7 +171,7 @@ convert_HPhyloToBranches<-function(Htree) {
   ancBranches <- match(HBranches$nodeBirth, HBranches$nodeDeath)
 
   if (is.null(Htree$root.edge)) { # creating a dummy root branch
-    Htree$root.edge <- 0.0001
+    Htree$root.edge <- min(Htree$edge.length)/10
     warning("Tree has no root branch. A small root has been added to the tree to allow for parasite simulations.")
   }
 
@@ -189,10 +189,10 @@ convert_HPhyloToBranches<-function(Htree) {
   if (!is.null(Htree$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (Htree$nAlive > 0) {
-      HBranches$alive[HBranches$tDeath == max(HBranches$tDeath)] <- TRUE
+      HBranches$alive[round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)] <- TRUE
     }
   } else {
-    HBranches$alive <- HBranches$tDeath==max(HBranches$tDeath)
+    HBranches$alive <- round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)
     Htree$nAlive <- sum(HBranches$alive)
     # make sure branches are ordered correctly
     HBranches <- HBranches[order(HBranches$nodeBirth), ]
@@ -224,7 +224,7 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[1]]$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (cophy[[1]]$nAlive > 0) {
-      HBranches$alive[HBranches$tDeath == max(HBranches$tDeath)] <- TRUE
+      HBranches$alive[round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)] <- TRUE
     }
   }
 
@@ -249,7 +249,7 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[2]]$nAlive)) { # if the phylo object contains information about how many species are alive
     PBranches$alive <- FALSE
     if (cophy[[2]]$nAlive > 0) {
-      PBranches$alive[PBranches$tDeath == max(PBranches$tDeath)] <- TRUE
+      PBranches$alive[round(PBranches$tDeath, 7) == round(max(PBranches$tDeath), 7)] <- TRUE
     }
   }
   return(list(HBranches, PBranches))

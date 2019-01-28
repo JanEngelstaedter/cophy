@@ -70,13 +70,13 @@ decimal_places <- function(x) {
 }
 
 
-#' A function to prune a host tree according to some bias
-#'
-#' @param Htree the host tree to be pruned
-#' @importFrom phytools getExtinct
-#' @examples
-#' Htree <- rphylo_H(tmax=5)
-#' prune_hostTree(Htree)
+# A function to prune a host tree according to some bias
+#
+# @param Htree the host tree to be pruned
+# @importFrom phytools getExtinct
+# @examples
+# Htree <- rphylo_H(tmax=5)
+# prune_hostTree(Htree)
 
 prune_hostTree <- function(Htree, propSampled = 1, bias = 0) {
   if (Htree$nAlive <= 1) {
@@ -91,13 +91,13 @@ prune_hostTree <- function(Htree, propSampled = 1, bias = 0) {
   return(list(Htree = prunedTree))
 }
 
-#' A function to prune a host tree according to some bias
-#'
-#' @param Htree a host tree
-#' @param Ptree a parasite tree to be pruned
-#' @examples
-#' HPtree <- rcophylo_HP(5)
-#' prune_parasiteTree(Htree = HPtree[[1]], Ptree = HPtree[[2]])
+# A function to prune a host tree according to some bias
+#
+# @param Htree a host tree
+# @param Ptree a parasite tree to be pruned
+# @examples
+# HPtree <- rcophylo_HP(5)
+# prune_parasiteTree(Htree = HPtree[[1]], Ptree = HPtree[[2]])
 
 
 prune_parasiteTree <- function(Htree, Ptree) {
@@ -108,11 +108,9 @@ prune_parasiteTree <- function(Htree, Ptree) {
   extinct	<- phytools::getExtinct(Ptree)
   alive	  <- Ptree$tip.label[-which(Ptree$tip.label %in% extinct)]
 
-  HBranches <- convert_HPhyloToBranches(Htree)
-  HBranches <- HBranches[which(HBranches$alive == T), ]
-
-  PBranches <- convert_PPhyloToBranches(Ptree)
-  PBranches <- PBranches[which(PBranches$alive == T), ]
+  HPBranches <- convert_HPCophyloToBranches(list(Htree, Ptree))
+  HBranches <- HPBranches[[1]][which(HPBranches[[1]]$alive == T), ]
+  PBranches <- HPBranches[[2]][which(HPBranches[[2]]$alive == T), ]
 
   whichH <- vector(length = nrow(PBranches))
   for (i in 1:nrow(PBranches)) {

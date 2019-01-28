@@ -49,7 +49,7 @@ In the following section we will first describe the model underlying the simulat
 
 ## The basic model
 
-The mathematical model underlying the simulations is a continuous-time stochastic process in which certain events happen with small probabilities during infinitesimally small time steps. These probabilities are expressed as rates per unit of time. There are events and corresponding rates for the host species and events and rates for the parasite species. In the basic model, the process of host diversification in not affected by the parasites so that the host diversification can be simulated simultaneously with or prior to the process of parasite diversification. It is also possible to use empirically estimated host trees rather than simulating them. In what follows we will describe the host diversification process in more detail and then proceed to the parasite process.
+The mathematical model underlying the simulations is a continuous-time stochastic process in which certain events happen with small probabilities during infinitesimally small time steps. These probabilities are expressed as rates per unit of time. There are events and corresponding rates for the host species, and events and rates for the parasite species. In the basic model, the process of host diversification is not affected by the parasites. As a result, host diversification can be simulated simultaneously with or prior to the process of parasite diversification. It is also possible to use empirically estimated host trees rather than simulating them. In what follows we will describe the host diversification process in more detail and then proceed to the parasite process.
 
 ### Host diversification
 
@@ -59,13 +59,13 @@ For the host tree only two events can happen: speciation events and extinction e
   plot(coph)
 ```
 
-Another parameter that can be set for the host diversification process is a logistic growth carrying capacity, `K`. The default value for `K` is `Inf` (infinity) in which case there is no carrying capacity and the host tree can grow indefinitely. However, when `K` is set to a finite value the speciation rate `lambda` is reduced by a factor *(1-N/K)*, where *N* is the number of species. (When *N>K* the speciation rate will become zero.) The following example shows that when the `K` parameter is used, the host tree will only grow to a certain size:
+Another parameter that can be set for the host diversification process is a logistic growth carrying capacity, `K`. The default value for `K` is `Inf` (infinity) in which case there is no carrying capacity and the host tree can grow indefinitely. However, when `K` is set to a finite value the speciation rate `lambda` is reduced by a factor *(1-N/K)*, where *N* is the number of species. (When *N>K* the speciation rate will become zero.) The following example shows that when the `K` parameter is used, the number of host species will not grow beyond a certain size:
 ```{r}
   coph <- rcophylo(tmax = 10, mu = 0.05, K = 50)
   plot(coph)
 ```
 
-In many cases, one might be interested not so much in simulating a host tree but in using an empirically estimated tree and simulate the parasite diversification process on that tree. Similarly, one might be interested in simulating a host tree and then running many simulations for parasite diversification on this same host tree. Both of these goals can be achieved by supplying a host tree to the `rcophylo` function via the `HTree` argument. The `cophylo` package comes with a function called `rphylo_H` that simulates a host tree, using the same arguments as discussed above. For example, we can call the following to generate a random host tree under the birth-death process:
+In many cases, one might be interested not so much in simulating a host tree, but in using an empirically estimated tree and simulating the parasite diversification process on that tree. Similarly, one might be interested in simulating a host tree and then running many simulations for parasite diversification on this same host tree. Both of these goals can be achieved by supplying a host tree to the `rcophylo` function via the `HTree` argument. The `cophylo` package comes with a function called `rphylo_H` that simulates a host tree, using the same arguments as discussed above. For example, we can call the following to generate a random host tree under the birth-death process:
 ``` {r}
   set.seed(1)
   htree <- rphylo_H(tmax = 5, lambda = 1, mu = 0.4)
@@ -170,7 +170,19 @@ In the basic model, parasite speciation events can occur only through cospeciati
 
 The previous sections have already provided examples of `cophy`'s plotting function. This function takes a cophylogeny object as its main argument. Currently, the only other arguments are `hostCol` and `parasiteCol` which can be used to set colours for the host and parasite branches, respectively.
 
---> include paragraph and example for plotting cophylo objects. [@Revell2012]
+In some cases it might be useful to plot only the extant species of a cophylogeny. In this case, the host and parasite tree can not be plotted together as the historical host-parsite associations may no longer be correct. Instead, by calling the `prune_Cophylo` function, each of the pruned host and parasite trees can be plotted separatly with connector lines expressing the terminal host-parasite associations. This plotting functionality was outsourced to the `phytools` package [@Revell2012]. An example of a pruned cophylogeny can be seen bellow:
+
+```{r}
+  set.seed(1)
+  coph <- rcophylo(HTree = htree)
+  prune_Cophylo(cophy = coph)
+```
+
+This function can also return the pruned host and parasite tree, along with a data.frame containing the association status for each host and parasite tip when the parameter `plot` is set to `FALSE`. The default value for `plot = TRUE`. 
+
+```{r}
+  prune_Cophylo(cophy = coph, plot = FALSE)
+```
 
 ## Analysing cophylogenies
 
@@ -182,7 +194,7 @@ The package comes with a limited set of functions that extract useful informatio
   get_infectionStatistics(coph)
 ```
 
-The four numbers returned by `get_infectionStatistics` are 1) the number of surviving host species, 2) the number of surviving parasite species, 3) the fraction of infected host species and 4) the mean number of parasite species that a host carries. Note that in the absence of multiple infections the last two numbers will always be identical.
+The four numbers returned by `get_infectionStatistics` are 1) the number of surviving host species, 2) the number of surviving parasite species, 3) the fraction of infected host species and 4) the mean number of parasite species that each host species carries. Note that in the absence of multiple infections the last two numbers will always be identical.
 
 When coinfections occur, more complete information on how many surviving host species are infected with different numbers of parasites can be obtained with the `get_infectionFrequencies` function:
 ```{r}

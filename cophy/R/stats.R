@@ -406,7 +406,7 @@ prune_Cophylo <- function(cophy, plot = TRUE) {
   if (plot == TRUE) {
     par(mar = c(0, 0, 0, 0))
     plot(phytools::cophylo(prunedHtree$Htree, prunedPtree$Ptree, prunedPtree$tipAssociations))
+  } else {
+    return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree$Ptree, tipAssociations = prunedPtree$tipAssociations))
   }
-
-  return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree, tipAssociations = prunedPtree$tipAssociations))
 }
