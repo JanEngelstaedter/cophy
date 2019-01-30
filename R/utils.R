@@ -43,8 +43,8 @@ add_branchSurvival <- function(Branches) {
 #' @importFrom ape print.phylo
 #' @export
 #' @examples
-#' cop<-rcophylo_HP(tmax=5, K=5)
-#' print(cop)
+#' coph <- rcophylo(tmax=5)
+#' print(coph)
 
 print.cophylogeny<-function(x, ...) {
   cat("Cophylogeny consisting of a host tree and an associated parasite tree.")
@@ -54,14 +54,14 @@ print.cophylogeny<-function(x, ...) {
   print(x[[2]])
 }
 
-#' A function to count the number of decimal places in a number
-#'
-#' Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r
-#' @param x some number
-#' @author daroczig
-#' examples
-#' decimal_places(1)
-#' decimal_places(0.4)
+# A function to count the number of decimal places in a number
+#
+# Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r
+# @param x some number
+# @author daroczig
+# examples
+# decimal_places(1)
+# decimal_places(0.4)
 
 decimal_places <- function(x) {
   if (abs(x - round(x)) > .Machine$double.eps^0.5) {
@@ -89,7 +89,7 @@ prune_hostTree <- function(Htree, propSampled = 1, bias = 0) {
 
   prunedTree$nAlive <- length(prunedTree$tip.label)
 
-  return(list(Htree = prunedTree))
+  return(prunedTree)
 }
 
 # A function to prune a host tree according to some bias
@@ -97,8 +97,8 @@ prune_hostTree <- function(Htree, propSampled = 1, bias = 0) {
 # @param Htree a host tree
 # @param Ptree a parasite tree to be pruned
 # @examples
-# HPtree <- rcophylo_HP(5)
-# prune_parasiteTree(Htree = HPtree[[1]], Ptree = HPtree[[2]])
+# coph <- rcophylo(tmax=5)
+# prune_parasiteTree(Htree = coph[[1]], Ptree = coph[[2]])
 
 
 prune_parasiteTree <- function(Htree, Ptree) {

@@ -17,6 +17,6 @@ listing the general structure of the cophylogeny
 along with properties of the host and parasite trees it consists of.
 }
 \examples{
-cop<-rcophylo_HP(tmax=5, K=5)
-print(cop)
+coph <- rcophylo(tmax=5)
+print(coph)
 }

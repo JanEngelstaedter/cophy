@@ -390,23 +390,16 @@ get_PextinctionTime <- function(x) {
 #'
 #' @param cophy an object of class cophylogeny that contains a host tree with one
 #'   associated parasite tree.
-#' @param plot logical. Whether or not the output should automatically be plotted.
 #' @importFrom phytools getExtinct
-#' @importFrom phytools cophylo
 #' @importFrom ape drop.tip
 #' @export
 #' @examples
-#' cophy <- rcophylo_HP(5)
-#' prune_Cophylo(cophy)
+#' coph <- rcophylo(tmax=5)
+#' prune_cophylo(coph)
 
-prune_Cophylo <- function(cophy, plot = TRUE) {
+prune_cophylo <- function(cophy) {
   prunedHtree <- prune_hostTree(Htree = cophy[[1]])
   prunedPtree <- prune_parasiteTree(Htree = cophy[[1]], Ptree = cophy[[2]])
 
-  if (plot == TRUE) {
-    par(mar = c(0, 0, 0, 0))
-    plot(phytools::cophylo(prunedHtree$Htree, prunedPtree$Ptree, prunedPtree$tipAssociations))
-  } else {
-    return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree$Ptree, tipAssociations = prunedPtree$tipAssociations))
-  }
+  return(list(prunedHtree = prunedHtree, prunedPtree = prunedPtree$Ptree, tipAssociations = prunedPtree$tipAssociations))
 }

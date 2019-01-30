@@ -171,18 +171,19 @@ In the basic model, parasite speciation events can occur only through cospeciati
 
 The previous sections have already provided examples of `cophy`'s plotting function. This function takes a cophylogeny object as its main argument. Currently, the only other arguments are `hostCol` and `parasiteCol` which can be used to set colours for the host and parasite branches, respectively.
 
-In some cases it might be useful to plot only the extant species of a cophylogeny. In this case, the host and parasite tree can not be plotted together as the historical host-parsite associations may no longer be correct. Instead, by calling the `prune_Cophylo` function, each of the pruned host and parasite trees can be plotted separatly with connector lines expressing the terminal host-parasite associations. This plotting functionality was outsourced to the `phytools` package [@Revell2012]. An example of a pruned cophylogeny can be seen bellow:
+In some cases it might be useful to plot only the extant species of a cophylogeny. In this case, the host and parasite tree can not be plotted together as the historical host-parsite associations may no longer be correct. Instead, by calling the `prune_Cophylo` function, the pruned host and parasite trees can be returned long with a data.frame giving the host-parasite tip associations. 
 
 ```{r}
   set.seed(1)
   coph <- rcophylo(HTree = htree)
-  prune_Cophylo(cophy = coph)
+  cophPruned <- prune_cophylo(cophy = coph)
+  cophPruned
 ```
 
-This function can also return the pruned host and parasite tree, along with a data.frame containing the association status for each host and parasite tip when the parameter `plot` is set to `FALSE`. The default value for `plot = TRUE`. 
+This output can then be passed to the `phytools` function `cophylo` [@Revell2012]. This function plots the pruned host and parasite trees with connector lines expressing the terminal host-parasite associations. An example of this can be seen bellow:
 
 ```{r}
-  prune_Cophylo(cophy = coph, plot = FALSE)
+  plot(phytools::cophylo(cophPruned$prunedHtree, cophPruned$prunedPtree, cophPruned$tipAssociations))
 ```
 
 ## Analysing cophylogenies
