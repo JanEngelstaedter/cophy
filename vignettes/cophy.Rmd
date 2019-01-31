@@ -180,7 +180,7 @@ In some cases it might be useful to plot only the extant species of a cophylogen
   cophPruned
 ```
 
-This output can then be passed to the `phytools` function `cophylo` [@Revell2012]. This function plots the pruned host and parasite trees with connector lines expressing the terminal host-parasite associations. An example of this can be seen bellow:
+This output can then be passed to the `phytools` function `cophylo` in order to prepare the object for plotting [@Revell2012]. Passing the resulting object to the plot function will plot the pruned host and parasite trees with connector lines expressing the terminal host-parasite associations. An example of this can be seen bellow:
 
 ```{r}
   plot(phytools::cophylo(cophPruned$prunedHtree, cophPruned$prunedPtree, cophPruned$tipAssociations))
