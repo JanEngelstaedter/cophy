@@ -64,8 +64,8 @@ print.cophylogeny<-function(x, ...) {
 # decimal_places(0.4)
 
 decimal_places <- function(x) {
-  if (abs(x - round(x)) > .Machine$double.eps^0.5) {
-    nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed = TRUE)[[1]][[2]])
+  if (round(x)!=x) {
+    nchar(strsplit(sub('0+$', '', format(x, scientific = FALSE)), ".", fixed = TRUE)[[1]][[2]])
   } else {
     return(0)
   }
