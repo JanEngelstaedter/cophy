@@ -56,16 +56,14 @@ print.cophylogeny<-function(x, ...) {
 
 # A function to count the number of decimal places in a number
 #
-# Taken from: https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r
 # @param x some number
-# @author daroczig
 # examples
 # decimal_places(1)
-# decimal_places(0.4)
+# decimal_places(0.0006)
 
 decimal_places <- function(x) {
   if (round(x)!=x) {
-    nchar(strsplit(sub('0+$', '', format(x, scientific = FALSE)), ".", fixed = TRUE)[[1]][[2]])
+    nchar(strsplit(format(x, scientific = FALSE), "[.]")[[1]][[2]])
   } else {
     return(0)
   }
