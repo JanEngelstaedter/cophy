@@ -28,6 +28,8 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   speciation rate
 #' @param thetaE a numeric value giving the effect of parasite infection on host
 #'   extinction rate
+#' @param P.init a numeric value within the range of tmax giving the time of
+#'   parasite invasion
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
 #' @param export.format a string specifying either "cophylogeny" or "raw". Where
@@ -51,7 +53,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' print(HPtree)
 #' plot(HPtree)
 
-rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta = 0,
+rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, P.init = 0, beta = 0,
                            gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
                            prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
@@ -84,26 +86,25 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
   while (nHAlive == 0) { # simulate until surviving tree is built
     t <- 0
     HBranches    <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
-                               nParasites = 1, branchNo = 1) #The first host is associated with the first parasite, so nParasites = 1
+                               nParasites = 0, branchNo = 1) #The first host is associated with no parasite, so nParasites = 0
 
     nHBranches <- 1		  	# total number of branches that have been constructed
     nHAlive    <- 1			  # number of branches that extent until the current timestep
     nextHNode  <- 1   		# number of the next node to be produced
 
     HPCounts    <- integer(2) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
-    HPCounts[2] <- 1          # the first host has one parasite
+    HPCounts[1] <- 1          # the first host has no parasite (unless P.init = 0, which is processed later)
 
     HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
                                 nParasites = 0, branchNo = 0)
 
     nHDeadBranches <- 0	  # number of dead host branches
 
-    PBranches     <- data.frame(alive = TRUE, nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
-                                Hassoc = 1, branchNo = 1)
+    PBranches     <- data.frame()
 
-    nPBranches <- 1		    # total number of branches that have been constructed
-    nPAlive    <- 1			  # number of branches that extent until the current timestep
-    nextPNode  <- 1       # number of the next node to be produced
+    nPBranches <- 0		    # total number of branches that have been constructed
+    nPAlive    <- 0			  # number of branches that extent until the current timestep
+    nextPNode  <- 0       # number of the next node to be produced
 
     PDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0, Hassoc = 0, branchNo = 0)
 
@@ -113,6 +114,22 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, bet
 
     continue <- TRUE
     while (continue == TRUE) { # continue simulation until specified time
+
+      if(t >= P.init & nPBranches == 0){ # Initiate the invasion
+
+        Hassoc.init <- sample.int(nrow(HBranches), 1) # Determine which host species first is infected
+
+        PBranches   <- data.frame(alive = TRUE, nodeBirth = nextPNode, tBirth = P.init, nodeDeath = 0,
+                                  tDeath = 0, Hassoc = HBranches$branchNo[Hassoc.init], branchNo = 1)
+
+        nPBranches <- 1
+        nPAlive    <- 1
+        nextPNode  <- 1
+
+        HPCounts <- HPCounts.shift(HPCounts, HBranches, Hassoc.init, 1)
+        HBranches$nParasites[Hassoc.init] <- HBranches$nParasites[Hassoc.init] + 1
+      }
+
       t <- t + timestep
       lambda.adj <- lambda * (1 - (nHAlive / K)) # lambda adjusted for carrying capacity
       if (lambda.adj < 0) { # make sure lambda doesn't drop below 0
