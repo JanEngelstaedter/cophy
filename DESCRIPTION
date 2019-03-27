@@ -4,7 +4,8 @@ Version: 0.1.0
 Date: 2019-01-20
 Authors@R: c(
     person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "aut"),
-    person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = c("aut", "cre")))
+    person("Nicole", "Fortuna", email = "nicole.fortuna@uqconnect.edu.au", role = c("aut", "cre")),
+    person("Erik", "Roeed", email = "e.roeed@uq.net.au", role = c("aut")))
 URL: https://github.com/JanEngelstaedter/cophy
 BugReports: https://github.com/JanEngelstaedter/cophy/issues
 Description: Functions to simulate, plot and analyse codiversification of hosts
