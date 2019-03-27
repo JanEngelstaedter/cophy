@@ -23,7 +23,17 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   co-speciation. delta=0 specifies faithful transmission of the parasites to
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
-#'@param HTree a pre-built host phylogenetic tree.
+#' @param thetaS a numeric value giving the influence of parasite infection on
+#'   host speciation rate. thetaS acts as a multiplier of the speciation rate,
+#'   so thetaS = 1 specifies the default conditions. If thetaS is not required,
+#'   the parameter can be left as the default NULL.
+#' @param thetaE a numeric value giving the influence of parasite infection on
+#'   host speciation rate. If coinfections are absent, thetaE is a simple
+#'   multiplier of the extinction rate. If hosts can be infected by multiple
+#'   parasites at a time, extinction rate is a power function
+#'   \eqn{\mu*\theta_E^n} where \eqn{n} is the number of coinfections. If
+#'   thetaE is not required, the parameter can be left as the default NULL.
+#' @param HTree a pre-built host phylogenetic tree.
 #' @param lambda a numeric value giving the host speciation rate.
 #' @param mu a numeric value giving the host extinction rate.
 #' @param K a numeric value giving the carrying capacity for the host species.
@@ -65,6 +75,8 @@ rcophylo <- function(beta = 0.1,
                      sigma = 0,
                      kappa = 0,
                      delta = 0,
+                     thetaS = NULL,
+                     thetaE = NULL,
                      HTree = NULL,
                      lambda = 1,
                      mu = 0.5,
@@ -80,9 +92,22 @@ rcophylo <- function(beta = 0.1,
   if (is.null(HTree)) {   # simulate host tree along with parasite tree
     if (!is.null(iniHBranch))
       warning("When no host tree is provided, any values for iniHBranch will be ignored.")
+    if (!is.null(thetaS) || !is.null(thetaE)){ # parasite infection influences host extinction and/or speciation rate
+      if(is.null(thetaE)) # if only thetaS has been specified, thetaE = 1
+        thetaE <-1
+      if(is.null(thetaS)) # if only thetaE has been specified, thetaS = 1
+        thetaS <- 1
+      cop <- rcophylo_HresP(tmax = tmax, nHmax = nHmax, lambda = lambda, mu = mu, K = K, beta = beta,
+                            gamma = gamma, sigma = sigma, nu = nu, kappa = kappa, delta = delta,
+                            export.format = exportFormat, timestep = timestep, P.init = PStartT,
+                            thetaS = thetaS, thetaE = thetaE)
+    } else { # parasite infection does not influence host extinction and/or speciation rate
+      if (PStartT != 0)
+        warning("When no host tree, thetaS, or thetaE is provided, any values for PStartT will be ignored.")
       cop <- rcophylo_HP(tmax = tmax, nHmax = nHmax, lambda = lambda, mu = mu, K = K, beta = beta,
                          gamma = gamma, sigma = sigma, nu = nu, kappa = kappa, delta = delta,
                          exportFormat = exportFormat, timestep = timestep)
+    }
   } else { # host tree has been provided
     if (!is.null(tmax))
         warning("When a host tree is provided, simulations will run across the entire tree and any value provided for tmax will be ignored.")
