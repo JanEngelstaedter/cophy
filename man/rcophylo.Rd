@@ -5,9 +5,10 @@
 \title{Simulate cophylogenies}
 \usage{
 rcophylo(beta = 0.1, nu = 0.5, gamma = 0, sigma = 0, kappa = 0,
-  delta = 0, HTree = NULL, lambda = 1, mu = 0.5, K = Inf,
-  tmax = NULL, nHmax = Inf, PStartT = 0, iniHBranch = NULL,
-  Gdist = NULL, exportFormat = "cophylogeny", timestep = 0.001)
+  delta = 0, thetaS = NULL, thetaE = NULL, HTree = NULL,
+  lambda = 1, mu = 0.5, K = Inf, tmax = NULL, nHmax = Inf,
+  PStartT = 0, iniHBranch = NULL, Gdist = NULL,
+  exportFormat = "cophylogeny", timestep = 0.001)
 }
 \arguments{
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}
@@ -29,6 +30,18 @@ hosts.}
 co-speciation. delta=0 specifies faithful transmission of the parasites to
 both new host species, whereas delta=1 specifies that parasites will only
 be inherited by one daughter host species.}
+
+\item{thetaS}{a numeric value giving the influence of parasite infection on
+host speciation rate. thetaS acts as a multiplier of the speciation rate,
+so thetaS = 1 specifies the default conditions. If thetaS is not required,
+the parameter can be left as the default NULL.}
+
+\item{thetaE}{a numeric value giving the influence of parasite infection on
+host speciation rate. If coinfections are absent, thetaE is a simple
+multiplier of the extinction rate. If hosts can be infected by multiple
+parasites at a time, extinction rate is a power function
+\eqn{\mu*\theta_E^n} where \eqn{n} is the number of coinfections. If
+thetaE is not required, the parameter can be left as the default NULL.}
 
 \item{HTree}{a pre-built host phylogenetic tree.}
 
