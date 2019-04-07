@@ -99,7 +99,7 @@ rcophylo <- function(beta = 0.1,
         thetaS <- 1
       cop <- rcophylo_HresP(tmax = tmax, nHmax = nHmax, lambda = lambda, mu = mu, K = K, beta = beta,
                             gamma = gamma, sigma = sigma, nu = nu, kappa = kappa, delta = delta,
-                            export.format = exportFormat, timestep = timestep, P.init = PStartT,
+                            export.format = exportFormat, timestep = timestep, PStartT = PStartT,
                             thetaS = thetaS, thetaE = thetaE)
     } else { # parasite infection does not influence host extinction and/or speciation rate
       if (PStartT != 0)
@@ -1015,10 +1015,10 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   both new host species, whereas delta=1 specifies that parasites will only
 #'   be inherited by one daughter host species.
 #' @param thetaS a numeric value giving the effect of parasite infection on host
-#'   speciation rate
+#'   speciation rate.
 #' @param thetaE a numeric value giving the effect of parasite infection on host
-#'   extinction rate
-#' @param P.init a numeric value within the range of tmax giving the time of
+#'   extinction rate.
+#' @param PStartT a numeric value within the range of tmax giving the time of
 #'   parasite invasion
 #' @param prune.extinct logical. Determines whether or not to remove all extinct
 #'   branches.
@@ -1043,7 +1043,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' print(HPtree)
 #' plot(HPtree)
 
-rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, P.init = 0, beta = 0,
+rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, PStartT = 0, beta = 0,
                            gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
                            prune.extinct = FALSE, export.format = "cophylogeny", timestep = 0.001) {
 
@@ -1055,8 +1055,8 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, P.i
   kappa  <- kappa * timestep
 
   # HPCounts.shift is a local function taking HPCounts upon host branch parasite loss or gain, to return an updated HPCounts vector
-  # Param HPCounts:     the HPCounts vector (see line 93)
-  # Param HBranches:    the HBranches data frame (see line 86)
+  # Param HPCounts:     the HPCounts vector
+  # Param HBranches:    the HBranches data frame
   # Param branch:       the HBranches row number of the host branch in question
   # Param change:       a numerical value (1 or -1) reflecting whether the host branch gains or loses a parasite
   HPCounts.shift <- function(HPCounts, HBranches, branch, change){
@@ -1083,7 +1083,7 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, P.i
     nextHNode  <- 1   		# number of the next node to be produced
 
     HPCounts    <- integer(2) # a vector HPCounts so that HPCounts[i] holds the number of hosts with i-1 parasites
-    HPCounts[1] <- 1          # the first host has no parasite (unless P.init = 0, which is processed later)
+    HPCounts[1] <- 1          # the first host has no parasite (unless PStartT = 0, which is processed later)
 
     HDeadBranches <- data.frame(alive = rep(FALSE, DBINC), nodeBirth = 0, tBirth = 0, nodeDeath = 0, tDeath = 0,
                                 nParasites = 0, branchNo = 0)
@@ -1105,11 +1105,11 @@ rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, P.i
     continue <- TRUE
     while (continue == TRUE) { # continue simulation until specified time
 
-      if(t >= P.init & nPBranches == 0){ # Initiate the invasion
+      if(t >= PStartT & nPBranches == 0){ # Initiate the invasion
 
         Hassoc.init <- sample.int(nrow(HBranches), 1) # Determine which host species first is infected
 
-        PBranches   <- data.frame(alive = TRUE, nodeBirth = nextPNode, tBirth = P.init, nodeDeath = 0,
+        PBranches   <- data.frame(alive = TRUE, nodeBirth = nextPNode, tBirth = PStartT, nodeDeath = 0,
                                   tDeath = 0, Hassoc = HBranches$branchNo[Hassoc.init], branchNo = 1)
 
         nPBranches <- 1

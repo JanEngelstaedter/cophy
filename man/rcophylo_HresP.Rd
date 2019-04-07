@@ -5,7 +5,7 @@
 \title{Cophylogeny simulation}
 \usage{
 rcophylo_HresP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  P.init = 0, beta = 0, gamma = 0, sigma = 0, nu = 0.2,
+  PStartT = 0, beta = 0, gamma = 0, sigma = 0, nu = 0.2,
   kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
   prune.extinct = FALSE, export.format = "cophylogeny",
   timestep = 0.001)
@@ -22,7 +22,7 @@ simulation is stopped.}
 
 \item{K}{a numeric value giving the carrying capacity for the host species.}
 
-\item{P.init}{a numeric value within the range of tmax giving the time of
+\item{PStartT}{a numeric value within the range of tmax giving the time of
 parasite invasion}
 
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}
@@ -46,10 +46,10 @@ both new host species, whereas delta=1 specifies that parasites will only
 be inherited by one daughter host species.}
 
 \item{thetaS}{a numeric value giving the effect of parasite infection on host
-speciation rate}
+speciation rate.}
 
 \item{thetaE}{a numeric value giving the effect of parasite infection on host
-extinction rate}
+extinction rate.}
 
 \item{prune.extinct}{logical. Determines whether or not to remove all extinct
 branches.}

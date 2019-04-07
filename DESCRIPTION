@@ -1,6 +1,6 @@
 Package: cophy
 Title: Constructing random cophylogenetic trees and analysing their statistics
-Version: 0.1.0
+Version: 0.1.1
 Date: 2019-01-20
 Authors@R: c(
     person("Jan", "Engelstaedter", email = "j.engelstaedter@uq.edu.au", role = "aut"),
