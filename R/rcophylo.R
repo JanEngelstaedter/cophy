@@ -1037,8 +1037,8 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #'   the function uses internally.)
 #' @importFrom stats rbinom
 #' @importFrom stats runif
-#' @examples
 #' @keywords internal
+#' @examples
 #' HPtree<-rcophylo_HP(tmax=5, K=5)
 #' print(HPtree)
 #' plot(HPtree)
