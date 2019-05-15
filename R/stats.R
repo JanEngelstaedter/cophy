@@ -378,7 +378,7 @@ get_PextinctionTime <- function(x) {
   if (class(x) == 'cophylogeny') phy <- x[[2]]
   else if (class(x) == 'phylo') phy <- x
 	if (is.null(phy)) return(NA)
-	if (nrow(phy$edge) >= 2) { # proper tree?
+	if ((!is.null(phy$edge)) && (nrow(phy$edge) >= 2)) { # proper tree?
 		return(max(ape::node.depth.edgelength(phy)) + phy$root.edge+phy$root.time)
 	} else { # root edge only
 		return(phy$root.edge + phy$root.time)
@@ -386,7 +386,11 @@ get_PextinctionTime <- function(x) {
 }
 
 
-#' A function that prunes a cophylogeny and plots the resulting co-cladogram
+#' Pruning a cophylogeny
+#'
+#' This function prunes a cophylogeny object to include only extant species.
+#' The function returns the two trees and the associations of the tips of the parasite tree with the host tree.
+#' This can then be used to plot a tanglegram, as shown in the example.
 #'
 #' @param cophy an object of class cophylogeny that contains a host tree with one
 #'   associated parasite tree.
@@ -395,7 +399,8 @@ get_PextinctionTime <- function(x) {
 #' @export
 #' @examples
 #' coph <- rcophylo(tmax=5)
-#' prune_cophylo(coph)
+#' cophPruned <- prune_cophylo(coph)
+#' plot(phytools::cophylo(cophPruned$prunedHtree, cophPruned$prunedPtree, cophPruned$tipAssociations))
 
 prune_cophylo <- function(cophy) {
   prunedHtree <- prune_hostTree(Htree = cophy[[1]])

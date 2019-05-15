@@ -144,7 +144,7 @@ By default, host speciation events always trigger faithful speciation events in 
 
 ### Host-shifting to an already infected host species
 
-Hosts species that are already infected with a parasite may make it harder for new parasites to establish. In the basic model, the strong assumption is made that an established infection in a host completely precludes any successful host shifts to that species. This assumption can be relaxed through specifying the parameter $\sigma$ (argument `sigma`), which is a factor reducing the probability of successful host shifts. Specifically, if a host is already infected with $k$ parasite species, the probability of host shift success is multiplied by $(1-\sigma)^k$. If `sigma` is set to one, preexisting parasites have no effect on the success of host shifts. (Note that this will lead to an exponential increase in the number of parasites over time.) 
+Hosts species that are already infected with a parasite may make it harder for new parasites to establish. In the basic model, the strong assumption is made that an established infection in a host completely precludes any successful host shifts to that species. This assumption can be relaxed through specifying the parameter $\sigma$ (argument `sigma`), which is a factor reducing the probability of successful host shifts. Specifically, if a host is already infected with $k$ parasite species, the probability of host shift success is multiplied by $\sigma^k$. If `sigma` is set to one, preexisting parasites have no effect on the success of host shifts. (Note that this will lead to an exponential increase in the number of parasites over time.) 
 
 In the following example, instances of host shifts to already infected hosts can be seen:
 ```{r}

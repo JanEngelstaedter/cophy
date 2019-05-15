@@ -14,12 +14,11 @@
 #' @param HP.tree a list of a pre-built host phylogenetic tree and a parasite
 #'   phylogenetic tree of class 'cophylogeny' or 'data.frame'
 #' @return this function returns an object of class 'cophylogeny' which can be
-#'   for plotting and printing pur.
-#' @keywords cophylogeny, class
-#' @export
+#'   for plotting and printing.
+#' @keywords internal
 #' @examples
 #' HTree<-rphylo_H(tmax=5, exportFormat='raw')
-#' HPTree<-rcophylo(HTree=HTree)
+#' HPTree<-rcophylo(HTree=HTree, exportFormat='raw')
 #' cophylogeny(HPTree)
 
 cophylogeny <- function(HP.tree) {
