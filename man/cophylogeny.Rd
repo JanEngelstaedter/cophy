@@ -12,17 +12,11 @@ phylogenetic tree of class 'cophylogeny' or 'data.frame'}
 }
 \value{
 this function returns an object of class 'cophylogeny' which can be
-  for plotting and printing pur.
+  for plotting and printing.
 }
 \description{
 This function creates an object of class 'cophylogeny', which can be passed
 to \code{\link{plot.cophylogeny}}. This object must contain at least one
 host and one parasite tree.
 }
-\examples{
-HTree<-rphylo_H(tmax=5, exportFormat='raw')
-HPTree<-rcophylo(HTree=HTree)
-cophylogeny(HPTree)
-}
-\keyword{class}
-\keyword{cophylogeny,}
+\keyword{internal}

@@ -23,9 +23,8 @@ Defaults to "Red".}
 This function plots a host-parasite cophylogenetic tree.
 }
 \examples{
-Htree<-rphylo_H(tmax=5, exportFormat='raw')
-HPtree<-rcophylo(HTree=Htree)
-plot(cophylogeny(HPtree))
+coph<-rcophylo(tmax=5)
+plot(coph)
 }
 \keyword{cophylogeny,}
 \keyword{plot}

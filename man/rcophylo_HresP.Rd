@@ -75,9 +75,4 @@ By default, an object of class "cophylogeny" is returned that is a
 This function simulates the evolution of a random host tree with a coevolving
 random parasite tree.
 }
-\examples{
-HPtree<-rcophylo_HP(tmax=5, K=5)
-print(HPtree)
-plot(HPtree)
-}
 \keyword{internal}

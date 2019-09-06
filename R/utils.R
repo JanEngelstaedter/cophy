@@ -131,3 +131,8 @@ prune_parasiteTree <- function(Htree, Ptree) {
 
   return(list(Ptree = prunedTree, tipAssociations = tip.assoc))
 }
+
+round_time <- function(t, max, rel_prec = 12) {
+  prec <- round(rel_prec - log10(max))  # decimal points to round times to
+  return(round(t, digits = prec))
+}

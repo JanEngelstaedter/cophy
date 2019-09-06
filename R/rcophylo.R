@@ -1038,10 +1038,6 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 #' @importFrom stats rbinom
 #' @importFrom stats runif
 #' @keywords internal
-#' @examples
-#' HPtree<-rcophylo_HP(tmax=5, K=5)
-#' print(HPtree)
-#' plot(HPtree)
 
 rcophylo_HresP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, PStartT = 0, beta = 0,
                            gamma = 0, sigma = 0, nu = 0.2, kappa = 0, delta = 0, thetaS = 1, thetaE = 1,

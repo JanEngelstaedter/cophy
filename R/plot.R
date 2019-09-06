@@ -18,9 +18,8 @@
 #' @importFrom graphics lines
 #' @export
 #' @examples
-#' Htree<-rphylo_H(tmax=5, exportFormat='raw')
-#' HPtree<-rcophylo(HTree=Htree)
-#' plot(cophylogeny(HPtree))
+#' coph<-rcophylo(tmax=5)
+#' plot(coph)
 
 plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
 

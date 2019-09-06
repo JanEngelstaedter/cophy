@@ -2,7 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{prune_cophylo}
 \alias{prune_cophylo}
-\title{A function that prunes a cophylogeny and plots the resulting co-cladogram}
+\title{Pruning a cophylogeny}
 \usage{
 prune_cophylo(cophy)
 }
@@ -11,9 +11,12 @@ prune_cophylo(cophy)
 associated parasite tree.}
 }
 \description{
-A function that prunes a cophylogeny and plots the resulting co-cladogram
+This function prunes a cophylogeny object to include only extant species.
+The function returns the two trees and the associations of the tips of the parasite tree with the host tree.
+This can then be used to plot a tanglegram, as shown in the example.
 }
 \examples{
 coph <- rcophylo(tmax=5)
-prune_cophylo(coph)
+cophPruned <- prune_cophylo(coph)
+plot(phytools::cophylo(cophPruned$prunedHtree, cophPruned$prunedPtree, cophPruned$tipAssociations))
 }

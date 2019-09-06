@@ -16,10 +16,10 @@
 #' @return this function returns an object of class 'cophylogeny' which can be
 #'   for plotting and printing.
 #' @keywords internal
-#' @examples
-#' HTree<-rphylo_H(tmax=5, exportFormat='raw')
-#' HPTree<-rcophylo(HTree=HTree, exportFormat='raw')
-#' cophylogeny(HPTree)
+# @examples
+# HTree<-rphylo_H(tmax=5, exportFormat='raw')
+# HPTree<-rcophylo(HTree=HTree, exportFormat='raw')
+# cophylogeny(HPTree)
 
 cophylogeny <- function(HP.tree) {
   if (class(HP.tree[[1]]) == "data.frame") {
@@ -223,7 +223,7 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[1]]$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (cophy[[1]]$nAlive > 0) {
-      HBranches$alive[round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)] <- TRUE
+      HBranches$alive[round_time(HBranches$tDeath, max(HBranches$tDeath)) == round_time(max(HBranches$tDeath), max(HBranches$tDeath))] <- TRUE
     }
   }
 
@@ -248,7 +248,7 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[2]]$nAlive)) { # if the phylo object contains information about how many species are alive
     PBranches$alive <- FALSE
     if (cophy[[2]]$nAlive > 0) {
-      PBranches$alive[round(PBranches$tDeath, 7) == round(max(PBranches$tDeath), 7)] <- TRUE
+      PBranches$alive[round_time(PBranches$tDeath, max(PBranches$tDeath)) == round_time(max(PBranches$tDeath), max(PBranches$tDeath))] <- TRUE
     }
   }
   return(list(HBranches, PBranches))
