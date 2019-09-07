@@ -134,9 +134,9 @@ prune_parasiteTree <- function(Htree, Ptree) {
 
 
 # The following function uses the times of birth and death of a branch
-# to check whether or not a branch is alive at time t:
-is_alive <- function(tBirth, tDeath, t, rel_prec = 12) {
-  alreadyBorn <-((tBirth - t) < 10^(-round(rel_prec - log10(maxTDeath))))
-  notYetDead <- ((t - tDeath) < 10^(-round(rel_prec - log10(maxTDeath))))
+# to check whether or not a branch is alive at time tNow:
+is_alive <- function(tBirth, tDeath, tNow, rel_prec = 12) {
+  alreadyBorn <-((tBirth - tNow) < 10^(-round(rel_prec - log10(tNow))))
+  notYetDead <- ((tNow - tDeath) < 10^(-round(rel_prec - log10(tNow))))
   return(alreadyBorn & notYetDead)
 }
