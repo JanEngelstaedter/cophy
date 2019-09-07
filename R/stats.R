@@ -218,13 +218,13 @@ get_PEventsThroughTime<-function(cophy,tmin=0,tmax="max",dt=1) {
 #' @param t timepoint in simulation at which you want distance information
 
 get_GDist <- function(branches, t=NA) {
-  if (is.na(t)) t <- max(branches[, 5])
+  if (is.na(t)) t <- max(branches$tDeath)
   if (t == 0) { # initialise the Gdist matrix in the case that there is no invasion
     Gdist	<- matrix(0, nrow = 1, ncol = 1)
     return(Gdist)
   }
-  liveBranches <- branches[branches[, 3] <= t & branches[, 5] >= t, ]
-  n <- length(liveBranches[, 1])
+  liveBranches <- branches[is_alive(branches$tBirth, branches$tDeath, t), ]
+  n <- nrow(liveBranches)
 
   if (n == 0) return(NA)
   if (n == 1) return(matrix(0, nrow = 1, ncol = 1))
@@ -280,11 +280,11 @@ get_PHDistCorrelation <- function(cophy) {
     return(NA)
   }
   cophy <- convert_HPCophyloToBranches(cophy)
-  if (sum(cophy[[2]][, 1] == TRUE) > 4) { # need to be at least five surviving parasites
+  if (sum(cophy[[2]]$alive) > 4) { # need to be at least five surviving parasites
     Hdist    <- get_GDist(cophy[[1]]) # collect the Gdist matrix for the hosts
     Pdist    <- get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
-    Halive   <- which(cophy[[1]]$tDeath == max(cophy[[1]]$tDeath)) # which hosts are alive?
-    Palive   <- which(cophy[[2]]$tDeath == max(cophy[[2]]$tDeath)) # which parasites are alive?
+    Halive   <- which(cophy[[1]]$alive) # which hosts are alive?
+    Palive   <- which(cophy[[2]]$alive) # which parasites are alive?
     Pcarrier <- cophy[[2]]$Hassoc[Palive] # Host branch carrying an extant parasite
     Hdist    <- Hdist[Halive %in% Pcarrier, Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
 
@@ -320,8 +320,8 @@ get_PHDistSubtreeCorrelation <- function(cophy, h = NULL, k = NULL) {
     Pdist             <- get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
     subtreeclustering <- stats::cutree(stats::hclust(stats::as.dist(Hdist)), h = h, k = k)
     nsubtrees         <- max(subtreeclustering)
-    Halive            <- which(cophy[[1]]$tDeath == max(cophy[[1]]$tDeath)) # which hosts are alive?
-    Palive            <- which(cophy[[2]]$tDeath == max(cophy[[2]]$tDeath)) # which parasites are alive?
+    Halive            <- which(cophy[[1]]$alive) # which hosts are alive?
+    Palive            <- which(cophy[[2]]$alive) # which parasites are alive?
     Pcarrier          <- cophy[[2]]$Hassoc[Palive] # Host branch carrying an extant parasite
     Hdist             <- Hdist[Halive %in% Pcarrier, Halive %in% Pcarrier] # reducing the host Gdist matrix to extant host species
 

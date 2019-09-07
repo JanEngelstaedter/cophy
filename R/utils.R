@@ -132,7 +132,11 @@ prune_parasiteTree <- function(Htree, Ptree) {
   return(list(Ptree = prunedTree, tipAssociations = tip.assoc))
 }
 
-round_time <- function(t, max, rel_prec = 12) {
-  prec <- round(rel_prec - log10(max))  # decimal points to round times to
-  return(round(t, digits = prec))
+
+# The following function uses the times of birth and death of a branch
+# to check whether or not a branch is alive at time t:
+is_alive <- function(tBirth, tDeath, t, rel_prec = 12) {
+  alreadyBorn <-((tBirth - t) < 10^(-round(rel_prec - log10(maxTDeath))))
+  notYetDead <- ((t - tDeath) < 10^(-round(rel_prec - log10(maxTDeath))))
+  return(alreadyBorn & notYetDead)
 }

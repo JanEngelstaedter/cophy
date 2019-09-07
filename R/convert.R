@@ -188,10 +188,10 @@ convert_HPhyloToBranches<-function(Htree) {
   if (!is.null(Htree$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (Htree$nAlive > 0) {
-      HBranches$alive[round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)] <- TRUE
+      HBranches$alive[is_alive(HBranches$tBirth, HBranches$tDeath, max(HBranches$tDeath))] <- TRUE
     }
   } else {
-    HBranches$alive <- round(HBranches$tDeath, 7) == round(max(HBranches$tDeath), 7)
+    HBranches$alive <- is_alive(HBranches$tBirth, HBranches$tDeath, max(HBranches$tDeath))
     Htree$nAlive <- sum(HBranches$alive)
     # make sure branches are ordered correctly
     HBranches <- HBranches[order(HBranches$nodeBirth), ]
@@ -223,9 +223,15 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[1]]$nAlive)) { # if the phylo object contains information about how many species are alive
     HBranches$alive <- FALSE
     if (cophy[[1]]$nAlive > 0) {
-      HBranches$alive[round_time(HBranches$tDeath, max(HBranches$tDeath)) == round_time(max(HBranches$tDeath), max(HBranches$tDeath))] <- TRUE
+      HBranches$alive[is_alive(HBranches$tBirth, HBranches$tDeath, max(HBranches$tDeath))] <- TRUE
     }
+  } else {
+    HBranches$alive <- is_alive(HBranches$tBirth, HBranches$tDeath, max(HBranches$tDeath))
+    # make sure branches are ordered correctly
+    HBranches <- HBranches[order(HBranches$nodeBirth), ]
+    HBranches$branchNo <- 1:nrow(HBranches)
   }
+
 
   # converting parasite tree:
   PBranches <- data.frame(alive = rep(NA, nrow(cophy[[2]]$edge)), nodeBirth = cophy[[2]]$edge[, 1],
@@ -248,8 +254,14 @@ convert_HPCophyloToBranches<-function(cophy) {
   if (!is.null(cophy[[2]]$nAlive)) { # if the phylo object contains information about how many species are alive
     PBranches$alive <- FALSE
     if (cophy[[2]]$nAlive > 0) {
-      PBranches$alive[round_time(PBranches$tDeath, max(PBranches$tDeath)) == round_time(max(PBranches$tDeath), max(PBranches$tDeath))] <- TRUE
+      PBranches$alive[is_alive(PBranches$tBirth, PBranches$tDeath, max(PBranches$tDeath))] <- TRUE
     }
+  } else {
+    PBranches$alive <- is_alive(PBranches$tBirth, PBranches$tDeath, max(PBranches$tDeath))
+    # make sure branches are ordered correctly
+    PBranches <- PBranches[order(PBranches$nodeBirth), ]
+    PBranches$branchNo <- 1:nrow(PBranches)
   }
+
   return(list(HBranches, PBranches))
 }
