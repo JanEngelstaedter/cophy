@@ -90,6 +90,9 @@ rcophylo <- function(beta = 0.1,
                      timestep = 0.001) {
 
   if (is.null(HTree)) {   # simulate host tree along with parasite tree
+    if(is.null(tmax)) {
+      stop("if you don't supply a host tree you must include a tmax")
+    }
     if (!is.null(iniHBranch))
       warning("When no host tree is provided, any values for iniHBranch will be ignored.")
     if (!is.null(thetaS) || !is.null(thetaE)){ # parasite infection influences host extinction and/or speciation rate
