@@ -4,11 +4,25 @@
 \alias{rcophylo_HresP}
 \title{Cophylogeny simulation}
 \usage{
-rcophylo_HresP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  PStartT = 0, beta = 0, gamma = 0, sigma = 0, nu = 0.2,
-  kappa = 0, delta = 0, thetaS = 1, thetaE = 1,
-  prune.extinct = FALSE, export.format = "cophylogeny",
-  timestep = 0.001)
+rcophylo_HresP(
+  tmax,
+  nHmax = Inf,
+  lambda = 1,
+  mu = 0.5,
+  K = Inf,
+  PStartT = 0,
+  beta = 0,
+  gamma = 0,
+  sigma = 0,
+  nu = 0.2,
+  kappa = 0,
+  delta = 0,
+  thetaS = 1,
+  thetaE = 1,
+  prune.extinct = FALSE,
+  export.format = "cophylogeny",
+  timestep = 0.001
+)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}

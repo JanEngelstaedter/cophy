@@ -269,18 +269,20 @@ get_GDist <- function(branches, t=NA) {
 #' their associated hosts
 #' @param cophy a cophylogeny (object of class "cophylogeny") containing one
 #'   host and one parasite tree.
+#' @param minSurvivors the minimum number of surviving parasites needed for
+#'   the correlation to be calculated. The default is set to 5.
 #' @keywords genetic distance, correlation
 #' @export
 #' @examples
 #' cop<-rcophylo(tmax=5)
 #' get_PHDistCorrelation(cophy=cop)
 
-get_PHDistCorrelation <- function(cophy) {
+get_PHDistCorrelation <- function(cophy, minSurvivors = 5) {
   if (length(cophy[[2]]$tip.label) == 1) {
     return(NA)
   }
   cophy <- convert_HPCophyloToBranches(cophy)
-  if (sum(cophy[[2]]$alive) > 4) { # need to be at least five surviving parasites
+  if (sum(cophy[[2]]$alive) >= minSurvivors) { # check if there is the minimum needed surviving parasites
     Hdist    <- get_GDist(cophy[[1]]) # collect the Gdist matrix for the hosts
     Pdist    <- get_GDist(cophy[[2]]) # collect the Gdist matrix for the parasites
     Halive   <- which(cophy[[1]]$alive) # which hosts are alive?

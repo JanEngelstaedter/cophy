@@ -4,11 +4,27 @@
 \alias{rcophylo}
 \title{Simulate cophylogenies}
 \usage{
-rcophylo(beta = 0.1, nu = 0.5, gamma = 0, sigma = 0, kappa = 0,
-  delta = 0, thetaS = NULL, thetaE = NULL, HTree = NULL,
-  lambda = 1, mu = 0.5, K = Inf, tmax = NULL, nHmax = Inf,
-  PStartT = 0, iniHBranch = NULL, Gdist = NULL,
-  exportFormat = "cophylogeny", timestep = 0.001)
+rcophylo(
+  beta = 0.1,
+  nu = 0.5,
+  gamma = 0,
+  sigma = 0,
+  kappa = 0,
+  delta = 0,
+  thetaS = NULL,
+  thetaE = NULL,
+  HTree = NULL,
+  lambda = 1,
+  mu = 0.5,
+  K = Inf,
+  tmax = NULL,
+  nHmax = Inf,
+  PStartT = 0,
+  iniHBranch = NULL,
+  Gdist = NULL,
+  exportFormat = "cophylogeny",
+  timestep = 0.001
+)
 }
 \arguments{
 \item{beta}{a numeric value giving the baseline parasite host shift rate.}

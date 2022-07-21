@@ -4,8 +4,7 @@
 \alias{plot.cophylogeny}
 \title{Cophylogeny plot}
 \usage{
-\method{plot}{cophylogeny}(x, hostCol = "Black", parasiteCol = "Red",
-  ...)
+\method{plot}{cophylogeny}(x, hostCol = "Black", parasiteCol = "Red", ...)
 }
 \arguments{
 \item{x}{a cophylogeny of class 'cophylogeny', containing a host tree and a

@@ -4,11 +4,14 @@
 \alias{get_PHDistCorrelation}
 \title{Correlation between pairwise distances of associated hosts and parasites.}
 \usage{
-get_PHDistCorrelation(cophy)
+get_PHDistCorrelation(cophy, minSurvivors = 5)
 }
 \arguments{
 \item{cophy}{a cophylogeny (object of class "cophylogeny") containing one
 host and one parasite tree.}
+
+\item{minSurvivors}{the minimum number of surviving parasites needed for
+the correlation to be calculated. The default is set to 5.}
 }
 \description{
 Calculating the correlation between the distance matrixes of parasites and

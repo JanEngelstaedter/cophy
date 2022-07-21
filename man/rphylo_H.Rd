@@ -4,8 +4,15 @@
 \alias{rphylo_H}
 \title{Phylogenetic (host) tree simulation}
 \usage{
-rphylo_H(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  exportFormat = "phylo", timestep = 0.001)
+rphylo_H(
+  tmax,
+  nHmax = Inf,
+  lambda = 1,
+  mu = 0.5,
+  K = Inf,
+  exportFormat = "phylo",
+  timestep = 0.001
+)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}

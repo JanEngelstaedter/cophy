@@ -4,9 +4,20 @@
 \alias{rcophylo_PonH}
 \title{Cophylogeny simulation on an existing host tree.}
 \usage{
-rcophylo_PonH(HTree, beta = 0.1, gamma = 0, sigma = 0, nu = 0.5,
-  kappa = 0, delta = 0, exportFormat = "cophylogeny", PStartT = 0,
-  iniHBranch = NULL, Gdist = NULL, timestep = 0.001)
+rcophylo_PonH(
+  HTree,
+  beta = 0.1,
+  gamma = 0,
+  sigma = 0,
+  nu = 0.5,
+  kappa = 0,
+  delta = 0,
+  exportFormat = "cophylogeny",
+  PStartT = 0,
+  iniHBranch = NULL,
+  Gdist = NULL,
+  timestep = 0.001
+)
 }
 \arguments{
 \item{HTree}{a pre-built host phylogenetic tree.}

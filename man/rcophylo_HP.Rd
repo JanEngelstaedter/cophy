@@ -4,9 +4,21 @@
 \alias{rcophylo_HP}
 \title{Cophylogeny simulation}
 \usage{
-rcophylo_HP(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf,
-  beta = 0.1, gamma = 0.02, sigma = 0, nu = 0.5, kappa = 0,
-  delta = 0, exportFormat = "cophylogeny", timestep = 0.001)
+rcophylo_HP(
+  tmax,
+  nHmax = Inf,
+  lambda = 1,
+  mu = 0.5,
+  K = Inf,
+  beta = 0.1,
+  gamma = 0.02,
+  sigma = 0,
+  nu = 0.5,
+  kappa = 0,
+  delta = 0,
+  exportFormat = "cophylogeny",
+  timestep = 0.001
+)
 }
 \arguments{
 \item{tmax}{a numeric value giving the length of the simulation.}
