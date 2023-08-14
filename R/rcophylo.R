@@ -7,7 +7,7 @@ DBINC <- 100   # constant that is used internally; only affects the speed of sim
 
 #' Simulate cophylogenies
 #'
-#' This function simulates the process of a parasite lineage that can codiversifies with a host lineage through a number of possible events such as cospeciation, extinction and host-switching. The host tree can either be supplied or simulated along with the parasite tree.
+#' This function simulates the process of a parasite lineage that codiversifies with a host lineage through a number of possible events such as cospeciation, extinction and host-switching. The host tree can either be supplied or simulated along with the parasite tree.
 #'
 #' @param beta a numeric value giving the baseline parasite host shift rate.
 #' @param nu a numeric value giving the parasite extinction rate.
@@ -476,6 +476,17 @@ rcophylo_HP <- function(tmax, nHmax = Inf, lambda = 1, mu = 0.5, K = Inf, beta =
   if (nHDeadBranches > 0)
     HBranches <- rbind(HBranches, HDeadBranches[1:nHDeadBranches, ])
   HBranches <- HBranches[order(HBranches[, "branchNo"]), ]
+
+  # redo simulation if the host fails to speciate during simulation
+  if (nrow(HBranches) == 1) {
+    warning("Host tree failed to speciate during the allotted timeframe. Simulation is being rerun.")
+    replacement <- rcophylo_HP(tmax = tmax, nHmax = nHmax, lambda = lambda/timestep,
+                               mu = mu/timestep, K = K, beta = beta/timestep,
+                               gamma = gamma, sigma = sigma,  nu = nu/timestep,
+                               kappa = kappa/timestep, delta = delta,
+                               exportFormat = exportFormat, timestep = timestep)
+    return(replacement)
+  }
 
   # merging two P matricies together:
   if (nPDeadBranches > 0)

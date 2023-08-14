@@ -102,7 +102,7 @@ By default, an object of class "cophylogeny" is returned that is a
   the function uses internally.)
 }
 \description{
-This function simulates the process of a parasite lineage that can codiversifies with a host lineage through a number of possible events such as cospeciation, extinction and host-switching. The host tree can either be supplied or simulated along with the parasite tree.
+This function simulates the process of a parasite lineage that codiversifies with a host lineage through a number of possible events such as cospeciation, extinction and host-switching. The host tree can either be supplied or simulated along with the parasite tree.
 }
 \examples{
 cophylogeny <- rcophylo(tmax=5)
