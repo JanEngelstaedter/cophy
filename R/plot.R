@@ -80,6 +80,10 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
   for(i in 1:nrow(HConnectorLines))
     HConnectorLines[i, ] <- c(HBranchLines[2*i,1], HBranchLines[2*i,3], HBranchLines[2*i + 1,3])
 
+  HBranchLines[, 'y'] <- (HBranchLines[, 'y']/20) * 19
+  HConnectorLines[, 'y1'] <- (HConnectorLines[, 'y1']/20) * 19
+  HConnectorLines[, 'y2'] <- (HConnectorLines[, 'y2']/20) * 19
+
   # parasite tree:
 
   noPNodes <- length(Pphy$edge[, 1]) + 1  # total number of nodes in the parasite phylogeny
@@ -89,7 +93,7 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
 
   PBranchLines <- matrix(NA, ncol = 3, nrow = noPNodes)
   colnames(PBranchLines) <- c("x1", "x2", "y")
-  PConnectorLines <- matrix(NA, ncol = 4, nrow = (noPNodes-1)/2)
+  PConnectorLines <- matrix(NA, ncol = 4, nrow = length(unique(Pphy$edge[,1])))
   colnames(PConnectorLines) <- c("x", "y1", "y2", "type")
 
   if (!is.null(Pphy$root.edge)) {  # root present on parasite tree
@@ -101,7 +105,7 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
   if (noPNodes > 1) {
     PBranchLinesIndex <- 1  # current row in matrix that has just been filled
 
-    for (i in firstPNode:noPNodes) {    # loop covering all internal nodes
+    for (i in unique(Pphy$edge[,1])) {    # loop covering all internal nodes
       daughterBranches <- which(Pphy$edge[, 1] == i)  # indices of the two new branches to be added
       motherBranch <- match(i, Pphy$edge[, 2])  # index of the mother branch
       if (is.na(motherBranch)) # no mother branch found
@@ -150,7 +154,11 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
 
   # shifting parasite tree a bit:
   xshift <- max(HBranchLines[, 2])/1000
-  yshift <- 0.1
+  yshift <- 0.07
+
+  # PBranchLines[, 'y'] <- (PBranchLines[, 'y']/20) * 19
+  # PConnectorLines[, 'y1'] <- (PConnectorLines[, 'y1']/20) * 19
+  # PConnectorLines[, 'y2'] <- (PConnectorLines[, 'y2']/20) * 19
 
   PBranchLines <- sweep(PBranchLines, 2, -c(xshift, xshift, yshift))
   if (length(PConnectorLines[, 1]) > 1) {
