@@ -80,9 +80,9 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
   for(i in 1:nrow(HConnectorLines))
     HConnectorLines[i, ] <- c(HBranchLines[2*i,1], HBranchLines[2*i,3], HBranchLines[2*i + 1,3])
 
-  HBranchLines[, 'y'] <- (HBranchLines[, 'y']/20) * 19
-  HConnectorLines[, 'y1'] <- (HConnectorLines[, 'y1']/20) * 19
-  HConnectorLines[, 'y2'] <- (HConnectorLines[, 'y2']/20) * 19
+  HBranchLines[, 'y'] <- (HBranchLines[, 'y']/20) * 18
+  HConnectorLines[, 'y1'] <- (HConnectorLines[, 'y1']/20) * 18
+  HConnectorLines[, 'y2'] <- (HConnectorLines[, 'y2']/20) * 18
 
   # parasite tree:
 
@@ -178,17 +178,17 @@ plot.cophylogeny <- function(x, hostCol = "Black", parasiteCol = "Red", ...) {
   }
 
   for (i in 1:length(PBranchLines[, 1])) {
-    graphics::lines(c(PBranchLines[i, 1], PBranchLines[i, 2]), c(PBranchLines[i, 3], PBranchLines[i, 3]), col = parasiteCol)
+    graphics::lines(c(PBranchLines[i, 1], PBranchLines[i, 2]), c(PBranchLines[i, 3], PBranchLines[i, 3]), col = parasiteCol, xpd = T)
   }
 
   if (nrow(PConnectorLines) > 0) {
     for (i in 1:length(PConnectorLines[, 1])) {
       if (PConnectorLines[i, 4] %in% c(1,4)) {    # cospeciation event, possibly with loss of one parasite
-        graphics::lines(c(PConnectorLines[i, 1], PConnectorLines[i, 1]), c(PConnectorLines[i, 2], PConnectorLines[i, 3]), col = parasiteCol)
+        graphics::lines(c(PConnectorLines[i, 1], PConnectorLines[i, 1]), c(PConnectorLines[i, 2], PConnectorLines[i, 3]), col = parasiteCol, xpd = T)
       } else if (PConnectorLines[i, 4] == 2) {
-        graphics::arrows(PConnectorLines[i, 1], PConnectorLines[i, 2], PConnectorLines[i, 1], PConnectorLines[i, 3], col = parasiteCol, length = 0.1, angle = 10)
+        graphics::arrows(PConnectorLines[i, 1], PConnectorLines[i, 2], PConnectorLines[i, 1], PConnectorLines[i, 3], col = parasiteCol, length = 0.1, angle = 10, xpd = T)
       } else if (PConnectorLines[i, 4] == 3) {
-        graphics::points(PConnectorLines[i, 1], PConnectorLines[i, 2], col = parasiteCol, cex = 0.8, pch = 16)
+        graphics::points(PConnectorLines[i, 1], PConnectorLines[i, 2], col = parasiteCol, cex = 0.8, pch = 16, xpd = T)
       }
     }
   }
